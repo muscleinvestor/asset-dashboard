@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -6,8 +7,18 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f13;color:#e8e8f0;min-height:100vh;font-size:14px}
-.nav{display:flex;gap:2px;padding:14px 16px 0;border-bottom:1px solid #1e1e2a;overflow-x:auto}
-.nav-btn{padding:9px 16px;border:none;background:none;color:#666;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap}
+
+/* 환율 티커 */
+.ticker-bar{background:#13131a;border-bottom:1px solid #1e1e2a;padding:7px 16px;display:flex;align-items:center;gap:20px;font-size:12px}
+.ticker-item{display:flex;align-items:center;gap:6px}
+.ticker-label{color:#555;font-size:11px}
+.ticker-value{color:#e8e8f0;font-weight:600}
+.ticker-change{font-size:11px}
+.ticker-dot{width:6px;height:6px;border-radius:50%;background:#34d399;animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.nav{display:flex;gap:2px;padding:12px 16px 0;border-bottom:1px solid #1e1e2a;overflow-x:auto}
+.nav-btn{padding:8px 16px;border:none;background:none;color:#666;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap}
 .nav-btn.active{color:#a78bfa;border-bottom-color:#a78bfa}
 .nav-btn:hover{color:#c4b5fd}
 .page{display:none;padding:16px}
@@ -17,7 +28,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-label{font-size:11px;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
 .card-value{font-size:20px;font-weight:600}
 .card-sub{font-size:12px;margin-top:3px}
-.pos{color:#34d399}.neg{color:#f87171}.neu{color:#888}
+.pos{color:#34d399}.neg{color:#f87171}
 .chart-wrap{background:#1a1a24;border-radius:12px;padding:14px;border:1px solid #2a2a38;margin-bottom:14px}
 .chart-title{font-size:12px;color:#666;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
 .table-wrap{background:#1a1a24;border-radius:12px;border:1px solid #2a2a38;overflow:hidden;margin-bottom:14px}
@@ -33,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .period-btn.active{background:#2d1f4a;color:#a78bfa;border-color:#7c3aed}
 table{width:100%;border-collapse:collapse}
 th{padding:8px 10px;text-align:left;font-size:10px;color:#444;font-weight:500;border-bottom:1px solid #1e1e2a;text-transform:uppercase;white-space:nowrap}
-td{padding:8px 10px;border-bottom:1px solid #181820;font-size:12px}
+td{padding:8px 10px;border-bottom:1px solid #181820;font-size:12px;vertical-align:middle}
 tr:last-child td{border:none}
 tr:hover td{background:rgba(167,139,250,.03)}
 .badge{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
@@ -44,8 +55,6 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .badge-sector{background:#2a2520;color:#f59e0b;font-size:10px}
 .edit-input{background:#1e1e28;border:1px solid #3a3a4a;border-radius:6px;color:#e8e8f0;padding:3px 6px;width:80px;font-size:11px}
 .edit-input-wide{width:110px}
-.refresh-dot{width:7px;height:7px;border-radius:50%;background:#34d399;animation:pulse 2s infinite;display:inline-block;margin-right:6px}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
 .form-group label{display:block;font-size:10px;color:#555;margin-bottom:4px}
 .form-group input,.form-group select{width:100%;background:#141418;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:7px 9px;font-size:12px}
@@ -58,11 +67,35 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .modal-overlay.open{display:flex}
 .modal{background:#1a1a24;border-radius:14px;border:1px solid #2a2a38;padding:20px;width:420px;max-width:95vw;max-height:90vh;overflow-y:auto}
 .modal h3{margin-bottom:14px;font-size:14px;font-weight:500}
-.divider{border:none;border-top:1px solid #1e1e2a;margin:12px 0}
 .cat-total{background:#141418;border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+
+/* 이중 가격 표시 */
+.price-krw{font-size:12px;color:#e8e8f0}
+.price-usd{font-size:10px;color:#555;margin-top:1px}
 </style>
+
 </head>
 <body>
+
+<!-- 환율 티커 바 -->
+
+<div class="ticker-bar">
+  <div class="ticker-item">
+    <span class="ticker-dot"></span>
+    <span class="ticker-label">USDT/KRW</span>
+    <span class="ticker-value" id="tk-usdtkrw">--</span>
+    <span class="ticker-change" id="tk-usdtkrw-chg"></span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">BTC/KRW</span>
+    <span class="ticker-value" id="tk-btc">--</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">ETH/KRW</span>
+    <span class="ticker-value" id="tk-eth">--</span>
+  </div>
+  <div style="margin-left:auto;font-size:11px;color:#333" id="tk-time">--</div>
+</div>
 
 <nav class="nav">
   <button class="nav-btn active" onclick="showPage('dashboard',this)">대시보드</button>
@@ -72,15 +105,15 @@ tr:hover td{background:rgba(167,139,250,.03)}
 </nav>
 
 <!-- 대시보드 -->
+
 <div id="dashboard" class="page active">
-  <div class="cards" id="summary-cards">
+  <div class="cards">
     <div class="card"><div class="card-label">총 자산</div><div class="card-value" id="c-total">--</div></div>
     <div class="card"><div class="card-label">총 투자금</div><div class="card-value" id="c-cost">--</div></div>
     <div class="card"><div class="card-label">평가손익</div><div class="card-value" id="c-pnl">--</div><div class="card-sub" id="c-pnlpct"></div></div>
     <div class="card"><div class="card-label">갱신시각</div><div class="card-value" style="font-size:13px;padding-top:3px" id="c-time"><span class="loading"></span>로딩중</div></div>
   </div>
 
-  <!-- Period selector -->
   <div class="chart-wrap" style="padding:10px 14px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:11px;color:#555">수익률 기준</span>
@@ -104,7 +137,6 @@ tr:hover td{background:rgba(167,139,250,.03)}
       <div style="position:relative;height:200px"><canvas id="cat-chart"></canvas></div>
     </div>
   </div>
-
   <div class="chart-wrap">
     <div class="chart-title">카테고리 소계</div>
     <div id="cat-summary"></div>
@@ -112,9 +144,10 @@ tr:hover td{background:rgba(167,139,250,.03)}
 </div>
 
 <!-- 포트폴리오 -->
+
 <div id="portfolio" class="page">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div style="font-size:12px;color:#444"><span class="refresh-dot"></span><span id="r-status">30초 자동갱신</span></div>
+    <div style="font-size:12px;color:#444"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;display:inline-block;margin-right:6px;animation:pulse 2s infinite"></span><span id="r-status">30초 자동갱신</span></div>
     <div class="btn-group">
       <button class="btn" onclick="fetchPrices()">새로고침</button>
       <button class="btn" onclick="openAddModal()">+ 자산 추가</button>
@@ -124,7 +157,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
     <div style="overflow-x:auto">
       <table>
         <thead><tr>
-          <th>종목</th><th>구분</th><th>섹터</th><th>수량</th><th>평균매입가</th><th>현재가</th><th>평가금액</th><th>손익</th><th>수익률</th><th>수정</th>
+          <th>종목</th><th>구분</th><th>섹터</th><th>수량</th><th>평균매입가</th><th>현재가 (KRW/USD)</th><th>평가금액</th><th>손익</th><th>수익률</th><th>수정</th>
         </tr></thead>
         <tbody id="port-table"></tbody>
       </table>
@@ -133,6 +166,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
 </div>
 
 <!-- 매매일지 -->
+
 <div id="tradelog" class="page">
   <div class="pnl-summary" id="pnl-cards"></div>
   <div class="chart-wrap">
@@ -159,12 +193,13 @@ tr:hover td{background:rgba(167,139,250,.03)}
 </div>
 
 <!-- 수익차트 -->
+
 <div id="chartpage" class="page">
   <div class="chart-wrap">
     <div class="chart-title">
       <span>총 자산 추이 (₩)</span>
       <div class="btn-group">
-        <button class="period-btn active" id="ac-all" onclick="setAssetChartRange('all',this)">전체</button>
+        <button class="period-btn active" onclick="setAssetChartRange('all',this)">전체</button>
         <button class="period-btn" onclick="setAssetChartRange('week',this)">1주</button>
         <button class="period-btn" onclick="setAssetChartRange('month',this)">1달</button>
       </div>
@@ -181,7 +216,8 @@ tr:hover td{background:rgba(167,139,250,.03)}
   </div>
 </div>
 
-<!-- Add Asset Modal -->
+<!-- 자산 추가 모달 -->
+
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <h3>자산 추가</h3>
@@ -218,13 +254,18 @@ tr:hover td{background:rgba(167,139,250,.03)}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
 <script>
+const PROXY = "https://yahoo-proxy.realromanticist777.workers.dev";
 const fmt = n => '₩' + Math.round(n).toLocaleString('ko-KR');
+const fmtUSD = n => '$' + (n).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtPct = n => (n>=0?'+':'')+n.toFixed(2)+'%';
 const clr = n => n>=0?'#34d399':'#f87171';
 const clrClass = n => n>=0?'pos':'neg';
 
 let currentPeriod = 'total';
+let usdKrw = 1330;
+
 let assets = [
   {id:1,symbol:'BTC',name:'비트코인',cat:'crypto',sector:'레이어1',qty:.5,avgCost:55000000,price:0,priceHistory:{}},
   {id:2,symbol:'ETH',name:'이더리움',cat:'crypto',sector:'레이어1',qty:3,avgCost:3200000,price:0,priceHistory:{}},
@@ -234,25 +275,45 @@ let assets = [
   {id:6,symbol:'SAVINGS',name:'정기예금',cat:'cash',sector:'',qty:1,avgCost:5000000,price:5000000,priceHistory:{}},
 ];
 let trades = [];
-let assetHistory = []; // {ts, totalVal, pct}
+let assetHistory = [];
 let editingId = null;
 let donutChart, catChart, retChart, assetChart, monthlyChart;
+let assetChartRange = 'all';
 
 const catLabel = {crypto:'가상자산',us:'미국주식',kr:'한국주식',cash:'현금/예적금'};
 const catBadgeClass = {crypto:'badge-crypto',us:'badge-us',kr:'badge-kr',cash:'badge-cash'};
 const catColors = {crypto:'#7c3aed',us:'#0ea5e9',kr:'#6366f1',cash:'#10b981'};
 
-// ── Price fetch ──────────────────────────────────────────
-let usdKrw = 1330;
+// ── 업비트 USDT/KRW 환율 ──────────────────────────────────
 async function refreshUSDKRW(){
+  try{
+    const r=await fetch('https://api.upbit.com/v1/ticker?markets=KRW-USDT');
+    const d=await r.json();
+    if(d&&d[0]&&d[0].trade_price){
+      usdKrw=d[0].trade_price;
+      const chg=d[0].signed_change_rate*100;
+      document.getElementById('tk-usdtkrw').textContent='₩'+Math.round(usdKrw).toLocaleString('ko-KR');
+      const chgEl=document.getElementById('tk-usdtkrw-chg');
+      chgEl.textContent=fmtPct(chg);
+      chgEl.className='ticker-change '+(chg>=0?'pos':'neg');
+      return;
+    }
+  }catch(e){}
+  // fallback binance
   try{
     const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTKRW');
     const d=await r.json();
-    if(d.price) usdKrw=parseFloat(d.price);
+    if(d.price){usdKrw=parseFloat(d.price);document.getElementById('tk-usdtkrw').textContent='₩'+Math.round(usdKrw).toLocaleString('ko-KR');}
   }catch(e){}
 }
 
+// ── 가상자산 가격 (업비트 KRW 직접) ──────────────────────
 async function fetchCryptoPrice(sym){
+  try{
+    const r=await fetch(`https://api.upbit.com/v1/ticker?markets=KRW-${sym.toUpperCase()}`);
+    const d=await r.json();
+    if(d&&d[0]&&d[0].trade_price) return d[0].trade_price;
+  }catch(e){}
   try{
     const r=await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym.toUpperCase()}USDT`);
     const d=await r.json();
@@ -261,26 +322,23 @@ async function fetchCryptoPrice(sym){
   return null;
 }
 
-// ← Worker 배포 후 본인 URL로 교체하세요
-const PROXY = "https://yahoo-proxy.realromanticist777.workers.dev";
-
 async function fetchStockPrice(sym,cat){
   try{
-    const ticker = cat==='kr' ? sym+'.KS' : sym;
+    const ticker=cat==='kr'?sym+'.KS':sym;
     const r=await fetch(`${PROXY}?ticker=${ticker}&interval=1d&range=5d`);
     const d=await r.json();
     const res=d?.chart?.result?.[0];
     if(!res) return null;
     const price=res.meta?.regularMarketPrice;
     if(!price) return null;
-    return cat==='kr' ? price : price*usdKrw;
+    return cat==='kr'?price:price*usdKrw;
   }catch(e){}
   return null;
 }
 
 async function fetchHistoricalPrice(sym,cat){
   try{
-    const ticker = cat==='kr'?sym+'.KS':cat==='us'?sym:null;
+    const ticker=cat==='kr'?sym+'.KS':cat==='us'?sym:null;
     if(!ticker) return {};
     const r=await fetch(`${PROXY}?ticker=${ticker}&interval=1d&range=1y`);
     const d=await r.json();
@@ -289,7 +347,7 @@ async function fetchHistoricalPrice(sym,cat){
     const ts=res.timestamps||[];
     const closes=res.indicators?.quote?.[0]?.close||[];
     const hist={};
-    ts.forEach((t,i)=>{ if(closes[i]) hist[t]=closes[i]*(cat==='us'?usdKrw:1); });
+    ts.forEach((t,i)=>{if(closes[i]) hist[t]=closes[i]*(cat==='us'?usdKrw:1);});
     return hist;
   }catch(e){}
   return {};
@@ -299,6 +357,17 @@ async function fetchPrices(){
   document.getElementById('c-time').innerHTML='<span class="loading"></span>갱신중...';
   document.getElementById('r-status').textContent='가격 조회중...';
   await refreshUSDKRW();
+
+  // 티커 BTC/ETH
+  try{
+    const r=await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH');
+    const d=await r.json();
+    d.forEach(t=>{
+      if(t.market==='KRW-BTC') document.getElementById('tk-btc').textContent='₩'+Math.round(t.trade_price).toLocaleString('ko-KR');
+      if(t.market==='KRW-ETH') document.getElementById('tk-eth').textContent='₩'+Math.round(t.trade_price).toLocaleString('ko-KR');
+    });
+  }catch(e){}
+
   for(let a of assets){
     if(a.cat==='cash'){a.price=a.avgCost;continue;}
     let p=null;
@@ -306,12 +375,11 @@ async function fetchPrices(){
     else p=await fetchStockPrice(a.symbol,a.cat);
     if(p) a.price=p;
     else if(!a.price) a.price=a.avgCost;
-    // fetch history for stocks
     if((a.cat==='us'||a.cat==='kr')&&Object.keys(a.priceHistory).length===0){
       a.priceHistory=await fetchHistoricalPrice(a.symbol,a.cat);
     }
   }
-  // snapshot
+
   const tv=assets.reduce((s,a)=>s+a.price*a.qty,0);
   const tc=assets.reduce((s,a)=>s+a.avgCost*a.qty,0);
   const pct=tc?((tv-tc)/tc*100):0;
@@ -319,12 +387,14 @@ async function fetchPrices(){
   if(assetHistory.length>200) assetHistory.shift();
 
   const t=new Date();
-  document.getElementById('c-time').textContent=`${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')} 갱신`;
+  const timeStr=`${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')} 갱신`;
+  document.getElementById('c-time').textContent=timeStr;
+  document.getElementById('tk-time').textContent=timeStr;
   document.getElementById('r-status').textContent='30초 자동갱신';
   renderAll();
 }
 
-// ── Period helpers ───────────────────────────────────────
+// ── Period ────────────────────────────────────────────────
 function setPeriod(p,btn){
   currentPeriod=p;
   document.querySelectorAll('#period-btns .period-btn').forEach(b=>b.classList.remove('active'));
@@ -332,41 +402,20 @@ function setPeriod(p,btn){
   renderAll();
 }
 
-function getPriceForPeriod(a){
-  // returns {prev, cur} for computing period return
-  const now=a.price;
-  if(currentPeriod==='total') return {prev:a.avgCost*a.qty, cur:now*a.qty, isCost:true};
-  const msAgo={day:86400000,week:7*86400000,month:30*86400000,year:365*86400000}[currentPeriod]||0;
-  const targetTs=(Date.now()-msAgo)/1000;
-  // find closest historical price
-  if(a.cat==='crypto'){
-    // use assetHistory as fallback for crypto
-    const snap=assetHistory.find(h=>Math.abs(h.ts/1000-targetTs)<86400);
-    if(snap) return {prev:null,cur:null,pct:null}; // no per-asset crypto history
-    return {prev:null,cur:null,pct:null};
-  }
-  const hist=a.priceHistory||{};
-  const keys=Object.keys(hist).map(Number).sort();
-  if(!keys.length) return {prev:null,cur:null,pct:null};
-  const closest=keys.reduce((a,k)=>Math.abs(k-targetTs)<Math.abs(a-targetTs)?k:a,keys[0]);
-  const prevPrice=hist[closest];
-  if(!prevPrice) return {prev:null,cur:null,pct:null};
-  return {prev:prevPrice*a.qty,cur:now*a.qty,isCost:false};
-}
-
 function getPeriodPct(a){
   if(currentPeriod==='total'){
-    const cost=a.avgCost*a.qty;
-    const val=a.price*a.qty;
+    const cost=a.avgCost*a.qty,val=a.price*a.qty;
     return cost?((val-cost)/cost*100):0;
   }
-  const {prev,cur,pct}=getPriceForPeriod(a);
-  if(pct!=null) return pct;
-  if(prev&&cur) return ((cur-prev)/prev*100);
-  // fallback to total
-  const cost=a.avgCost*a.qty;
-  const val=a.price*a.qty;
-  return cost?((val-cost)/cost*100):0;
+  const msAgo={day:86400000,week:7*86400000,month:30*86400000,year:365*86400000}[currentPeriod]||0;
+  const targetTs=(Date.now()-msAgo)/1000;
+  const hist=a.priceHistory||{};
+  const keys=Object.keys(hist).map(Number).sort();
+  if(!keys.length){const c=a.avgCost*a.qty,v=a.price*a.qty;return c?((v-c)/c*100):0;}
+  const closest=keys.reduce((acc,k)=>Math.abs(k-targetTs)<Math.abs(acc-targetTs)?k:acc,keys[0]);
+  const prevPrice=hist[closest];
+  if(!prevPrice){const c=a.avgCost*a.qty,v=a.price*a.qty;return c?((v-c)/c*100):0;}
+  return ((a.price-prevPrice)/prevPrice*100);
 }
 
 // ── Render ────────────────────────────────────────────────
@@ -383,7 +432,7 @@ function renderAll(){
 function renderSummary(){
   const tv=assets.reduce((s,a)=>s+a.price*a.qty,0);
   const tc=assets.reduce((s,a)=>s+a.avgCost*a.qty,0);
-  const pnl=tv-tc; const pct=tc?(pnl/tc*100):0;
+  const pnl=tv-tc,pct=tc?(pnl/tc*100):0;
   document.getElementById('c-total').textContent=fmt(tv);
   document.getElementById('c-cost').textContent=fmt(tc);
   document.getElementById('c-pnl').innerHTML=`<span class="${clrClass(pnl)}">${fmt(pnl)}</span>`;
@@ -427,6 +476,14 @@ function renderPortfolio(){
       const val=a.price*a.qty;
       const pnl=val-a.avgCost*a.qty;
       const pct=getPeriodPct(a);
+      // 이중 가격 표시 (crypto만 USD도 표시)
+      const priceCell = a.cat==='crypto'
+        ? `<div class="price-krw">${fmt(a.price)}</div><div class="price-usd">${fmtUSD(a.price/usdKrw)}</div>`
+        : `<div class="price-krw">${fmt(a.price)}</div>`;
+      const costCell = a.cat==='crypto'
+        ? `<div class="price-krw">${fmt(a.avgCost)}</div><div class="price-usd">${fmtUSD(a.avgCost/usdKrw)}</div>`
+        : `<div class="price-krw">${fmt(a.avgCost)}</div>`;
+
       if(editingId===a.id){
         rows+=`<tr>
           <td><strong>${a.name}</strong><br><span style="color:#444;font-size:10px">${a.symbol}</span></td>
@@ -449,8 +506,8 @@ function renderPortfolio(){
           <td><span class="badge ${catBadgeClass[a.cat]}">${catLabel[a.cat]}</span></td>
           <td>${a.sector?`<span class="badge badge-sector">${a.sector}</span>`:'-'}</td>
           <td>${a.qty}</td>
-          <td>${fmt(a.avgCost)}</td>
-          <td>${fmt(a.price)}</td>
+          <td>${costCell}</td>
+          <td>${priceCell}</td>
           <td>${fmt(val)}</td>
           <td class="${clrClass(pnl)}">${fmt(pnl)}</td>
           <td class="${clrClass(pct)}">${fmtPct(pct)}</td>
@@ -471,42 +528,33 @@ function saveEdit(id){
   a.qty=parseFloat(document.getElementById(`e-qty-${id}`).value)||a.qty;
   a.avgCost=parseFloat(document.getElementById(`e-cost-${id}`).value)||a.avgCost;
   a.price=parseFloat(document.getElementById(`e-price-${id}`).value)||a.price;
-  editingId=null;
-  renderAll();
+  editingId=null;renderAll();
 }
 function delAsset(id){assets=assets.filter(a=>a.id!==id);renderAll();}
 
 function renderDashCharts(){
   const cats=['crypto','us','kr','cash'];
   const vals=cats.map(c=>assets.filter(a=>a.cat===c).reduce((s,a)=>s+a.price*a.qty,0));
-  const labels=cats.map(c=>catLabel[c]);
-  const colors=cats.map(c=>catColors[c]);
-
   if(donutChart) donutChart.destroy();
   donutChart=new Chart(document.getElementById('donut-chart'),{
     type:'doughnut',
-    data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
+    data:{labels:cats.map(c=>catLabel[c]),datasets:[{data:vals,backgroundColor:cats.map(c=>catColors[c]),borderWidth:0,hoverOffset:4}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#666',font:{size:10},padding:8,boxWidth:8}}}}
   });
-
   const pcts=cats.map(c=>{
     const ca=assets.filter(a=>a.cat===c);
-    const v=ca.reduce((s,a)=>s+a.price*a.qty,0);
-    const co=ca.reduce((s,a)=>s+a.avgCost*a.qty,0);
+    const v=ca.reduce((s,a)=>s+a.price*a.qty,0),co=ca.reduce((s,a)=>s+a.avgCost*a.qty,0);
     return co?parseFloat(((v-co)/co*100).toFixed(2)):0;
   });
   if(catChart) catChart.destroy();
   catChart=new Chart(document.getElementById('cat-chart'),{
     type:'bar',
-    data:{labels,datasets:[{data:pcts,backgroundColor:pcts.map(p=>p>=0?'#10b981':'#f87171'),borderRadius:5}]},
+    data:{labels:cats.map(c=>catLabel[c]),datasets:[{data:pcts,backgroundColor:pcts.map(p=>p>=0?'#10b981':'#f87171'),borderRadius:5}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'#1a1a22'}},
-              y:{ticks:{color:'#555',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}
+      scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'#1a1a22'}},y:{ticks:{color:'#555',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}
   });
 }
 
-// ── Chart page ────────────────────────────────────────────
-let assetChartRange='all';
 function setAssetChartRange(r,btn){
   assetChartRange=r;
   document.querySelectorAll('#chartpage .period-btn').forEach(b=>b.classList.remove('active'));
@@ -515,68 +563,46 @@ function setAssetChartRange(r,btn){
 }
 
 function renderChartPage(){
-  // filter history
   const msMap={week:7*86400000,month:30*86400000};
   const cutoff=assetChartRange==='all'?0:Date.now()-msMap[assetChartRange];
   const hist=assetHistory.filter(h=>h.ts>=cutoff);
-  const labels=hist.map(h=>{
-    const d=new Date(h.ts);
-    return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-  });
-
+  const labels=hist.map(h=>{const d=new Date(h.ts);return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;});
   if(assetChart) assetChart.destroy();
   assetChart=new Chart(document.getElementById('asset-chart'),{
     type:'line',
-    data:{labels,datasets:[{label:'총 자산',data:hist.map(h=>Math.round(h.totalVal)),
-      borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.08)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#a78bfa'}]},
+    data:{labels,datasets:[{data:hist.map(h=>Math.round(h.totalVal)),borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.08)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#a78bfa'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{x:{ticks:{color:'#555',maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:'#1a1a22'}},
               y:{ticks:{color:'#555',callback:v=>{const m=v/100000000;return m>=1?m.toFixed(1)+'억':Math.round(v/10000)+'만'}},grid:{color:'#1a1a22'}}}}
   });
-
   if(retChart) retChart.destroy();
   retChart=new Chart(document.getElementById('ret-chart'),{
     type:'line',
-    data:{labels,datasets:[{label:'수익률',data:hist.map(h=>h.pct),
-      borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.06)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#38bdf8'}]},
+    data:{labels,datasets:[{data:hist.map(h=>h.pct),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.06)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#38bdf8'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{x:{ticks:{color:'#555',maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:'#1a1a22'}},
               y:{ticks:{color:'#555',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}
   });
-
-  // Monthly realized P&L
   const monthly={};
-  trades.filter(t=>t.side==='sell').forEach(t=>{
-    const m=t.date.substring(0,7);
-    monthly[m]=(monthly[m]||0)+t.realizedPnl;
-  });
-  const mk=Object.keys(monthly).sort();
-  const mv=mk.map(k=>Math.round(monthly[k]));
+  trades.filter(t=>t.side==='sell').forEach(t=>{const m=t.date.substring(0,7);monthly[m]=(monthly[m]||0)+t.realizedPnl;});
+  const mk=Object.keys(monthly).sort(),mv=mk.map(k=>Math.round(monthly[k]));
   if(monthlyChart) monthlyChart.destroy();
   monthlyChart=new Chart(document.getElementById('monthly-chart'),{
     type:'bar',
     data:{labels:mk.length?mk:['데이터없음'],datasets:[{data:mk.length?mv:[0],backgroundColor:mv.map(v=>v>=0?'#10b981':'#f87171'),borderRadius:5}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:'#555'},grid:{color:'#1a1a22'}},
-              y:{ticks:{color:'#555',callback:v=>(v>=0?'+':'')+Math.round(v/10000)+'만'},grid:{color:'#1a1a22'}}}}
+      scales:{x:{ticks:{color:'#555'},grid:{color:'#1a1a22'}},y:{ticks:{color:'#555',callback:v=>(v>=0?'+':'')+Math.round(v/10000)+'만'},grid:{color:'#1a1a22'}}}}
   });
 }
 
-// ── Trade log ─────────────────────────────────────────────
 function addTrade(){
-  const sym=document.getElementById('t-sym').value;
-  const side=document.getElementById('t-side').value;
-  const qty=parseFloat(document.getElementById('t-qty').value);
-  const price=parseFloat(document.getElementById('t-price').value);
-  const fee=parseFloat(document.getElementById('t-fee').value)||0;
-  const date=document.getElementById('t-date').value;
+  const sym=document.getElementById('t-sym').value,side=document.getElementById('t-side').value;
+  const qty=parseFloat(document.getElementById('t-qty').value),price=parseFloat(document.getElementById('t-price').value);
+  const fee=parseFloat(document.getElementById('t-fee').value)||0,date=document.getElementById('t-date').value;
   if(!sym||!qty||!price||!date){alert('날짜, 종목, 수량, 가격을 입력해주세요');return;}
   trades.push({id:Date.now(),date,symbol:sym,side,qty,price,fee,realizedPnl:0});
-  calcPnl();
-  renderAll();
-  document.getElementById('t-qty').value='';
-  document.getElementById('t-price').value='';
-  document.getElementById('t-fee').value='';
+  calcPnl();renderAll();
+  document.getElementById('t-qty').value='';document.getElementById('t-price').value='';document.getElementById('t-fee').value='';
 }
 
 function calcPnl(){
@@ -600,16 +626,13 @@ function calcPnl(){
 
 function renderTradeSummary(){
   const sells=trades.filter(t=>t.side==='sell');
-  const totalR=sells.reduce((s,t)=>s+t.realizedPnl,0);
-  const totalF=trades.reduce((s,t)=>s+t.fee,0);
-  const wins=sells.filter(t=>t.realizedPnl>0).length;
-  const wr=sells.length?(wins/sells.length*100).toFixed(0):0;
+  const totalR=sells.reduce((s,t)=>s+t.realizedPnl,0),totalF=trades.reduce((s,t)=>s+t.fee,0);
+  const wins=sells.filter(t=>t.realizedPnl>0).length,wr=sells.length?(wins/sells.length*100).toFixed(0):0;
   document.getElementById('pnl-cards').innerHTML=`
     <div class="pnl-card"><div class="card-label">총 실현손익</div><div class="card-value ${clrClass(totalR)}" style="font-size:18px">${fmt(totalR)}</div></div>
     <div class="pnl-card"><div class="card-label">총 수수료</div><div class="card-value" style="font-size:18px;color:#f59e0b">${fmt(totalF)}</div></div>
     <div class="pnl-card"><div class="card-label">매도 거래수</div><div class="card-value" style="font-size:18px">${sells.length}건</div></div>
-    <div class="pnl-card"><div class="card-label">승률</div><div class="card-value" style="font-size:18px">${wr}%</div></div>
-  `;
+    <div class="pnl-card"><div class="card-label">승률</div><div class="card-value" style="font-size:18px">${wr}%</div></div>`;
 }
 
 function renderTradeTable(){
@@ -627,26 +650,21 @@ function renderTradeTable(){
 function delTrade(id){trades=trades.filter(t=>t.id!==id);calcPnl();renderAll();}
 
 function updateTradeSym(){
-  const sel=document.getElementById('t-sym');
-  const cur=sel.value;
+  const sel=document.getElementById('t-sym'),cur=sel.value;
   sel.innerHTML='<option value="">선택</option>'+assets.map(a=>`<option value="${a.symbol}"${a.symbol===cur?' selected':''}>${a.name} (${a.symbol})</option>`).join('');
 }
 
-// ── Modal ─────────────────────────────────────────────────
 function openAddModal(){document.getElementById('add-modal').classList.add('open');}
 function closeModal(){document.getElementById('add-modal').classList.remove('open');}
 function addAsset(){
   const sym=document.getElementById('m-sym').value.trim().toUpperCase();
   const name=document.getElementById('m-name').value.trim();
-  const cat=document.getElementById('m-cat').value;
-  const sector=document.getElementById('m-sector').value;
-  const qty=parseFloat(document.getElementById('m-qty').value);
-  const cost=parseFloat(document.getElementById('m-cost').value);
+  const cat=document.getElementById('m-cat').value,sector=document.getElementById('m-sector').value;
+  const qty=parseFloat(document.getElementById('m-qty').value),cost=parseFloat(document.getElementById('m-cost').value);
   const price=parseFloat(document.getElementById('m-price').value)||cost;
   if(!sym||!name||!qty||!cost){alert('심볼, 종목명, 수량, 매입가를 입력해주세요');return;}
   assets.push({id:Date.now(),symbol:sym,name,cat,sector,qty,avgCost:cost,price,priceHistory:{}});
-  closeModal();
-  renderAll();
+  closeModal();renderAll();
   if(cat!=='cash') fetchPrices();
 }
 
@@ -657,10 +675,10 @@ function showPage(id,btn){
   btn.classList.add('active');
 }
 
-// Init
 document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
 fetchPrices();
 setInterval(fetchPrices,30000);
 </script>
+
 </body>
 </html>
