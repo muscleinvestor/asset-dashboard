@@ -731,13 +731,23 @@ function fetchCryptoPrice(sym){
     .then(function(r){return r.json();}).then(function(d){return(d&&d[0]&&d[0].trade_price)?d[0].trade_price:null;})
     .catch(function(){return fetch("https://api.binance.com/api/v3/ticker/price?symbol="+sym.toUpperCase()+"USDT").then(function(r){return r.json();}).then(function(d){return d.price?parseFloat(d.price)*usdKrw:null;}).catch(function(){return null;});});
 }
+function getYahooTicker(sym, cat) {
+  // 이미 .KS/.KQ 붙어있으면 그대로, 숫자 6자리면 .KS 추가, 나머지는 그대로
+  if (sym.indexOf(".") !== -1) return sym;
+  if (cat === "kr") return sym + ".KS";
+  return sym;
+}
+function getBaseSymbol(sym) {
+  // 005930.KS → 005930 처럼 접미사 제거
+  return sym.replace(/\.(KS|KQ|T|L|DE|PA|AS)$/i, "");
+}
 function fetchStockPrice(sym,cat){
-  var ticker=cat==="kr"?sym+".KS":sym;
+  var ticker = getYahooTicker(sym, cat);
   return fetch(PROXY+"?ticker="+encodeURIComponent(ticker)+"&interval=1d&range=5d")
     .then(function(r){return r.json();}).then(function(d){var res=d&&d.chart&&d.chart.result&&d.chart.result[0];if(!res)return null;var price=res.meta&&res.meta.regularMarketPrice;return price?(cat==="kr"?price:price*usdKrw):null;}).catch(function(){return null;});
 }
 function fetchHistPrice(sym,cat){
-  var ticker=cat==="kr"?sym+".KS":sym;
+  var ticker = getYahooTicker(sym, cat);
   return fetch(PROXY+"?ticker="+encodeURIComponent(ticker)+"&interval=1d&range=1y")
     .then(function(r){return r.json();}).then(function(d){
       var res=d&&d.chart&&d.chart.result&&d.chart.result[0];if(!res)return{};
@@ -1189,21 +1199,29 @@ function doSearch(){
 function selectTicker(idx){
   var items=document.querySelectorAll("#search-results .search-item"),item=items[idx];if(!item)return;
   var sym=item.getAttribute("data-sym"),name=item.getAttribute("data-name"),exch=item.getAttribute("data-exch"),type=item.getAttribute("data-type");
-  g("m-sym").value=sym;g("m-name").value=name;
   var cat="us";if(type==="CRYPTOCURRENCY")cat="crypto";else if(exch&&(exch.includes("KSC")||exch.includes("KSE")))cat="kr";
-  g("m-cat").value=cat;g("m-sel-name").textContent=name;g("m-sel-sym").textContent=sym;g("m-sel-exch").textContent=exch;
+  // 접미사 제거 후 저장
+  var cleanSym = getBaseSymbol(sym).toUpperCase();
+  g("m-sym").value=cleanSym;g("m-name").value=name;g("m-cat").value=cat;
+  g("m-sel-name").textContent=name;g("m-sel-sym").textContent=cleanSym;g("m-sel-exch").textContent=exch;
   g("m-sel-type").textContent=cat==="crypto"?"가상자산":cat==="kr"?"한국주식":"미국주식";g("m-selected").style.display="block";
   g("search-results").style.display="none";g("m-search").value=name;
 }
 
 // ── 공통 ──────────────────────────────────────────────────
-function openAddModal(){g("add-modal").classList.add("open");["m-search","m-sym","m-name","m-qty","m-cost","m-price"].forEach(function(id){g(id).value="";});g("m-selected").style.display="none";g("search-results").style.display="none";}
-function closeModal(){g("add-modal").classList.remove("open");}
+function isSameSym(a, b) {
+  return getBaseSymbol(a).toUpperCase() === getBaseSymbol(b).toUpperCase();
+}
 function addAsset(){
   var sym=g("m-sym").value.trim().toUpperCase(),name=g("m-name").value.trim(),cat=g("m-cat").value,sector=g("m-sector").value;
   var qty=parseFloat(g("m-qty").value),cost=parseFloat(g("m-cost").value),price=parseFloat(g("m-price").value)||cost;
   if(!sym||!name||!qty||!cost){alert("심볼, 종목명, 수량, 매입가를 입력해주세요");return;}
-  assets.push({id:Date.now(),symbol:sym,name,cat,sector,qty,avgCost:cost,price,priceHistory:{}});
+  // 중복 체크: 기본 심볼(접미사 제거) 기준
+  var exists=assets.find(function(a){return isSameSym(a.symbol,sym);});
+  if(exists){alert("이미 포트폴리오에 있는 종목이에요.\n("+exists.name+" / "+exists.symbol+")\n수정 버튼으로 수량/가격을 변경해주세요.");closeModal();return;}
+  // 심볼은 접미사 없이 저장 (가격 조회 시 cat으로 판단해서 붙임)
+  var cleanSym = getBaseSymbol(sym);
+  assets.push({id:Date.now(),symbol:cleanSym,name,cat,sector,qty,avgCost:cost,price,priceHistory:{}});
   closeModal();renderAll();if(cat!=="cash")fetchPrices();
 }
 function showPage(id,btn){
