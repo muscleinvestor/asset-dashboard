@@ -10,7 +10,7 @@ html,body{overflow-x:hidden;scrollbar-width:none}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;color:#e8e8f0;font-size:14px}
 .tbar-wrap{background:#16161f;border-bottom:1px solid #22222e;overflow-x:auto;scrollbar-width:none}
 .tbar-wrap::-webkit-scrollbar{display:none}
-.tgrid{display:grid;grid-template-columns:repeat(16,minmax(60px,1fr));min-width:960px}
+.tgrid{display:grid;grid-template-columns:repeat(17,minmax(60px,1fr));min-width:1020px}
 .trow2{background:#111118}
 .tcell{padding:5px 7px;border-right:1px solid #1e1e2a;display:flex;flex-direction:column;gap:2px}
 .tcell:last-child{border-right:none}
@@ -108,6 +108,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
     <div class="tcell"><span class="tlabel">KOSDAQ</span><span class="tval" id="tk-kosdaq">--</span></div>
     <div class="tcell"><span class="tlabel">S&amp;P500 <span class="ms" id="tk-us-ms"></span></span><span class="tval" id="tk-snp">--</span></div>
     <div class="tcell"><span class="tlabel">NASDAQ</span><span class="tval" id="tk-nasdaq">--</span></div>
+    <div class="tcell"><span class="tlabel">NDX100</span><span class="tval" id="tk-ndx">--</span></div>
     <div class="tcell"><span class="tlabel">RUSSELL</span><span class="tval" id="tk-russell">--</span></div>
     <div class="tcell"><span class="tlabel">VIX</span><span class="tval" id="tk-vix">--</span></div>
     <div class="tcell"><span class="tlabel">GOLD</span><span class="tval" id="tk-gold">--</span></div>
@@ -126,6 +127,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
     <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-kosdaq">--</span></div>
     <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-snp">--</span></div>
     <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-nasdaq">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-ndx">--</span></div>
     <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-russell">--</span></div>
     <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-vix">--</span></div>
     <div class="tcell"><span class="tlabel" style="color:#333">전일대비</span><span class="tchg" id="ch-gold">--</span></div>
@@ -142,6 +144,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
   <button class="nb" onclick="showPage('tradelog',this)">매매일지</button>
   <button class="nb" onclick="showPage('dividend',this)">배당</button>
   <button class="nb" onclick="showPage('chartpage',this)">수익차트</button>
+  <button class="nb" onclick="showPage('heatmappage',this);initHeatmap()">섹터맵</button>
   <button class="nb" onclick="showPage('realpage',this)">부동산</button>
   <button class="nb" onclick="showPage('loanpage',this)">대출관리</button>
   <div class="nav-right">
@@ -499,6 +502,60 @@ tr:hover td{background:rgba(167,139,250,.03)}
       <button class="btn" onclick="saveLoan()" style="background:#2d1f4a;border-color:#7c3aed">저장</button>
     </div>
   </div>
+</div>
+
+<!-- 섹터맵 -->
+<div id="heatmappage" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:15px;font-weight:600">섹터 히트맵</div>
+      <div style="font-size:11px;color:#555;margin-top:2px">블록 크기 = 시총 비중 · 색상 = 전일대비 등락</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;background:#141418;border-radius:8px;padding:3px;border:1px solid #2a2a38">
+        <button class="pb active" id="hm-tab-both" onclick="setHmView('both',this)">전체</button>
+        <button class="pb" id="hm-tab-us" onclick="setHmView('us',this)">미국</button>
+        <button class="pb" id="hm-tab-kr" onclick="setHmView('kr',this)">한국</button>
+      </div>
+      <button class="btn" onclick="loadHeatmap()">새로고침</button>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#555">
+        <div id="hm-legend" style="width:100px;height:8px;border-radius:3px"></div>
+        <span>-3%</span><span style="margin-left:2px">+3%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div id="hm-summary" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"></div>
+
+  <!-- 미국 S&P500 섹터 -->
+  <div id="hm-us-wrap" style="margin-bottom:20px">
+    <div style="font-size:11px;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      <span style="background:#1a2a3a;color:#38bdf8;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🇺🇸 S&P500 섹터</span>
+      <span style="font-size:10px;color:#444">GICS 섹터 지수 기준 · Yahoo Finance</span>
+      <span class="tdot" style="margin-left:4px"></span>
+    </div>
+    <div id="hm-us" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+  </div>
+
+  <!-- 한국 KOSPI 섹터 -->
+  <div id="hm-kr-wrap">
+    <div style="font-size:11px;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      <span style="background:#1a2540;color:#818cf8;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🇰🇷 KOSPI 업종</span>
+      <span style="font-size:10px;color:#444">네이버 증권 업종 지수 기준 · 실시간</span>
+      <span class="tdot" style="margin-left:4px"></span>
+    </div>
+    <div id="hm-kr" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+  </div>
+
+  <div style="font-size:11px;color:#444;margin-top:14px;text-align:right" id="hm-status">--</div>
+</div>
+
+<!-- 히트맵 툴팁 -->
+<div id="hm-tooltip" style="display:none;position:fixed;background:#1e1e2a;border:1px solid #3a3a4a;border-radius:9px;padding:12px 14px;font-size:12px;pointer-events:none;z-index:1000;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+  <div id="hmt-name" style="font-weight:600;font-size:13px;margin-bottom:6px"></div>
+  <div style="display:flex;justify-content:space-between;gap:16px;margin-bottom:3px;color:#888">전일대비<span id="hmt-chg" style="font-weight:600"></span></div>
+  <div style="display:flex;justify-content:space-between;gap:16px;color:#888">비중<span id="hmt-weight" style="color:#e8e8f0;font-weight:500"></span></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -903,6 +960,7 @@ function fetchTickers() {
         { key:"kosdaq",  tv:"tk-kosdaq",  ch:"ch-kosdaq",  fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});} },
         { key:"snp",     tv:"tk-snp",     ch:"ch-snp",     fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
         { key:"nasdaq",  tv:"tk-nasdaq",  ch:"ch-nasdaq",  fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
+        { key:"ndx",     tv:"tk-ndx",     ch:"ch-ndx",     fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
         { key:"russell", tv:"tk-russell", ch:"ch-russell", fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
         { key:"vix",     tv:"tk-vix",     ch:"ch-vix",     fn:function(v){return v.toFixed(2);} },
         { key:"gold",    tv:"tk-gold",    ch:"ch-gold",    fn:function(v){return "$"+v.toLocaleString("en-US",{maximumFractionDigits:2});} },
@@ -1635,6 +1693,196 @@ function saveLoan(){
   l.name=g("lm-name").value.trim()||l.name;l.principal=parseFloat(g("lm-principal").value)||l.principal;l.rate=parseFloat(g("lm-rate").value)||l.rate;l.months=parseInt(g("lm-months").value)||l.months;l.type=g("lm-type").value;l.paidMonths=parseInt(g("lm-paid").value)||0;
   var calc=calcMonthly(l.principal,l.rate,l.months,l.type);Object.keys(calc).forEach(function(k){l[k]=calc[k];});
   closeLoanModal();renderLoans();renderLoanSummary();renderSummary();saveLS();
+}
+
+// ── 섹터 히트맵 ──────────────────────────────────────────
+var hmView = "both";
+var hmUsData = [], hmKrData = [];
+var hmInited = false;
+
+// 미국 섹터 시총비중 (S&P500 GICS 기준)
+var US_SECTOR_WEIGHTS = {
+  "정보기술":32.0,"금융":13.5,"헬스케어":11.8,"경기소비재":10.2,
+  "산업재":8.5,"커뮤니케이션":8.8,"필수소비재":5.8,"에너지":3.8,
+  "부동산":2.2,"유틸리티":2.4,"소재":2.0
+};
+
+// 한국 업종 시총비중 (KOSPI 추정치)
+var KR_SECTOR_WEIGHTS = {
+  "전기전자":32.0,"운수장비":10.0,"서비스업":9.0,"의약품":7.5,
+  "금융":7.0,"화학":6.5,"철강금속":4.5,"증권":3.5,
+  "통신업":3.0,"건설업":3.0,"유통업":3.0,"음식료품":2.5,
+  "전기가스업":2.0,"보험":2.0,"운수창고":1.5,
+  "의료정밀":1.0,"섬유의복":0.5,"종이목재":0.3,"비금속광물":0.3
+};
+
+function hmColor(pct) {
+  var abs = Math.min(Math.abs(pct), 4), r = abs/4;
+  if (pct >= 0) return "rgb("+Math.round(10+6*r)+","+Math.round(80+130*r)+","+Math.round(40+60*r)+")";
+  return "rgb("+Math.round(80+140*r)+","+Math.round(15+35*r)+","+Math.round(15+35*r)+")";
+}
+function hmTextClr(pct) { return pct >= 0 ? "#6ee7b7" : "#fca5a5"; }
+function hmFmt(v) { return (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
+
+function renderHmLegend() {
+  var stops = [];
+  for (var i = 0; i <= 20; i++) stops.push(hmColor(-4 + i*0.4));
+  g("hm-legend").style.background = "linear-gradient(to right," + stops.join(",") + ")";
+}
+
+function renderHmBlock(container, sectors, weightMap) {
+  var el = g(container);
+  if (!sectors.length) {
+    el.innerHTML = "<div style='padding:20px;color:#333;font-size:12px'>데이터 없음 (새로고침 시도)</div>";
+    return;
+  }
+  var totalW = sectors.reduce(function(s,x){ return s+(weightMap[x.name]||1); }, 0);
+  var cw = el.offsetWidth || 700;
+
+  el.innerHTML = sectors.map(function(s) {
+    var w = weightMap[s.name] || 1;
+    var ratio = w / totalW;
+    var bw = Math.max(72, Math.min(260, Math.round(cw * ratio * 0.96)));
+    var bh = Math.max(68, Math.min(110, Math.round(bw * 0.52)));
+    var bg = hmColor(s.change);
+    var tc = hmTextClr(s.change);
+    var wPct = (container === "hm-us") ? w.toFixed(1)+"%" : w.toFixed(1)+"%";
+
+    return "<div style='background:"+bg+";width:"+bw+"px;height:"+bh+"px;" +
+      "border-radius:9px;padding:9px 11px;cursor:default;transition:filter .15s;" +
+      "display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden'" +
+      " onmouseenter='hmShowTip(event,\""+s.name+"\","+s.change+","+w+")'" +
+      " onmouseleave='hmHideTip()'" +
+      " onmouseover='this.style.filter=\"brightness(1.18)\"'" +
+      " onmouseout='this.style.filter=\"brightness(1)\"'>" +
+      "<div style='font-size:11px;font-weight:700;color:rgba(255,255,255,.92);line-height:1.2'>"+s.name+"</div>" +
+      "<div style='font-size:14px;font-weight:700;color:"+tc+"'>"+hmFmt(s.change)+"</div>" +
+      "<div style='font-size:9px;color:rgba(255,255,255,.4)'>"+wPct+"</div>" +
+      "</div>";
+  }).join("");
+}
+
+function renderHmSummary() {
+  function avg(arr) { return arr.length ? arr.reduce(function(a,b){return a+b;},0)/arr.length : null; }
+  function best(arr) { if (!arr.length) return null; return arr.reduce(function(a,b){return a.change>b.change?a:b;}); }
+  function worst(arr) { if (!arr.length) return null; return arr.reduce(function(a,b){return a.change<b.change?a:b;}); }
+
+  var usAvg = avg(hmUsData.map(function(x){return x.change;}));
+  var krAvg = avg(hmKrData.map(function(x){return x.change;}));
+  var usBest = best(hmUsData), usWorst = worst(hmUsData);
+  var krBest = best(hmKrData), krWorst = worst(hmKrData);
+
+  function card(lbl, val, clr) {
+    return "<div style='background:#1a1a24;border-radius:8px;padding:8px 12px;border:1px solid #2a2a38;font-size:11px'>" +
+      "<div style='color:#555;margin-bottom:2px'>"+lbl+"</div>" +
+      "<div style='font-size:13px;font-weight:600;color:"+clr+"'>"+val+"</div></div>";
+  }
+
+  var html = "";
+  if (usAvg !== null) {
+    html += card("🇺🇸 S&P500 평균", hmFmt(usAvg), usAvg>=0?"#34d399":"#f87171");
+    if (usBest)  html += card("최강 섹터 🔥", usBest.name+" "+hmFmt(usBest.change), "#34d399");
+    if (usWorst) html += card("최약 섹터 🧊", usWorst.name+" "+hmFmt(usWorst.change), "#f87171");
+  }
+  if (krAvg !== null) {
+    html += card("🇰🇷 KOSPI 평균", hmFmt(krAvg), krAvg>=0?"#34d399":"#f87171");
+    if (krBest)  html += card("최강 업종 🔥", krBest.name+" "+hmFmt(krBest.change), "#34d399");
+    if (krWorst) html += card("최약 업종 🧊", krWorst.name+" "+hmFmt(krWorst.change), "#f87171");
+  }
+  g("hm-summary").innerHTML = html;
+}
+
+function hmShowTip(e, name, chg, weight) {
+  var t = g("hm-tooltip");
+  g("hmt-name").textContent = name;
+  g("hmt-chg").textContent = hmFmt(chg);
+  g("hmt-chg").style.color = hmTextClr(chg);
+  g("hmt-weight").textContent = weight.toFixed(1)+"%";
+  t.style.display = "block";
+  hmMoveTip(e);
+}
+function hmHideTip() { g("hm-tooltip").style.display = "none"; }
+document.addEventListener("mousemove", function(e) {
+  if (g("hm-tooltip").style.display === "block") hmMoveTip(e);
+});
+function hmMoveTip(e) {
+  var t = g("hm-tooltip");
+  var x = e.clientX+14, y = e.clientY-10;
+  if (x+170 > window.innerWidth) x = e.clientX-170;
+  if (y+100 > window.innerHeight) y = e.clientY-100;
+  t.style.left = x+"px"; t.style.top = y+"px";
+}
+
+function setHmView(v, btn) {
+  hmView = v;
+  document.querySelectorAll("#heatmappage .pb").forEach(function(b){b.classList.remove("active");});
+  btn.classList.add("active");
+  g("hm-us-wrap").style.display = (v === "kr") ? "none" : "block";
+  g("hm-kr-wrap").style.display = (v === "us") ? "none" : "block";
+}
+
+function loadHeatmap() {
+  g("hm-status").textContent = "로딩중...";
+  var loading = function(id, names) {
+    g(id).innerHTML = names.map(function(n) {
+      return "<div style='background:#1a1a24;border-radius:9px;width:90px;height:70px;border:1px solid #2a2a38;padding:9px 11px;animation:spin .0s'>" +
+        "<div style='font-size:10px;color:#333'>"+n+"</div>" +
+        "<div style='font-size:13px;color:#2a2a38;margin-top:12px'>--</div></div>";
+    }).join("");
+  };
+  loading("hm-us", ["정보기술","금융","헬스케어","경기소비재","산업재","커뮤니케이션","필수소비재","에너지","부동산","유틸리티","소재"]);
+  loading("hm-kr", ["전기전자","운수장비","서비스업","의약품","금융","화학","철강금속","증권","통신업","건설업","유통업"]);
+
+  var done = 0;
+  function check() {
+    done++;
+    if (done >= 2) {
+      renderHmSummary();
+      var now = new Date();
+      g("hm-status").textContent = now.getHours()+":"+("0"+now.getMinutes()).slice(-2)+" 갱신 · 미국=Yahoo(15분지연) · 한국=네이버(실시간)";
+    }
+  }
+
+  // 미국 S&P500 섹터
+  fetch(PROXY + "?mode=yahoo_sector_us")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if (d.ok && d.data && d.data.length) {
+        hmUsData = d.data;
+        renderHmBlock("hm-us", hmUsData, US_SECTOR_WEIGHTS);
+      } else {
+        g("hm-us").innerHTML = "<div style='color:#555;font-size:12px;padding:12px'>미국 섹터 데이터 로드 실패</div>";
+      }
+      check();
+    }).catch(function(){
+      g("hm-us").innerHTML = "<div style='color:#555;font-size:12px;padding:12px'>미국 섹터 연결 오류</div>";
+      check();
+    });
+
+  // 한국 KOSPI 업종
+  fetch(PROXY + "?mode=naver_sector_kr")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if (d.ok && d.data && d.data.length) {
+        hmKrData = d.data;
+        renderHmBlock("hm-kr", hmKrData, KR_SECTOR_WEIGHTS);
+      } else {
+        g("hm-kr").innerHTML = "<div style='color:#555;font-size:12px;padding:12px'>한국 업종 데이터 로드 실패</div>";
+      }
+      check();
+    }).catch(function(){
+      g("hm-kr").innerHTML = "<div style='color:#555;font-size:12px;padding:12px'>한국 업종 연결 오류</div>";
+      check();
+    });
+}
+
+function initHeatmap() {
+  if (!hmInited) {
+    hmInited = true;
+    renderHmLegend();
+    loadHeatmap();
+    setInterval(loadHeatmap, 5 * 60 * 1000); // 5분마다 갱신
+  }
 }
 
 function showPage(id, btn) {
