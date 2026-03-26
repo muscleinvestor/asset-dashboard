@@ -5,29 +5,37 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f13;color:#e8e8f0;min-height:100vh;font-size:14px}
-.tbar{background:#13131a;border-bottom:1px solid #1e1e2a;padding:6px 14px;display:flex;align-items:center;gap:12px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
-.tbar::-webkit-scrollbar{display:none}
-.ti{display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
-.tl{color:#555;font-size:10px}
-.tv{color:#e8e8f0;font-weight:600;font-size:11px}
-.tc{font-size:10px}
-.tsep{color:#2a2a38;margin:0 4px}
-.tdot{width:6px;height:6px;border-radius:50%;background:#34d399;animation:pulse 2s infinite;flex-shrink:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f13;color:#e8e8f0;font-size:14px}
+
+/* ── 티커 ── */
+.tbar-wrap{background:#16161f;border-bottom:1px solid #22222e;overflow-x:auto;scrollbar-width:none}
+.tbar-wrap::-webkit-scrollbar{display:none}
+.tbar-grid{display:grid;grid-template-columns:repeat(16,minmax(62px,1fr));min-width:900px}
+.trow1{border-bottom:1px solid #1a1a26}
+.trow2{background:#111118}
+.tcell{padding:5px 7px;border-right:1px solid #1e1e2a;display:flex;flex-direction:column;gap:2px}
+.tcell:last-child{border-right:none}
+.tlabel{font-size:9px;color:#888;letter-spacing:.3px;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.tval{font-size:11px;font-weight:700;color:#f0f0f8;white-space:nowrap}
+.tchg{font-size:10px;font-weight:600;white-space:nowrap}
 .pos{color:#34d399}.neg{color:#f87171}
-.ms{font-size:9px;padding:1px 4px;border-radius:3px;margin-left:2px;font-weight:500}
+.ms{font-size:8px;padding:1px 3px;border-radius:2px;font-weight:600}
 .ms-open{background:#0f2a1a;color:#34d399}
 .ms-closed{background:#2a1a1a;color:#f87171}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tdot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#34d399;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── 레이아웃 ── */
 .nav{display:flex;gap:2px;padding:10px 14px 0;border-bottom:1px solid #1e1e2a;overflow-x:auto}
 .nb{padding:8px 14px;border:none;background:none;color:#666;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap}
 .nb.active{color:#a78bfa;border-bottom-color:#a78bfa}
 .nb:hover{color:#c4b5fd}
 .page{display:none;padding:14px}
 .page.active{display:block}
+
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:14px}
 .card{background:#1a1a24;border-radius:12px;padding:13px;border:1px solid #2a2a38}
-.cl{font-size:10px;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.cl{font-size:10px;color:#666;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .cv{font-size:19px;font-weight:600}
 .cs{font-size:11px;margin-top:3px}
 .cw{background:#1a1a24;border-radius:12px;padding:13px;border:1px solid #2a2a38;margin-bottom:12px}
@@ -35,6 +43,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tw{background:#1a1a24;border-radius:12px;border:1px solid #2a2a38;overflow:hidden;margin-bottom:12px}
 .th2{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:1px solid #2a2a38}
 .th2 h3{font-size:13px;font-weight:500}
+
 .btn{padding:5px 11px;border-radius:7px;border:1px solid #3a3a4a;background:#252530;color:#c4b5fd;cursor:pointer;font-size:12px;transition:all .2s}
 .btn:hover{background:#2e2e40;border-color:#7c3aed}
 .btnd{color:#f87171;border-color:#3a2a2a;background:transparent}
@@ -43,21 +52,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bg{display:flex;gap:4px}
 .pb{padding:3px 9px;border-radius:5px;border:1px solid #2a2a38;background:transparent;color:#666;cursor:pointer;font-size:11px;transition:all .2s}
 .pb.active{background:#2d1f4a;color:#a78bfa;border-color:#7c3aed}
+
 table{width:100%;border-collapse:collapse}
-th{padding:7px 9px;text-align:left;font-size:10px;color:#444;font-weight:500;border-bottom:1px solid #1e1e2a;text-transform:uppercase;white-space:nowrap}
+th{padding:7px 9px;text-align:left;font-size:10px;color:#555;font-weight:500;border-bottom:1px solid #1e1e2a;text-transform:uppercase;white-space:nowrap}
 td{padding:7px 9px;border-bottom:1px solid #181820;font-size:12px;vertical-align:middle}
 tr:last-child td{border:none}
 tr:hover td{background:rgba(167,139,250,.03)}
+
 .badge{padding:2px 6px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
 .bc{background:#2d1f4a;color:#a78bfa}
 .bu{background:#1a2a3a;color:#38bdf8}
 .bk{background:#1a2540;color:#818cf8}
 .bca{background:#1a3a2a;color:#34d399}
 .bs{background:#2a2520;color:#f59e0b;font-size:10px}
+
 .ei{background:#1e1e28;border:1px solid #3a3a4a;border-radius:5px;color:#e8e8f0;padding:3px 5px;width:78px;font-size:11px}
 .eiw{width:108px}
 .fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:10px}
-.fg label{display:block;font-size:10px;color:#555;margin-bottom:3px}
+.fg label{display:block;font-size:10px;color:#666;margin-bottom:3px}
 .fg input,.fg select{width:100%;background:#141418;border:1px solid #2a2a38;border-radius:6px;color:#e8e8f0;padding:6px 8px;font-size:12px}
 .fg select option{background:#1a1a24}
 .pc{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin-bottom:12px}
@@ -70,87 +82,102 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .md h3{margin-bottom:12px;font-size:14px;font-weight:500}
 .cat-row{background:#141418;border-radius:7px;padding:9px 12px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
 .pkrw{font-size:12px;color:#e8e8f0}
-.pusd{font-size:10px;color:#555;margin-top:1px}
+.pusd{font-size:10px;color:#666;margin-top:1px}
 </style>
 </head>
 <body>
 
-<!-- 티커 바 -->
-<div class="tbar">
-  <span class="tdot"></span>
-  <div class="ti"><span class="tl">USDT/KRW</span><span class="tv" id="tk-usdtkrw">--</span><span class="tc" id="tk-usdtkrw-c"></span></div>
-  <div class="ti"><span class="tl">USD/KRW</span><span class="tv" id="tk-usdkrw">--</span><span class="tc" id="tk-usdkrw-c"></span></div>
-  <div class="ti"><span class="tl">김치P</span><span class="tv" id="tk-premium">--</span></div>
-  <span class="tsep">|</span>
-  <div class="ti"><span class="tl">BTC</span><span class="tv" id="tk-btc">--</span><span class="tc" id="tk-btc-c"></span></div>
-  <div class="ti"><span class="tl">ETH</span><span class="tv" id="tk-eth">--</span><span class="tc" id="tk-eth-c"></span></div>
-  <span class="tsep">|</span>
-  <div class="ti"><span class="tl">KOSPI</span><span class="tv" id="tk-kospi">--</span><span class="tc" id="tk-kospi-c"></span><span class="ms" id="tk-kr-ms"></span></div>
-  <div class="ti"><span class="tl">KOSDAQ</span><span class="tv" id="tk-kosdaq">--</span><span class="tc" id="tk-kosdaq-c"></span></div>
-  <span class="tsep">|</span>
-  <div class="ti"><span class="tl">S&amp;P500</span><span class="tv" id="tk-snp">--</span><span class="tc" id="tk-snp-c"></span><span class="ms" id="tk-us-ms"></span></div>
-  <div class="ti"><span class="tl">NASDAQ</span><span class="tv" id="tk-nasdaq">--</span><span class="tc" id="tk-nasdaq-c"></span></div>
-  <div class="ti"><span class="tl">RUSSELL</span><span class="tv" id="tk-russell">--</span><span class="tc" id="tk-russell-c"></span></div>
-  <div class="ti"><span class="tl">VIX</span><span class="tv" id="tk-vix">--</span><span class="tc" id="tk-vix-c"></span></div>
-  <span class="tsep">|</span>
-  <div class="ti"><span class="tl">GOLD</span><span class="tv" id="tk-gold">--</span><span class="tc" id="tk-gold-c"></span></div>
-  <div class="ti"><span class="tl">SILVER</span><span class="tv" id="tk-silver">--</span><span class="tc" id="tk-silver-c"></span></div>
-  <div class="ti"><span class="tl">WTI</span><span class="tv" id="tk-wti">--</span><span class="tc" id="tk-wti-c"></span></div>
-  <div class="ti"><span class="tl">BRENT</span><span class="tv" id="tk-brent">--</span><span class="tc" id="tk-brent-c"></span></div>
-  <div style="margin-left:auto;font-size:10px;color:#333;flex-shrink:0;padding-left:10px" id="tk-time">--</div>
+<!-- 티커 바 (2줄 그리드) -->
+<div class="tbar-wrap">
+  <div class="tbar-grid trow1">
+    <div class="tcell"><span class="tlabel">USDT/KRW</span><span class="tval" id="tk-usdtkrw">--</span></div>
+    <div class="tcell"><span class="tlabel">USD/KRW</span><span class="tval" id="tk-usdkrw">--</span></div>
+    <div class="tcell"><span class="tlabel">&#44608;&#52824;P</span><span class="tval" id="tk-premium">--</span></div>
+    <div class="tcell"><span class="tlabel">BTC/KRW</span><span class="tval" id="tk-btc">--</span></div>
+    <div class="tcell"><span class="tlabel">ETH/KRW</span><span class="tval" id="tk-eth">--</span></div>
+    <div class="tcell"><span class="tlabel">KOSPI <span class="ms" id="tk-kr-ms"></span></span><span class="tval" id="tk-kospi">--</span></div>
+    <div class="tcell"><span class="tlabel">KOSDAQ</span><span class="tval" id="tk-kosdaq">--</span></div>
+    <div class="tcell"><span class="tlabel">S&#38;P500 <span class="ms" id="tk-us-ms"></span></span><span class="tval" id="tk-snp">--</span></div>
+    <div class="tcell"><span class="tlabel">NASDAQ</span><span class="tval" id="tk-nasdaq">--</span></div>
+    <div class="tcell"><span class="tlabel">RUSSELL</span><span class="tval" id="tk-russell">--</span></div>
+    <div class="tcell"><span class="tlabel">VIX</span><span class="tval" id="tk-vix">--</span></div>
+    <div class="tcell"><span class="tlabel">GOLD</span><span class="tval" id="tk-gold">--</span></div>
+    <div class="tcell"><span class="tlabel">SILVER</span><span class="tval" id="tk-silver">--</span></div>
+    <div class="tcell"><span class="tlabel">WTI</span><span class="tval" id="tk-wti">--</span></div>
+    <div class="tcell"><span class="tlabel">BRENT</span><span class="tval" id="tk-brent">--</span></div>
+    <div class="tcell"><span class="tlabel" id="tk-time" style="color:#444">--</span><span class="tdot" style="margin-top:3px"></span></div>
+  </div>
+  <div class="tbar-grid trow2">
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-usdtkrw">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-usdkrw">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#54788;&#51116;</span><span class="tchg" id="ch-premium">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-btc">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-eth">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-kospi">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-kosdaq">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-snp">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-nasdaq">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-russell">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-vix">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-gold">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-silver">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-wti">--</span></div>
+    <div class="tcell"><span class="tlabel" style="color:#444">&#51204;&#51068;&#45824;&#48708;</span><span class="tchg" id="ch-brent">--</span></div>
+    <div class="tcell"></div>
+  </div>
 </div>
 
 <!-- 네비 -->
 <nav class="nav">
-  <button class="nb active" onclick="showPage('dashboard',this)">대시보드</button>
-  <button class="nb" onclick="showPage('portfolio',this)">포트폴리오</button>
-  <button class="nb" onclick="showPage('tradelog',this)">매매일지</button>
-  <button class="nb" onclick="showPage('chartpage',this)">수익차트</button>
-  <button class="nb" onclick="showPage('realpage',this)">부동산</button>
-  <button class="nb" onclick="showPage('loanpage',this)">대출관리</button>
+  <button class="nb active" onclick="showPage('dashboard',this)">&#45824;&#49884;&#48372;&#46300;</button>
+  <button class="nb" onclick="showPage('portfolio',this)">&#54252;&#53944;&#54ด;&#47532;&#50724;</button>
+  <button class="nb" onclick="showPage('tradelog',this)">&#47588;&#47588;&#51068;&#51648;</button>
+  <button class="nb" onclick="showPage('chartpage',this)">&#49688;&#51775;&#52264;&#53944;</button>
+  <button class="nb" onclick="showPage('realpage',this)">&#48512;&#46041;&#49328;</button>
+  <button class="nb" onclick="showPage('loanpage',this)">&#45824;&#52636;&#44288;&#47532;</button>
 </nav>
 
 <!-- 대시보드 -->
 <div id="dashboard" class="page active">
   <div class="cards">
-    <div class="card"><div class="cl">총 자산</div><div class="cv" id="c-total">--</div></div>
-    <div class="card"><div class="cl">총 투자금</div><div class="cv" id="c-cost">--</div></div>
-    <div class="card"><div class="cl">평가손익</div><div class="cv" id="c-pnl">--</div><div class="cs" id="c-pnlpct"></div></div>
-    <div class="card"><div class="cl">총 부채</div><div class="cv neg" id="c-debt">--</div></div>
-    <div class="card"><div class="cl">순자산</div><div class="cv" id="c-net">--</div></div>
-    <div class="card"><div class="cl">갱신시각</div><div class="cv" style="font-size:12px;padding-top:3px" id="c-time"><span class="loading"></span>로딩중</div></div>
+    <div class="card"><div class="cl">&#52509; &#51088;&#49328;</div><div class="cv" id="c-total">--</div></div>
+    <div class="card"><div class="cl">&#52509; &#53804;&#51088;&#44552;</div><div class="cv" id="c-cost">--</div></div>
+    <div class="card"><div class="cl">&#54òì&#44032;&#49552;&#51775;</div><div class="cv" id="c-pnl">--</div><div class="cs" id="c-pnlpct"></div></div>
+    <div class="card"><div class="cl">&#52509; &#48512;&#52404;</div><div class="cv neg" id="c-debt">--</div></div>
+    <div class="card"><div class="cl">&#49688;&#51088;&#49328;</div><div class="cv" id="c-net">--</div></div>
+    <div class="card"><div class="cl">&#44ฎ&#49888;&#49884;&#44033;</div><div class="cv" style="font-size:12px;padding-top:3px" id="c-time"><span class="loading"></span></div></div>
   </div>
   <div class="cw" style="padding:9px 13px">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:10px;color:#555">수익률 기준</span>
+      <span style="font-size:10px;color:#666">&#49688;&#51775;&#47456; &#44592;&#51456;</span>
       <div class="bg" id="period-btns">
-        <button class="pb active" onclick="setPeriod('total',this)">총수익</button>
-        <button class="pb" onclick="setPeriod('day',this)">일</button>
-        <button class="pb" onclick="setPeriod('week',this)">주</button>
-        <button class="pb" onclick="setPeriod('month',this)">월</button>
-        <button class="pb" onclick="setPeriod('year',this)">년</button>
+        <button class="pb active" onclick="setPeriod('total',this)">&#52509;&#49688;&#51775;</button>
+        <button class="pb" onclick="setPeriod('day',this)">&#51068;</button>
+        <button class="pb" onclick="setPeriod('week',this)">&#51452;</button>
+        <button class="pb" onclick="setPeriod('month',this)">&#50900;</button>
+        <button class="pb" onclick="setPeriod('year',this)">&#45380;</button>
       </div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-    <div class="cw" style="margin:0"><div class="ct">자산 배분</div><div style="position:relative;height:195px"><canvas id="donut-chart"></canvas></div></div>
-    <div class="cw" style="margin:0"><div class="ct">카테고리별 수익률</div><div style="position:relative;height:195px"><canvas id="cat-chart"></canvas></div></div>
+    <div class="cw" style="margin:0"><div class="ct">&#51088;&#49328; &#48176;&#48516;</div><div style="position:relative;height:195px"><canvas id="donut-chart"></canvas></div></div>
+    <div class="cw" style="margin:0"><div class="ct">&#52852;&#53580;&#44256;&#47532;&#48324; &#49688;&#51775;&#47456;</div><div style="position:relative;height:195px"><canvas id="cat-chart"></canvas></div></div>
   </div>
-  <div class="cw"><div class="ct">카테고리 소계</div><div id="cat-summary"></div></div>
+  <div class="cw"><div class="ct">&#52852;&#53580;&#44256;&#47532; &#49548;&#44228;</div><div id="cat-summary"></div></div>
 </div>
 
 <!-- 포트폴리오 -->
 <div id="portfolio" class="page">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <div style="font-size:11px;color:#444"><span class="tdot" style="margin-right:5px"></span><span id="r-status">30초 자동갱신</span></div>
+    <div style="font-size:11px;color:#555"><span class="tdot" style="margin-right:5px"></span><span id="r-status">30&#52488; &#51088;&#46041;&#44ฎ&#49888;</span></div>
     <div class="bg">
-      <button class="btn" onclick="fetchPrices()">새로고침</button>
-      <button class="btn" onclick="openAddModal()">+ 자산 추가</button>
+      <button class="btn" onclick="fetchPrices()">&#49352;&#47196;&#44256;&#52840;</button>
+      <button class="btn" onclick="openAddModal()">+ &#51088;&#49328; &#52628;&#44032;</button>
     </div>
   </div>
   <div class="tw"><div style="overflow-x:auto">
     <table>
-      <thead><tr><th>종목</th><th>구분</th><th>섹터</th><th>수량</th><th>평균매입가</th><th>현재가(KRW/USD)</th><th>평가금액</th><th>손익</th><th>수익률</th><th>수정</th></tr></thead>
+      <thead><tr><th>&#51333;&#47785;</th><th>&#44396;&#48516;</th><th>&#49457;&#53552;</th><th>&#49688;&#47049;</th><th>&#54òì&#44404;&#47588;&#51077;&#44032;</th><th>&#54788;&#51116;&#44032;(KRW/USD)</th><th>&#54òì&#44032;&#44552;&#50529;</th><th>&#49552;&#51775;</th><th>&#49688;&#51775;&#47456;</th><th>&#49688;&#51221;</th></tr></thead>
       <tbody id="port-table"></tbody>
     </table>
   </div></div>
@@ -160,22 +187,22 @@ tr:hover td{background:rgba(167,139,250,.03)}
 <div id="tradelog" class="page">
   <div class="pc" id="pnl-cards"></div>
   <div class="cw">
-    <div class="ct" style="margin-bottom:10px">거래 기록 추가</div>
+    <div class="ct" style="margin-bottom:10px">&#44ฎ&#47000; &#44ธ&#47197; &#52628;&#44032;</div>
     <div class="fg">
-      <div><label>날짜</label><input type="date" id="t-date"></div>
-      <div><label>종목</label><select id="t-sym"><option value="">선택</option></select></div>
-      <div><label>매수/매도</label><select id="t-side"><option value="buy">매수</option><option value="sell">매도</option></select></div>
-      <div><label>수량</label><input type="number" id="t-qty" placeholder="0" step="any"></div>
-      <div><label>체결가(₩)</label><input type="number" id="t-price" placeholder="0"></div>
-      <div><label>수수료(₩)</label><input type="number" id="t-fee" placeholder="0"></div>
+      <div><label>&#45328;&#51676;</label><input type="date" id="t-date"></div>
+      <div><label>&#51333;&#47785;</label><select id="t-sym"><option value="">&#49440;&#53469;</option></select></div>
+      <div><label>&#47588;&#49688;/&#47588;&#46020;</label><select id="t-side"><option value="buy">&#47588;&#49688;</option><option value="sell">&#47588;&#46020;</option></select></div>
+      <div><label>&#49688;&#47049;</label><input type="number" id="t-qty" placeholder="0" step="any"></div>
+      <div><label>&#52404;&#44ๆ&#44ฎ;(&#8361;)</label><input type="number" id="t-price" placeholder="0"></div>
+      <div><label>&#49688;&#49688;&#47308;(&#8361;)</label><input type="number" id="t-fee" placeholder="0"></div>
     </div>
-    <button class="btn" onclick="addTrade()">기록 추가</button>
+    <button class="btn" onclick="addTrade()">&#44ธ&#47197; &#52628;&#44032;</button>
   </div>
   <div class="tw">
-    <div class="th2"><h3>거래 내역</h3></div>
+    <div class="th2"><h3>&#44ฎ&#47000; &#45236;&#50669;</h3></div>
     <div style="overflow-x:auto">
       <table>
-        <thead><tr><th>날짜</th><th>종목</th><th>구분</th><th>수량</th><th>체결가</th><th>수수료</th><th>실현손익</th><th></th></tr></thead>
+        <thead><tr><th>&#45328;&#51676;</th><th>&#51333;&#47085;</th><th>&#44396;&#48516;</th><th>&#49688;&#47049;</th><th>&#52404;&#44ๆ&#44ฎ;</th><th>&#49688;&#49688;&#47308;</th><th>&#49884;&#54ˆ&#49552;&#51775;</th><th></th></tr></thead>
         <tbody id="trade-table"></tbody>
       </table>
     </div>
@@ -186,56 +213,56 @@ tr:hover td{background:rgba(167,139,250,.03)}
 <div id="chartpage" class="page">
   <div class="cw">
     <div class="ct">
-      <span>총 자산 추이(₩)</span>
+      <span>&#52509; &#51088;&#49328; &#52628;&#51060;(&#8361;)</span>
       <div class="bg">
-        <button class="pb active" onclick="setAcRange('all',this)">전체</button>
-        <button class="pb" onclick="setAcRange('week',this)">1주</button>
-        <button class="pb" onclick="setAcRange('month',this)">1달</button>
+        <button class="pb active" onclick="setAcRange('all',this)">&#51„&#52404;</button>
+        <button class="pb" onclick="setAcRange('week',this)">1&#51452;</button>
+        <button class="pb" onclick="setAcRange('month',this)">1&#45804;</button>
       </div>
     </div>
     <div style="position:relative;height:250px"><canvas id="asset-chart"></canvas></div>
   </div>
-  <div class="cw"><div class="ct">수익률 추이(%)</div><div style="position:relative;height:200px"><canvas id="ret-chart"></canvas></div></div>
-  <div class="cw"><div class="ct">월별 실현손익(₩)</div><div style="position:relative;height:190px"><canvas id="monthly-chart"></canvas></div></div>
+  <div class="cw"><div class="ct">&#49688;&#51775;&#47456; &#52628;&#51060;(%)</div><div style="position:relative;height:200px"><canvas id="ret-chart"></canvas></div></div>
+  <div class="cw"><div class="ct">&#50900;&#48324; &#49884;&#54ˆ&#49552;&#51775;(&#8361;)</div><div style="position:relative;height:190px"><canvas id="monthly-chart"></canvas></div></div>
 </div>
 
 <!-- 부동산 -->
 <div id="realpage" class="page">
   <div class="cards">
-    <div class="card"><div class="cl">총 매입금액</div><div class="cv" id="re-cost">--</div></div>
-    <div class="card"><div class="cl">총 현재가치</div><div class="cv" id="re-value">--</div></div>
-    <div class="card"><div class="cl">평가손익</div><div class="cv" id="re-pnl">--</div><div class="cs" id="re-pct"></div></div>
-    <div class="card"><div class="cl">실현손익(매도)</div><div class="cv" id="re-realized">--</div></div>
+    <div class="card"><div class="cl">&#52509; &#47588;&#51077;&#44552;&#50529;</div><div class="cv" id="re-cost">--</div></div>
+    <div class="card"><div class="cl">&#52509; &#54788;&#51116;&#44032;&#52824;</div><div class="cv" id="re-value">--</div></div>
+    <div class="card"><div class="cl">&#54òì&#44032;&#49552;&#51775;</div><div class="cv" id="re-pnl">--</div><div class="cs" id="re-pct"></div></div>
+    <div class="card"><div class="cl">&#49884;&#54ˆ&#49552;&#51775;(&#47588;&#46020;)</div><div class="cv" id="re-realized">--</div></div>
   </div>
   <div class="cw">
-    <div class="ct" style="margin-bottom:10px">부동산 추가</div>
+    <div class="ct" style="margin-bottom:10px">&#48512;&#46041;&#49328; &#52628;&#44032;</div>
     <div class="fg" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
-      <div><label>물건명</label><input type="text" id="re-name" placeholder="강남 아파트 101호"></div>
-      <div><label>종류</label><select id="re-type"><option value="apt">아파트</option><option value="villa">빌라/다세대</option><option value="officetel">오피스텔</option><option value="commercial">상가/사무실</option><option value="land">토지</option><option value="house">단독주택</option><option value="other">기타</option></select></div>
-      <div><label>지역</label><input type="text" id="re-location" placeholder="서울 강남구"></div>
-      <div><label>매입금액(₩)</label><input type="number" id="re-buy" placeholder="500000000" oninput="calcRePreview()"></div>
-      <div><label>매입일</label><input type="date" id="re-buydate"></div>
-      <div><label>현재 추정가(₩)</label><input type="number" id="re-cur" placeholder="600000000" oninput="calcRePreview()"></div>
-      <div><label>보증금/전세(₩)</label><input type="number" id="re-deposit" placeholder="0"></div>
-      <div><label>월세(₩)</label><input type="number" id="re-rent" placeholder="0"></div>
-      <div><label>상태</label><select id="re-status"><option value="hold">보유중</option><option value="sold">매도완료</option><option value="rent_out">임대중</option><option value="rent_in">임차중</option></select></div>
-      <div><label>매도금액(₩,매도시)</label><input type="number" id="re-sell" placeholder="0"></div>
-      <div><label>매도일</label><input type="date" id="re-selldate"></div>
-      <div><label>취득세+기타비용(₩)</label><input type="number" id="re-tax" placeholder="0" oninput="calcRePreview()"></div>
+      <div><label>&#47932;&#44ˆ&#47749;</label><input type="text" id="re-name" placeholder="&#44095;&#45224; &#50500;&#54C8;&#53944; 101&#54840;"></div>
+      <div><label>&#51333;&#47448;</label><select id="re-type"><option value="apt">&#50500;&#54C8;&#53944;</option><option value="villa">&#48271;&#46972;/&#45796;&#49464;&#45824;</option><option value="officetel">&#50724;&#54ी&#49828;&#53588;</option><option value="commercial">&#49345;&#44032;/&#49324;&#47924;&#49884;</option><option value="land">&#53664;&#51648;</option><option value="house">&#45813;&#46021;&#51452;&#53537;</option><option value="other">&#44ธ&#53440;</option></select></div>
+      <div><label>&#51648;&#50669;</label><input type="text" id="re-location" placeholder="&#49436;&#50872; &#44095;&#45224;&#44396;"></div>
+      <div><label>&#47588;&#51077;&#44552;&#50529;(&#8361;)</label><input type="number" id="re-buy" placeholder="500000000" oninput="calcRePreview()"></div>
+      <div><label>&#47588;&#51077;&#51068;</label><input type="date" id="re-buydate"></div>
+      <div><label>&#54788;&#51116; &#52628;&#51221;&#44ฎ(&#8361;)</label><input type="number" id="re-cur" placeholder="600000000" oninput="calcRePreview()"></div>
+      <div><label>&#48372;&#51613;&#44552;/&#51204;&#49464;(&#8361;)</label><input type="number" id="re-deposit" placeholder="0"></div>
+      <div><label>&#50900;&#49464;(&#8361;)</label><input type="number" id="re-rent" placeholder="0"></div>
+      <div><label>&#49345;&#53468;</label><select id="re-status"><option value="hold">&#48372;&#50976;&#51473;</option><option value="sold">&#47588;&#46020;&#50756;&#47308;</option><option value="rent_out">&#51076;&#45824;&#51473;</option><option value="rent_in">&#51076;&#52264;&#51473;</option></select></div>
+      <div><label>&#47588;&#46020;&#44552;&#50529;(&#8361;)</label><input type="number" id="re-sell" placeholder="0"></div>
+      <div><label>&#47588;&#46020;&#51068;</label><input type="date" id="re-selldate"></div>
+      <div><label>&#52712;&#46301;&#49464;+&#44ธ&#53440;(&#8361;)</label><input type="number" id="re-tax" placeholder="0" oninput="calcRePreview()"></div>
     </div>
     <div id="re-preview" style="display:none;background:#111116;border-radius:8px;padding:12px;margin:10px 0;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
-      <div><div class="cl">평가손익</div><div style="font-size:15px;font-weight:600" id="rep-pnl">--</div></div>
-      <div><div class="cl">수익률</div><div style="font-size:15px;font-weight:600" id="rep-pct">--</div></div>
-      <div><div class="cl">연환산 수익률</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="rep-annual">--</div></div>
-      <div><div class="cl">보유기간</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="rep-period">--</div></div>
+      <div><div class="cl">&#54òì&#44032;&#49552;&#51775;</div><div style="font-size:15px;font-weight:600" id="rep-pnl">--</div></div>
+      <div><div class="cl">&#49688;&#51775;&#47456;</div><div style="font-size:15px;font-weight:600" id="rep-pct">--</div></div>
+      <div><div class="cl">&#50672;&#54ˆ&#49328; &#49688;&#51775;&#47456;</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="rep-annual">--</div></div>
+      <div><div class="cl">&#48372;&#50976;&#44ธ&#44036;</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="rep-period">--</div></div>
     </div>
-    <button class="btn" onclick="addRealEstate()">추가</button>
+    <button class="btn" onclick="addRealEstate()">&#52628;&#44032;</button>
   </div>
   <div class="tw">
-    <div class="th2"><h3>부동산 목록</h3></div>
+    <div class="th2"><h3>&#48512;&#46041;&#49328; &#47785;&#47197;</h3></div>
     <div style="overflow-x:auto">
       <table>
-        <thead><tr><th>물건명</th><th>종류</th><th>지역</th><th>상태</th><th>매입금액</th><th>현재가치</th><th>평가손익</th><th>수익률</th><th>연환산</th><th>월세수입</th><th>매도손익</th><th>수정</th></tr></thead>
+        <thead><tr><th>&#47932;&#44ˆ&#47749;</th><th>&#51333;&#47448;</th><th>&#51648;&#50669;</th><th>&#49345;&#53468;</th><th>&#47588;&#51077;&#44552;&#50529;</th><th>&#54788;&#51116;&#44032;&#52824;</th><th>&#54òì&#44032;&#49552;&#51775;</th><th>&#49688;&#51775;&#47456;</th><th>&#50672;&#54ˆ&#49328;</th><th>&#50900;&#49464;&#49688;&#51077;</th><th>&#47588;&#46020;&#49552;&#51775;</th><th>&#49688;&#51221;</th></tr></thead>
         <tbody id="re-table"></tbody>
       </table>
     </div>
@@ -245,68 +272,65 @@ tr:hover td{background:rgba(167,139,250,.03)}
 <!-- 대출관리 -->
 <div id="loanpage" class="page">
   <div class="cards">
-    <div class="card"><div class="cl">총 대출원금</div><div class="cv" id="ls-principal">--</div></div>
-    <div class="card"><div class="cl">총 잔여부채</div><div class="cv neg" id="ls-remain">--</div></div>
-    <div class="card"><div class="cl">총 월 상환액</div><div class="cv" id="ls-monthly">--</div></div>
-    <div class="card"><div class="cl">순자산(자산-부채)</div><div class="cv" id="ls-net">--</div></div>
+    <div class="card"><div class="cl">&#52509; &#45824;&#52636;&#50896;&#44552;</div><div class="cv" id="ls-principal">--</div></div>
+    <div class="card"><div class="cl">&#52509; &#51689;&#50668;&#48512;&#52404;</div><div class="cv neg" id="ls-remain">--</div></div>
+    <div class="card"><div class="cl">&#52509; &#50900; &#49345;&#54ˆ&#50529;</div><div class="cv" id="ls-monthly">--</div></div>
+    <div class="card"><div class="cl">&#49688;&#51088;&#49328;(&#51088;&#49328;-&#48512;&#52404;)</div><div class="cv" id="ls-net">--</div></div>
   </div>
   <div class="cw">
-    <div class="ct" style="margin-bottom:10px">대출 추가</div>
+    <div class="ct" style="margin-bottom:10px">&#45824;&#52636; &#52628;&#44032;</div>
     <div class="fg" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
-      <div><label>대출명</label><input type="text" id="l-name" placeholder="주택담보대출"></div>
-      <div><label>대출원금(₩)</label><input type="number" id="l-principal" placeholder="100000000" oninput="calcLoanPreview()"></div>
-      <div><label>연 이자율(%)</label><input type="number" id="l-rate" placeholder="3.5" step="0.01" oninput="calcLoanPreview()"></div>
-      <div><label>상환기간(개월)</label><input type="number" id="l-months" placeholder="120" oninput="calcLoanPreview()"></div>
-      <div><label>상환방식</label><select id="l-type" onchange="calcLoanPreview()"><option value="equal">원리금균등</option><option value="principal">원금균등</option><option value="bullet">만기일시상환</option></select></div>
-      <div><label>대출 시작일</label><input type="date" id="l-start"></div>
+      <div><label>&#45824;&#52636;&#47749;</label><input type="text" id="l-name" placeholder="&#51֪;&#53469;&#45813;&#48372;&#45824;&#52636;"></div>
+      <div><label>&#45824;&#52636;&#50896;&#44552;(&#8361;)</label><input type="number" id="l-principal" placeholder="100000000" oninput="calcLoanPreview()"></div>
+      <div><label>&#50672; &#51060;&#51088;&#50984;(%)</label><input type="number" id="l-rate" placeholder="3.5" step="0.01" oninput="calcLoanPreview()"></div>
+      <div><label>&#49345;&#54ˆ&#44ธ&#44036;(&#44ฎ&#50900;)</label><input type="number" id="l-months" placeholder="120" oninput="calcLoanPreview()"></div>
+      <div><label>&#49345;&#54ˆ&#48169;&#49885;</label><select id="l-type" onchange="calcLoanPreview()"><option value="equal">&#50896;&#47532;&#44552;&#44ท&#46321;</option><option value="principal">&#50896;&#44552;&#44ท&#46321;</option><option value="bullet">&#47564;&#44ธ&#51068;&#49884;&#49345;&#54ˆ</option></select></div>
+      <div><label>&#45824;&#52636; &#49884;&#51۞;&#51068;</label><input type="date" id="l-start"></div>
     </div>
     <div id="loan-preview" style="display:none;background:#111116;border-radius:8px;padding:12px;margin:10px 0;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
-      <div><div class="cl">월 상환액</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="lp-monthly">--</div></div>
-      <div><div class="cl">총 상환금액</div><div style="font-size:15px;font-weight:600" id="lp-total">--</div></div>
-      <div><div class="cl">총 이자</div><div style="font-size:15px;font-weight:600;color:#f87171" id="lp-interest">--</div></div>
-      <div><div class="cl">이자 비율</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="lp-iratio">--</div></div>
+      <div><div class="cl">&#50900; &#49345;&#54ˆ&#50529;</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="lp-monthly">--</div></div>
+      <div><div class="cl">&#52509; &#49345;&#54ˆ&#44552;&#50529;</div><div style="font-size:15px;font-weight:600" id="lp-total">--</div></div>
+      <div><div class="cl">&#52509; &#51060;&#51088;</div><div style="font-size:15px;font-weight:600;color:#f87171" id="lp-interest">--</div></div>
+      <div><div class="cl">&#51060;&#51088; &#48708;&#50984;</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="lp-iratio">--</div></div>
     </div>
-    <button class="btn" onclick="addLoan()">대출 추가</button>
+    <button class="btn" onclick="addLoan()">&#45824;&#52636; &#52628;&#44032;</button>
   </div>
   <div class="tw">
-    <div class="th2"><h3>대출 목록</h3></div>
+    <div class="th2"><h3>&#45내;&#52636; &#47785;&#47197;</h3></div>
     <div style="overflow-x:auto">
       <table>
-        <thead><tr><th>대출명</th><th>원금</th><th>이자율</th><th>기간</th><th>방식</th><th>월 상환액</th><th>총 상환액</th><th>총 이자</th><th>잔여부채</th><th>진행률</th><th>수정</th></tr></thead>
+        <thead><tr><th>&#45824;&#52636;&#47749;</th><th>&#50896;&#44552;</th><th>&#51060;&#51088;&#50984;</th><th>&#44ธ&#44036;</th><th>&#48169;&#49885;</th><th>&#50900; &#49345;&#54ˆ&#50529;</th><th>&#52509; &#49345;&#54ˆ&#50529;</th><th>&#52509; &#51060;&#51088;</th><th>&#51689;&#50668;&#48512;&#52404;</th><th>&#51652;&#54ˆ&#47456;</th><th>&#49688;&#51221;</th></tr></thead>
         <tbody id="loan-table"></tbody>
       </table>
     </div>
   </div>
   <div class="cw" id="schedule-wrap" style="display:none">
-    <div class="ct">
-      <span id="schedule-title">상환 스케줄</span>
-      <button class="btn btns" onclick="document.getElementById('schedule-wrap').style.display='none'">닫기</button>
-    </div>
+    <div class="ct"><span id="schedule-title">&#49345;&#54ˆ &#49828;&#52992;&#51636;</span><button class="btn btns" onclick="document.getElementById('schedule-wrap').style.display='none'">&#45803;&#44ธ;</button></div>
     <div style="overflow-x:auto;max-height:320px;overflow-y:auto">
       <table>
-        <thead><tr><th>회차</th><th>날짜</th><th>월 납입액</th><th>원금</th><th>이자</th><th>잔여원금</th></tr></thead>
+        <thead><tr><th>&#54ˆ;&#52264;</th><th>&#45328;&#51676;</th><th>&#50900; &#45‚;&#51077;&#50529;</th><th>&#50896;&#44552;</th><th>&#51060;&#51088;</th><th>&#51689;&#50668;&#50896;&#44552;</th></tr></thead>
         <tbody id="schedule-table"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- 자산 추가 모달 -->
+<!-- 자산추가 모달 -->
 <div class="mo" id="add-modal">
   <div class="md">
-    <h3>자산 추가</h3>
+    <h3>&#51088;&#49328; &#52628;&#44032;</h3>
     <div class="fg" style="grid-template-columns:1fr 1fr">
-      <div><label>심볼/코드</label><input type="text" id="m-sym" placeholder="BTC, AAPL, 005930"></div>
-      <div><label>종목명</label><input type="text" id="m-name" placeholder="비트코인"></div>
-      <div><label>구분</label><select id="m-cat"><option value="crypto">가상자산</option><option value="us">미국주식</option><option value="kr">한국주식</option><option value="cash">현금/예적금</option></select></div>
-      <div><label>섹터</label><select id="m-sector"><option value="">-</option><option>IT/기술</option><option>금융</option><option>헬스케어</option><option>에너지</option><option>소비재</option><option>산업재</option><option>통신</option><option>유틸리티</option><option>부동산</option><option>소재</option><option>레이어1</option><option>DeFi</option><option>NFT/게임</option><option>스테이블코인</option><option>기타</option></select></div>
-      <div><label>수량</label><input type="number" id="m-qty" placeholder="0" step="any"></div>
-      <div><label>평균매입가(₩)</label><input type="number" id="m-cost" placeholder="0"></div>
-      <div><label>현재가(₩,선택)</label><input type="number" id="m-price" placeholder="자동조회"></div>
+      <div><label>&#49900;&#48132;/&#53025;&#46300;</label><input type="text" id="m-sym" placeholder="BTC, AAPL, 005930"></div>
+      <div><label>&#51333;&#47085;&#47749;</label><input type="text" id="m-name" placeholder="&#48708;&#53944;&#53076;&#51064;"></div>
+      <div><label>&#44396;&#48516;</label><select id="m-cat"><option value="crypto">&#44ฎ&#49345;&#51088;&#49328;</option><option value="us">&#48120;&#44ตœ&#51֪;&#49885;</option><option value="kr">&#54ˆ;&#44ตœ&#51֪;&#49885;</option><option value="cash">&#54ˆ;&#44ˆ/&#50696;&#51060;&#44552;</option></select></div>
+      <div><label>&#49457;&#53552;</label><select id="m-sector"><option value="">-</option><option>IT/&#44ธ&#49220;</option><option>&#44ˆ;&#50688;</option><option>&#54ˆ;&#47932;&#49828;&#ucf00;&#50612;</option><option>&#50640;&#45ท&#51648;</option><option>&#49548;&#48708;&#51116;</option><option>&#49328;&#50629;&#51116;</option><option>&#53685;&#49888;</option><option>&#50976;&#53227;&#47532;&#54฿;&#51060;</option><option>&#48512;&#46041;&#49328;</option><option>&#49548;&#51116;</option><option>&#47808;&#51060;&#50612;1</option><option>DeFi</option><option>NFT/&#44กธ&#51784;</option><option>&#49828;&#53580;&#51060;&#48660;&#53076;&#51064;</option><option>&#44ธ&#53440;</option></select></div>
+      <div><label>&#49688;&#47049;</label><input type="number" id="m-qty" placeholder="0" step="any"></div>
+      <div><label>&#54òì&#44404;&#47588;&#51077;&#44ฎ(&#8361;)</label><input type="number" id="m-cost" placeholder="0"></div>
+      <div><label>&#54788;&#51116;&#44ฎ(&#8361;,&#49440;&#53469;)</label><input type="number" id="m-price" placeholder="&#51088;&#46041;&#51060;&#54ˆ"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
-      <button class="btn" onclick="closeModal()">취소</button>
-      <button class="btn" onclick="addAsset()" style="background:#2d1f4a;border-color:#7c3aed">추가</button>
+      <button class="btn" onclick="closeModal()">&#52712;&#49548;</button>
+      <button class="btn" onclick="addAsset()" style="background:#2d1f4a;border-color:#7c3aed">&#52628;&#44032;</button>
     </div>
   </div>
 </div>
@@ -314,22 +338,22 @@ tr:hover td{background:rgba(167,139,250,.03)}
 <!-- 부동산 수정 모달 -->
 <div class="mo" id="re-modal">
   <div class="md">
-    <h3>부동산 수정</h3>
+    <h3>&#48512;&#46041;&#49328; &#49688;&#51221;</h3>
     <div class="fg" style="grid-template-columns:1fr 1fr">
-      <div><label>물건명</label><input type="text" id="rem-name"></div>
-      <div><label>지역</label><input type="text" id="rem-location"></div>
-      <div><label>매입금액(₩)</label><input type="number" id="rem-buy"></div>
-      <div><label>현재 추정가(₩)</label><input type="number" id="rem-cur"></div>
-      <div><label>취득세+기타(₩)</label><input type="number" id="rem-tax"></div>
-      <div><label>보증금/전세(₩)</label><input type="number" id="rem-deposit"></div>
-      <div><label>월세(₩)</label><input type="number" id="rem-rent"></div>
-      <div><label>상태</label><select id="rem-status"><option value="hold">보유중</option><option value="sold">매도완료</option><option value="rent_out">임대중</option><option value="rent_in">임차중</option></select></div>
-      <div><label>매도금액(₩)</label><input type="number" id="rem-sell"></div>
-      <div><label>매도일</label><input type="date" id="rem-selldate"></div>
+      <div><label>&#47932;&#44ˆ&#47749;</label><input type="text" id="rem-name"></div>
+      <div><label>&#51648;&#50669;</label><input type="text" id="rem-location"></div>
+      <div><label>&#47588;&#51077;&#44552;&#50529;(&#8361;)</label><input type="number" id="rem-buy"></div>
+      <div><label>&#54788;&#51116; &#52628;&#51221;&#44ฎ(&#8361;)</label><input type="number" id="rem-cur"></div>
+      <div><label>&#52712;&#46301;&#49464;+&#44ธ&#53440;(&#8361;)</label><input type="number" id="rem-tax"></div>
+      <div><label>&#48372;&#51613;&#44552;/&#51204;&#49464;(&#8361;)</label><input type="number" id="rem-deposit"></div>
+      <div><label>&#50900;&#49464;(&#8361;)</label><input type="number" id="rem-rent"></div>
+      <div><label>&#49345;&#53468;</label><select id="rem-status"><option value="hold">&#48372;&#50976;&#51473;</option><option value="sold">&#47588;&#46020;&#50756;&#47308;</option><option value="rent_out">&#51076;&#45824;&#51473;</option><option value="rent_in">&#51076;&#52264;&#51473;</option></select></div>
+      <div><label>&#47588;&#46020;&#44552;&#50529;(&#8361;)</label><input type="number" id="rem-sell"></div>
+      <div><label>&#47588;&#46020;&#51068;</label><input type="date" id="rem-selldate"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-      <button class="btn" onclick="closeReModal()">취소</button>
-      <button class="btn" onclick="saveRe()" style="background:#2d1f4a;border-color:#7c3aed">저장</button>
+      <button class="btn" onclick="closeReModal()">&#52712;&#49548;</button>
+      <button class="btn" onclick="saveRe()" style="background:#2d1f4a;border-color:#7c3aed">&#51지&#51₯;</button>
     </div>
   </div>
 </div>
@@ -337,18 +361,18 @@ tr:hover td{background:rgba(167,139,250,.03)}
 <!-- 대출 수정 모달 -->
 <div class="mo" id="loan-modal">
   <div class="md">
-    <h3>대출 수정</h3>
+    <h3>&#45824;&#52636; &#49688;&#51221;</h3>
     <div class="fg" style="grid-template-columns:1fr 1fr">
-      <div><label>대출명</label><input type="text" id="lm-name"></div>
-      <div><label>대출원금(₩)</label><input type="number" id="lm-principal"></div>
-      <div><label>연 이자율(%)</label><input type="number" id="lm-rate" step="0.01"></div>
-      <div><label>총 상환기간(개월)</label><input type="number" id="lm-months"></div>
-      <div><label>상환방식</label><select id="lm-type"><option value="equal">원리금균등</option><option value="principal">원금균등</option><option value="bullet">만기일시상환</option></select></div>
-      <div><label>납입 완료 개월수</label><input type="number" id="lm-paid" placeholder="0"></div>
+      <div><label>&#45824;&#52636;&#47749;</label><input type="text" id="lm-name"></div>
+      <div><label>&#45824;&#52636;&#50896;&#44552;(&#8361;)</label><input type="number" id="lm-principal"></div>
+      <div><label>&#50672; &#51060;&#51088;&#50984;(%)</label><input type="number" id="lm-rate" step="0.01"></div>
+      <div><label>&#52509; &#49345;&#54ˆ&#44ธ&#44036;(&#44ฎ&#50900;)</label><input type="number" id="lm-months"></div>
+      <div><label>&#49345;&#54ˆ&#48169;&#49885;</label><select id="lm-type"><option value="equal">&#50896;&#47532;&#44552;&#44ท&#46321;</option><option value="principal">&#50896;&#44552;&#44ท&#46321;</option><option value="bullet">&#47564;&#44ธ&#51068;&#49884;&#49345;&#54ˆ</option></select></div>
+      <div><label>&#45‚;&#51077; &#50756;&#47308; &#44ฎ&#50900;&#49688;</label><input type="number" id="lm-paid" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-      <button class="btn" onclick="closeLoanModal()">취소</button>
-      <button class="btn" onclick="saveLoan()" style="background:#2d1f4a;border-color:#7c3aed">저장</button>
+      <button class="btn" onclick="closeLoanModal()">&#52712;&#49548;</button>
+      <button class="btn" onclick="saveLoan()" style="background:#2d1f4a;border-color:#7c3aed">&#51지&#51₯;</button>
     </div>
   </div>
 </div>
@@ -356,118 +380,151 @@ tr:hover td{background:rgba(167,139,250,.03)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const PROXY = "https://yahoo-proxy.realromanticist777.workers.dev";
-const fmt = n => '\u20a9' + Math.round(n).toLocaleString('ko-KR');
+const W = '\u20a9';
+const fmt = n => W + Math.round(n).toLocaleString('ko-KR');
 const fmtUSD = n => '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtP = n => (n>=0?'+':'')+n.toFixed(2)+'%';
 const cc = n => n>=0?'pos':'neg';
+const clr = n => n>=0?'#34d399':'#f87171';
 
 let usdKrw=1330, usdtKrwVal=0, usdKrwVal=0;
 let currentPeriod='total', acRange='all', editingId=null;
 let donutChart,catChart,retChart,assetChart,monthlyChart;
 let assetHistory=[], trades=[];
-
-let loans=[
-  {id:101,name:'주택담보대출',principal:300000000,rate:3.8,months:240,type:'equal',start:'2022-01-01',paidMonths:38},
-  {id:102,name:'신용대출',principal:30000000,rate:5.5,months:36,type:'principal',start:'2024-03-01',paidMonths:12},
-];
-loans=loans.map(l=>{const calc=calcMonthly(l.principal,l.rate,l.months,l.type);return{...l,...calc};});
-
-let realEstates=[
-  {id:201,name:'마포 래미안 아파트',reType:'apt',location:'서울 마포구',buyPrice:650000000,buyDate:'2021-06-15',curPrice:720000000,deposit:0,rent:0,status:'hold',sellPrice:0,sellDate:'',tax:19500000},
-  {id:202,name:'강남 오피스텔',reType:'officetel',location:'서울 강남구',buyPrice:280000000,buyDate:'2020-03-10',curPrice:260000000,deposit:50000000,rent:800000,status:'rent_out',sellPrice:0,sellDate:'',tax:8400000},
-];
 let editingLoanId=null, editingReId=null;
 
-let assets=[
-  {id:1,symbol:'BTC',name:'비트코인',cat:'crypto',sector:'레이어1',qty:.5,avgCost:55000000,price:0,priceHistory:{}},
-  {id:2,symbol:'ETH',name:'이더리움',cat:'crypto',sector:'레이어1',qty:3,avgCost:3200000,price:0,priceHistory:{}},
-  {id:3,symbol:'AAPL',name:'애플',cat:'us',sector:'IT/기술',qty:10,avgCost:180000,price:0,priceHistory:{}},
-  {id:4,symbol:'NVDA',name:'엔비디아',cat:'us',sector:'IT/기술',qty:5,avgCost:600000,price:0,priceHistory:{}},
-  {id:5,symbol:'005930',name:'삼성전자',cat:'kr',sector:'IT/기술',qty:50,avgCost:71000,price:0,priceHistory:{}},
-  {id:6,symbol:'SAVINGS',name:'정기예금',cat:'cash',sector:'',qty:1,avgCost:5000000,price:5000000,priceHistory:{}},
-];
-
-const catLabel={crypto:'가상자산',us:'미국주식',kr:'한국주식',cash:'현금/예적금'};
+const catLabel={crypto:'\uac00\uc0c1\uc790\uc0b0',us:'\ubbf8\uad6d\uc8fc\uc2dd',kr:'\ud55c\uad6d\uc8fc\uc2dd',cash:'\ud604\uae08/\uc608\uc801\uae08'};
 const catBadge={crypto:'bc',us:'bu',kr:'bk',cash:'bca'};
 const catColors={crypto:'#7c3aed',us:'#0ea5e9',kr:'#6366f1',cash:'#10b981'};
-const reTypeLabel={apt:'아파트',villa:'빌라/다세대',officetel:'오피스텔',commercial:'상가/사무실',land:'토지',house:'단독주택',other:'기타'};
-const reStatusLabel={hold:'보유중',sold:'매도완료',rent_out:'임대중',rent_in:'임차중'};
+const reTypeLabel={apt:'\uc544\ud30c\ud2b8',villa:'\ube4c\ub77c/\ub2e4\uc138\ub300',officetel:'\uc624\ud53c\uc2a4\ud154',commercial:'\uc0c1\uac00/\uc0ac\ubb34\uc2e4',land:'\ud1a0\uc9c0',house:'\ub2e8\ub3c5\uc8fc\ud0dd',other:'\uae30\ud0c0'};
+const reStatusLabel={hold:'\ubcf4\uc720\uc911',sold:'\ub9e4\ub3c4\uc644\ub8cc',rent_out:'\uc784\ub300\uc911',rent_in:'\uc784\ucc28\uc911'};
 const reStatusColor={hold:'#818cf8',sold:'#34d399',rent_out:'#f59e0b',rent_in:'#38bdf8'};
 
-// ── 시장 상태 ───────────────────────────────────────────────
+// sample data
+function calcMonthly(principal,annualRate,months,type){
+  const r=annualRate/100/12;
+  if(type==='bullet')return{monthly:Math.round(principal*r),totalPay:Math.round(principal+principal*r*months),totalInterest:Math.round(principal*r*months),schedule:[]};
+  if(type==='principal'){
+    const pmt=principal/months;let bal=principal,totalInt=0;const schedule=[];
+    for(let i=1;i<=months;i++){const interest=bal*r;totalInt+=interest;bal-=pmt;schedule.push({n:i,payment:Math.round(pmt+interest),principal:Math.round(pmt),interest:Math.round(interest),balance:Math.max(0,Math.round(bal))});}
+    return{monthly:Math.round(principal/months+principal*r),totalPay:Math.round(principal+totalInt),totalInterest:Math.round(totalInt),schedule};
+  }
+  if(r===0){const pmt=principal/months;return{monthly:Math.round(pmt),totalPay:Math.round(principal),totalInterest:0,schedule:[]};}
+  const pmt=principal*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1);
+  let bal=principal,totalInt=0;const schedule=[];
+  for(let i=1;i<=months;i++){const interest=bal*r,princ=pmt-interest;totalInt+=interest;bal-=princ;schedule.push({n:i,payment:Math.round(pmt),principal:Math.round(princ),interest:Math.round(interest),balance:Math.max(0,Math.round(bal))});}
+  return{monthly:Math.round(pmt),totalPay:Math.round(pmt*months),totalInterest:Math.round(totalInt),schedule};
+}
+
+let loans=[
+  {id:101,name:'\uc8fc\ud0dd\ub2f4\ubcf4\ub300\uccd9',principal:300000000,rate:3.8,months:240,type:'equal',start:'2022-01-01',paidMonths:38},
+  {id:102,name:'\uc2e0\uc6a9\ub300\uccd9',principal:30000000,rate:5.5,months:36,type:'principal',start:'2024-03-01',paidMonths:12},
+];
+loans=loans.map(l=>{const c=calcMonthly(l.principal,l.rate,l.months,l.type);return Object.assign({},l,c);});
+
+let realEstates=[
+  {id:201,name:'\ub9c8\ud3ec \ub798\ubbf8\uc548 \uc544\ud30c\ud2b8',reType:'apt',location:'\uc11c\uc6b8 \ub9c8\ud3ec\uad6c',buyPrice:650000000,buyDate:'2021-06-15',curPrice:720000000,deposit:0,rent:0,status:'hold',sellPrice:0,sellDate:'',tax:19500000},
+  {id:202,name:'\uac15\ub0a8 \uc624\ud53c\uc2a4\ud154',reType:'officetel',location:'\uc11c\uc6b8 \uac15\ub0a8\uad6c',buyPrice:280000000,buyDate:'2020-03-10',curPrice:260000000,deposit:50000000,rent:800000,status:'rent_out',sellPrice:0,sellDate:'',tax:8400000},
+];
+
+let assets=[
+  {id:1,symbol:'BTC',name:'\ube44\ud2b8\ucf54\uc778',cat:'crypto',sector:'\ub808\uc774\uc5b41',qty:.5,avgCost:55000000,price:0,priceHistory:{}},
+  {id:2,symbol:'ETH',name:'\uc774\ub354\ub9ac\uc6c0',cat:'crypto',sector:'\ub808\uc774\uc5b41',qty:3,avgCost:3200000,price:0,priceHistory:{}},
+  {id:3,symbol:'AAPL',name:'\uc560\ud50c',cat:'us',sector:'IT/\uae30\uc220',qty:10,avgCost:180000,price:0,priceHistory:{}},
+  {id:4,symbol:'NVDA',name:'\uc5d4\ube44\ub514\uc544',cat:'us',sector:'IT/\uae30\uc220',qty:5,avgCost:600000,price:0,priceHistory:{}},
+  {id:5,symbol:'005930',name:'\uc0bc\uc131\uc804\uc790',cat:'kr',sector:'IT/\uae30\uc220',qty:50,avgCost:71000,price:0,priceHistory:{}},
+  {id:6,symbol:'SAVINGS',name:'\uc815\uae30\uc608\uae08',cat:'cash',sector:'',qty:1,avgCost:5000000,price:5000000,priceHistory:{}},
+];
+
+// ── 시장 상태 ──
 function marketStatus(){
   const kst=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
-  const day=kst.getDay(), t=kst.getHours()*60+kst.getMinutes(), wd=day>=1&&day<=5;
-  return {
-    krOpen: wd&&t>=540&&t<930, usOpen: wd&&(t>=1410||t<360),
-    krNext: wd&&t>=540&&t<930?'15:30 KST 마감':wd&&t<540?'09:00 KST 개장':'다음 영업일 09:00',
-    usNext: wd&&(t>=1410||t<360)?'06:00 KST 마감':wd&&t<1410&&t>=360?'23:30 KST 개장':'다음 영업일 23:30'
+  const day=kst.getDay(),t=kst.getHours()*60+kst.getMinutes(),wd=day>=1&&day<=5;
+  return{
+    krOpen:wd&&t>=540&&t<930,usOpen:wd&&(t>=1410||t<360),
+    krNext:wd&&t>=540&&t<930?'15:30 KST \ub9c8\uac10':wd&&t<540?'09:00 KST \uac1c\uc7a5':'\ub2e4\uc74c \uc601\uc5c5\uc77c 09:00',
+    usNext:wd&&(t>=1410||t<360)?'06:00 KST \ub9c8\uac10':wd&&t<1410&&t>=360?'23:30 KST \uac1c\uc7a5':'\ub2e4\uc74c \uc601\uc5c5\uc77c 23:30'
   };
 }
 
-function setTc(id,val,prev){
+function setChg(id,val,prev,isSpecial){
   const el=document.getElementById(id);
-  if(!el||!prev||prev===0) return;
+  if(!el||!prev||prev===0)return;
   const chg=(val-prev)/prev*100;
-  el.textContent=fmtP(chg); el.className='tc '+cc(chg);
+  el.textContent=fmtP(chg);
+  el.style.color=isSpecial?(chg>=0?'#f59e0b':'#a78bfa'):clr(chg);
+  el.style.fontWeight='600';
 }
 
-function updatePremium(){
-  if(!usdtKrwVal||!usdKrwVal) return;
-  const p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100;
-  const el=document.getElementById('tk-premium');
-  el.textContent=fmtP(p); el.style.color=p>=0?'#f59e0b':'#a78bfa';
-}
-
-// ── 업비트 ──────────────────────────────────────────────────
+// ── 업비트 ──
 async function fetchUpbit(){
   try{
     const r=await fetch('https://api.upbit.com/v1/ticker?markets=KRW-USDT,KRW-BTC,KRW-ETH');
     const d=await r.json();
-    if(!d||!d.length) return;
+    if(!d||!d.length)return;
     d.forEach(t=>{
-      if(t.market==='KRW-USDT'){usdtKrwVal=t.trade_price;usdKrw=t.trade_price;document.getElementById('tk-usdtkrw').textContent='\u20a9'+Math.round(t.trade_price).toLocaleString('ko-KR');setTc('tk-usdtkrw-c',t.trade_price,t.prev_closing_price);updatePremium();}
-      if(t.market==='KRW-BTC'){document.getElementById('tk-btc').textContent='\u20a9'+Math.round(t.trade_price).toLocaleString('ko-KR');setTc('tk-btc-c',t.trade_price,t.prev_closing_price);}
-      if(t.market==='KRW-ETH'){document.getElementById('tk-eth').textContent='\u20a9'+Math.round(t.trade_price).toLocaleString('ko-KR');setTc('tk-eth-c',t.trade_price,t.prev_closing_price);}
+      if(t.market==='KRW-USDT'){
+        usdtKrwVal=t.trade_price;usdKrw=t.trade_price;
+        document.getElementById('tk-usdtkrw').textContent=W+Math.round(t.trade_price).toLocaleString('ko-KR');
+        setChg('ch-usdtkrw',t.trade_price,t.prev_closing_price,false);
+        updatePremium();
+      }
+      if(t.market==='KRW-BTC'){
+        document.getElementById('tk-btc').textContent=W+Math.round(t.trade_price).toLocaleString('ko-KR');
+        setChg('ch-btc',t.trade_price,t.prev_closing_price,false);
+      }
+      if(t.market==='KRW-ETH'){
+        document.getElementById('tk-eth').textContent=W+Math.round(t.trade_price).toLocaleString('ko-KR');
+        setChg('ch-eth',t.trade_price,t.prev_closing_price,false);
+      }
     });
   }catch(e){}
 }
 
-// ── Yahoo 티커 ──────────────────────────────────────────────
+function updatePremium(){
+  if(!usdtKrwVal||!usdKrwVal)return;
+  const p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100;
+  const el=document.getElementById('tk-premium');
+  el.textContent=fmtP(p);el.style.color=p>=0?'#f59e0b':'#a78bfa';
+  const el2=document.getElementById('ch-premium');
+  el2.textContent=fmtP(p);el2.style.color=p>=0?'#f59e0b':'#a78bfa';el2.style.fontWeight='600';
+}
+
+// ── Yahoo 티커 ──
 async function fetchTickers(){
   const ms=marketStatus();
-  const krEl=document.getElementById('tk-kr-ms'), usEl=document.getElementById('tk-us-ms');
-  if(krEl){krEl.textContent=ms.krOpen?'장중':'장마감';krEl.className='ms '+(ms.krOpen?'ms-open':'ms-closed');krEl.title=ms.krNext;}
-  if(usEl){usEl.textContent=ms.usOpen?'장중':'장마감';usEl.className='ms '+(ms.usOpen?'ms-open':'ms-closed');usEl.title=ms.usNext;}
+  const krEl=document.getElementById('tk-kr-ms'),usEl=document.getElementById('tk-us-ms');
+  if(krEl){krEl.textContent=ms.krOpen?'\uc7a5\uc911':'\uc7a5\ub9c8\uac10';krEl.className='ms '+(ms.krOpen?'ms-open':'ms-closed');krEl.title=ms.krNext;}
+  if(usEl){usEl.textContent=ms.usOpen?'\uc7a5\uc911':'\uc7a5\ub9c8\uac10';usEl.className='ms '+(ms.usOpen?'ms-open':'ms-closed');usEl.title=ms.usNext;}
   const list=[
-    {id:'tk-usdkrw',cid:'tk-usdkrw-c',sym:'USDKRW=X',fn:v=>'\u20a9'+v.toFixed(2),cb:v=>{usdKrwVal=v;updatePremium();}},
-    {id:'tk-kospi',cid:'tk-kospi-c',sym:'^KS11',fn:v=>v.toLocaleString('ko-KR',{maximumFractionDigits:2})},
-    {id:'tk-kosdaq',cid:'tk-kosdaq-c',sym:'^KQ11',fn:v=>v.toLocaleString('ko-KR',{maximumFractionDigits:2})},
-    {id:'tk-snp',cid:'tk-snp-c',sym:'^GSPC',fn:v=>v.toLocaleString('en-US',{maximumFractionDigits:2})},
-    {id:'tk-nasdaq',cid:'tk-nasdaq-c',sym:'^IXIC',fn:v=>v.toLocaleString('en-US',{maximumFractionDigits:2})},
-    {id:'tk-russell',cid:'tk-russell-c',sym:'^RUT',fn:v=>v.toLocaleString('en-US',{maximumFractionDigits:2})},
-    {id:'tk-vix',cid:'tk-vix-c',sym:'^VIX',fn:v=>v.toFixed(2)},
-    {id:'tk-gold',cid:'tk-gold-c',sym:'GC=F',fn:v=>'$'+v.toLocaleString('en-US',{maximumFractionDigits:2})},
-    {id:'tk-silver',cid:'tk-silver-c',sym:'SI=F',fn:v=>'$'+v.toFixed(3)},
-    {id:'tk-wti',cid:'tk-wti-c',sym:'CL=F',fn:v=>'$'+v.toFixed(2)},
-    {id:'tk-brent',cid:'tk-brent-c',sym:'BZ=F',fn:v=>'$'+v.toFixed(2)},
+    {tv:'tk-usdkrw',ch:'ch-usdkrw',sym:'USDKRW=X',fn:v=>W+v.toFixed(2),cb:v=>{usdKrwVal=v;updatePremium();}},
+    {tv:'tk-kospi',ch:'ch-kospi',sym:'^KS11',fn:v=>v.toLocaleString('ko-KR',{maximumFractionDigits:2})},
+    {tv:'tk-kosdaq',ch:'ch-kosdaq',sym:'^KQ11',fn:v=>v.toLocaleString('ko-KR',{maximumFractionDigits:2})},
+    {tv:'tk-snp',ch:'ch-snp',sym:'^GSPC',fn:v=>v.toLocaleString('en-US',{maximumFractionDigits:2})},
+    {tv:'tk-nasdaq',ch:'ch-nasdaq',sym:'^IXIC',fn:v=>v.toLocaleString('en-US',{maximumFractionDigits:2})},
+    {tv:'tk-russell',ch:'ch-russell',sym:'^RUT',fn:v=>v.toLocaleString('en-US',{maximumFractionDigits:2})},
+    {tv:'tk-vix',ch:'ch-vix',sym:'^VIX',fn:v=>v.toFixed(2)},
+    {tv:'tk-gold',ch:'ch-gold',sym:'GC=F',fn:v=>'$'+v.toLocaleString('en-US',{maximumFractionDigits:2})},
+    {tv:'tk-silver',ch:'ch-silver',sym:'SI=F',fn:v=>'$'+v.toFixed(3)},
+    {tv:'tk-wti',ch:'ch-wti',sym:'CL=F',fn:v=>'$'+v.toFixed(2)},
+    {tv:'tk-brent',ch:'ch-brent',sym:'BZ=F',fn:v=>'$'+v.toFixed(2)},
   ];
   await Promise.allSettled(list.map(async idx=>{
     try{
       const r=await fetch(PROXY+'?ticker='+encodeURIComponent(idx.sym)+'&interval=1d&range=5d');
       const d=await r.json();
       const res=d&&d.chart&&d.chart.result&&d.chart.result[0];
-      if(!res) return;
-      const p=res.meta&&res.meta.regularMarketPrice, prev=res.meta&&res.meta.previousClose;
-      if(!p) return;
-      document.getElementById(idx.id).textContent=idx.fn(p);
-      if(idx.cb) idx.cb(p);
-      setTc(idx.cid,p,prev);
+      if(!res)return;
+      const p=res.meta&&res.meta.regularMarketPrice,prev=res.meta&&res.meta.previousClose;
+      if(!p)return;
+      document.getElementById(idx.tv).textContent=idx.fn(p);
+      if(idx.cb)idx.cb(p);
+      setChg(idx.ch,p,prev,false);
     }catch(e){}
   }));
 }
 
-// ── 가격 조회 ────────────────────────────────────────────────
+// ── 가격 조회 ──
 async function fetchCryptoPrice(sym){
   try{const r=await fetch('https://api.upbit.com/v1/ticker?markets=KRW-'+sym.toUpperCase());const d=await r.json();if(d&&d[0]&&d[0].trade_price)return d[0].trade_price;}catch(e){}
   try{const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+sym.toUpperCase()+'USDT');const d=await r.json();if(d.price)return parseFloat(d.price)*usdKrw;}catch(e){}
@@ -479,9 +536,9 @@ async function fetchStockPrice(sym,cat){
     const r=await fetch(PROXY+'?ticker='+encodeURIComponent(ticker)+'&interval=1d&range=5d');
     const d=await r.json();
     const res=d&&d.chart&&d.chart.result&&d.chart.result[0];
-    if(!res) return null;
+    if(!res)return null;
     const price=res.meta&&res.meta.regularMarketPrice;
-    if(!price) return null;
+    if(!price)return null;
     return cat==='kr'?price:price*usdKrw;
   }catch(e){}return null;
 }
@@ -491,47 +548,48 @@ async function fetchHistPrice(sym,cat){
     const r=await fetch(PROXY+'?ticker='+encodeURIComponent(ticker)+'&interval=1d&range=1y');
     const d=await r.json();
     const res=d&&d.chart&&d.chart.result&&d.chart.result[0];
-    if(!res) return {};
-    const ts=res.timestamps||[], closes=res.indicators&&res.indicators.quote&&res.indicators.quote[0]&&res.indicators.quote[0].close||[];
+    if(!res)return{};
+    const ts=res.timestamps||[],closes=res.indicators&&res.indicators.quote&&res.indicators.quote[0]&&res.indicators.quote[0].close||[];
     const hist={};
     ts.forEach((t,i)=>{if(closes[i])hist[t]=closes[i]*(cat==='us'?usdKrw:1);});
     return hist;
-  }catch(e){}return {};
+  }catch(e){}return{};
 }
 
 async function fetchPrices(){
-  document.getElementById('c-time').innerHTML='<span class="loading"></span>갱신중...';
-  document.getElementById('r-status').textContent='가격 조회중...';
+  const ctime=document.getElementById('c-time');
+  ctime.innerHTML='<span class="loading"></span>';
+  document.getElementById('r-status').textContent='\uac00\uaca9 \uc870\ud68c\uc911...';
   await fetchUpbit();
   fetchTickers();
   for(let a of assets){
     if(a.cat==='cash'){a.price=a.avgCost;continue;}
     let p=a.cat==='crypto'?await fetchCryptoPrice(a.symbol):await fetchStockPrice(a.symbol,a.cat);
-    if(p)a.price=p; else if(!a.price)a.price=a.avgCost;
+    if(p)a.price=p;else if(!a.price)a.price=a.avgCost;
     if((a.cat==='us'||a.cat==='kr')&&Object.keys(a.priceHistory).length===0)a.priceHistory=await fetchHistPrice(a.symbol,a.cat);
   }
-  const tv=assets.reduce((s,a)=>s+a.price*a.qty,0), tc=assets.reduce((s,a)=>s+a.avgCost*a.qty,0);
+  const tv=assets.reduce((s,a)=>s+a.price*a.qty,0),tc=assets.reduce((s,a)=>s+a.avgCost*a.qty,0);
   const pct=tc?((tv-tc)/tc*100):0;
   assetHistory.push({ts:Date.now(),totalVal:tv,pct:parseFloat(pct.toFixed(2))});
   if(assetHistory.length>200)assetHistory.shift();
-  const t=new Date(), ts=t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 갱신';
-  document.getElementById('c-time').textContent=ts;
+  const t=new Date(),ts=t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' \uac31\uc2e0';
+  ctime.textContent=ts;
   document.getElementById('tk-time').textContent=ts;
-  document.getElementById('r-status').textContent='30초 자동갱신';
+  document.getElementById('r-status').textContent='30\ucd08 \uc790\ub3d9\uac31\uc2e0';
   renderAll();
 }
 
-// ── Period ──────────────────────────────────────────────────
+// ── Period ──
 function setPeriod(p,btn){
   currentPeriod=p;
   document.querySelectorAll('#period-btns .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderAll();
+  btn.classList.add('active');renderAll();
 }
 function getPeriodPct(a){
   if(currentPeriod==='total'){const c=a.avgCost*a.qty,v=a.price*a.qty;return c?((v-c)/c*100):0;}
   const msAgo={day:86400000,week:7*86400000,month:30*86400000,year:365*86400000}[currentPeriod]||0;
   const targetTs=(Date.now()-msAgo)/1000;
-  const hist=a.priceHistory||{}, keys=Object.keys(hist).map(Number).sort();
+  const hist=a.priceHistory||{},keys=Object.keys(hist).map(Number).sort();
   if(!keys.length){const c=a.avgCost*a.qty,v=a.price*a.qty;return c?((v-c)/c*100):0;}
   const closest=keys.reduce((acc,k)=>Math.abs(k-targetTs)<Math.abs(acc-targetTs)?k:acc,keys[0]);
   const prev=hist[closest];
@@ -539,19 +597,26 @@ function getPeriodPct(a){
   return(a.price-prev)/prev*100;
 }
 
-// ── Render All ──────────────────────────────────────────────
+// ── Render ──
 function renderAll(){
-  renderSummary(); renderPortfolio(); renderDashCharts();
-  renderTradeSummary(); renderTradeTable(); renderChartPage();
-  renderRealEstates(); renderReSummary();
-  renderLoans(); renderLoanSummary();
+  renderSummary();renderPortfolio();renderDashCharts();
+  renderTradeSummary();renderTradeTable();renderChartPage();
+  renderRealEstates();renderReSummary();
+  renderLoans();renderLoanSummary();
   updateTradeSym();
+}
+
+function calcRemain(loan){
+  if(!loan.schedule||!loan.schedule.length)return loan.principal;
+  const paid=loan.paidMonths||0;
+  if(paid>=loan.schedule.length)return 0;
+  return loan.schedule[paid]?loan.schedule[paid].balance:loan.principal;
 }
 
 function renderSummary(){
   const tv=assets.reduce((s,a)=>s+a.price*a.qty,0);
   const tc=assets.reduce((s,a)=>s+a.avgCost*a.qty,0);
-  const pnl=tv-tc, pct=tc?(pnl/tc*100):0;
+  const pnl=tv-tc,pct=tc?(pnl/tc*100):0;
   document.getElementById('c-total').textContent=fmt(tv);
   document.getElementById('c-cost').textContent=fmt(tc);
   document.getElementById('c-pnl').innerHTML='<span class="'+cc(pnl)+'">'+fmt(pnl)+'</span>';
@@ -565,44 +630,41 @@ function renderSummary(){
   const cats=['crypto','us','kr','cash','realestate','loan'];
   document.getElementById('cat-summary').innerHTML=cats.map(c=>{
     if(c==='realestate'){
-      const holding=realEstates.filter(re=>re.status!=='sold');
-      if(!holding.length) return '';
-      const totalVal=holding.reduce((s,re)=>s+re.curPrice,0);
-      const totalCost=holding.reduce((s,re)=>s+re.buyPrice+(re.tax||0),0);
-      const p=totalCost?((totalVal-totalCost)/totalCost*100):0;
-      const share=tv?(totalVal/tv*100):0;
-      return '<div class="cat-row">'+
+      const h=realEstates.filter(re=>re.status!=='sold');
+      if(!h.length)return'';
+      const v=h.reduce((s,re)=>s+re.curPrice,0),co=h.reduce((s,re)=>s+re.buyPrice+(re.tax||0),0);
+      const p=co?((v-co)/co*100):0,share=tv?(v/tv*100):0;
+      return'<div class="cat-row">'+
         '<div style="display:flex;align-items:center;gap:8px">'+
         '<span style="width:7px;height:7px;border-radius:50%;background:#f97316;display:inline-block"></span>'+
-        '<span style="font-size:13px">부동산</span>'+
-        '<span style="font-size:10px;color:#444">'+share.toFixed(1)+'%</span></div>'+
+        '<span style="font-size:13px">\ubd€\ub3d9\uc0b0</span>'+
+        '<span style="font-size:10px;color:#555">'+share.toFixed(1)+'%</span></div>'+
         '<div style="text-align:right">'+
-        '<div style="font-size:13px;font-weight:600">'+fmt(totalVal)+'</div>'+
+        '<div style="font-size:13px;font-weight:600">'+fmt(v)+'</div>'+
         '<div style="font-size:11px" class="'+cc(p)+'">'+fmtP(p)+'</div></div></div>';
     }
     if(c==='loan'){
-      const totalDebt=loans.reduce((s,l)=>s+calcRemain(l),0);
-      const totalMonthly=loans.reduce((s,l)=>s+l.monthly,0);
-      const totalInterest=loans.reduce((s,l)=>s+l.totalInterest,0);
-      if(!loans.length) return '';
-      return '<div class="cat-row">'+
+      const td=loans.reduce((s,l)=>s+calcRemain(l),0);
+      const tm=loans.reduce((s,l)=>s+l.monthly,0),ti=loans.reduce((s,l)=>s+l.totalInterest,0);
+      if(!loans.length)return'';
+      return'<div class="cat-row">'+
         '<div style="display:flex;align-items:center;gap:8px">'+
         '<span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block"></span>'+
-        '<span style="font-size:13px">부채/대출</span>'+
-        '<span style="font-size:10px;color:#444">'+loans.length+'건</span></div>'+
+        '<span style="font-size:13px">\ubd€\ucc44/\ub300\ucd9c</span>'+
+        '<span style="font-size:10px;color:#555">'+loans.length+'\uac74</span></div>'+
         '<div style="text-align:right">'+
-        '<div style="font-size:13px;font-weight:600" class="neg">-'+fmt(totalDebt)+'</div>'+
-        '<div style="font-size:11px;color:#555">월 '+fmt(totalMonthly)+' 상환 · 총이자 '+fmt(totalInterest)+'</div>'+
+        '<div style="font-size:13px;font-weight:600;color:#f87171">-'+fmt(td)+'</div>'+
+        '<div style="font-size:11px;color:#555">\uc6d4 '+fmt(tm)+' \uc0c1\ud658 \u00b7 \ucd1d\uc774\uc790 '+fmt(ti)+'</div>'+
         '</div></div>';
     }
     const ca=assets.filter(a=>a.cat===c);
-    const v=ca.reduce((s,a)=>s+a.price*a.qty,0), co=ca.reduce((s,a)=>s+a.avgCost*a.qty,0);
-    const p=co?((v-co)/co*100):0, share=tv?(v/tv*100):0;
-    return '<div class="cat-row">'+
+    const v=ca.reduce((s,a)=>s+a.price*a.qty,0),co=ca.reduce((s,a)=>s+a.avgCost*a.qty,0);
+    const p=co?((v-co)/co*100):0,share=tv?(v/tv*100):0;
+    return'<div class="cat-row">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
       '<span style="width:7px;height:7px;border-radius:50%;background:'+catColors[c]+';display:inline-block"></span>'+
       '<span style="font-size:13px">'+catLabel[c]+'</span>'+
-      '<span style="font-size:10px;color:#444">'+share.toFixed(1)+'%</span></div>'+
+      '<span style="font-size:10px;color:#555">'+share.toFixed(1)+'%</span></div>'+
       '<div style="text-align:right">'+
       '<div style="font-size:13px;font-weight:600">'+fmt(v)+'</div>'+
       '<div style="font-size:11px" class="'+cc(p)+'">'+fmtP(p)+'</div></div></div>';
@@ -611,35 +673,35 @@ function renderSummary(){
 
 function renderPortfolio(){
   const tbody=document.getElementById('port-table');
-  if(!assets.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#333;padding:22px">자산을 추가해주세요</td></tr>';return;}
+  if(!assets.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#333;padding:22px">\uc790\uc0b0\uc744 \ucd94\uac00\ud574\uc8fc\uc138\uc694</td></tr>';return;}
   const cats=['crypto','us','kr','cash'];
   let rows='';
   for(const c of cats){
     const group=assets.filter(a=>a.cat===c);
-    if(!group.length) continue;
-    const gv=group.reduce((s,a)=>s+a.price*a.qty,0), gc=group.reduce((s,a)=>s+a.avgCost*a.qty,0);
+    if(!group.length)continue;
+    const gv=group.reduce((s,a)=>s+a.price*a.qty,0),gc=group.reduce((s,a)=>s+a.avgCost*a.qty,0);
     const gp=gc?((gv-gc)/gc*100):0;
-    rows+='<tr style="background:#111116"><td colspan="7" style="padding:5px 9px;font-size:10px;color:#444">'+catLabel[c]+'</td><td colspan="3" style="padding:5px 9px;text-align:right;font-size:10px" class="'+cc(gp)+'">'+fmt(gv)+'&nbsp;'+fmtP(gp)+'</td></tr>';
+    rows+='<tr style="background:#111116"><td colspan="7" style="padding:5px 9px;font-size:10px;color:#555">'+catLabel[c]+'</td><td colspan="3" style="padding:5px 9px;text-align:right;font-size:10px" class="'+cc(gp)+'">'+fmt(gv)+'&nbsp;'+fmtP(gp)+'</td></tr>';
     for(const a of group){
-      const val=a.price*a.qty, pnl=val-a.avgCost*a.qty, pct=getPeriodPct(a);
+      const val=a.price*a.qty,pnl=val-a.avgCost*a.qty,pct=getPeriodPct(a);
       const priceCell=a.cat==='crypto'?'<div class="pkrw">'+fmt(a.price)+'</div><div class="pusd">'+fmtUSD(a.price/usdKrw)+'</div>':'<div class="pkrw">'+fmt(a.price)+'</div>';
       const costCell=a.cat==='crypto'?'<div class="pkrw">'+fmt(a.avgCost)+'</div><div class="pusd">'+fmtUSD(a.avgCost/usdKrw)+'</div>':'<div class="pkrw">'+fmt(a.avgCost)+'</div>';
       if(editingId===a.id){
-        rows+='<tr><td><strong>'+a.name+'</strong><br><span style="color:#444;font-size:10px">'+a.symbol+'</span></td>'+
+        rows+='<tr><td><strong>'+a.name+'</strong><br><span style="color:#555;font-size:10px">'+a.symbol+'</span></td>'+
           '<td><span class="badge '+catBadge[a.cat]+'">'+catLabel[a.cat]+'</span></td>'+
           '<td><input class="ei eiw" id="e-sec-'+a.id+'" value="'+(a.sector||'')+'"></td>'+
           '<td><input class="ei" id="e-qty-'+a.id+'" value="'+a.qty+'" type="number" step="any"></td>'+
           '<td><input class="ei" id="e-cost-'+a.id+'" value="'+Math.round(a.avgCost)+'" type="number"></td>'+
           '<td><input class="ei" id="e-price-'+a.id+'" value="'+Math.round(a.price)+'" type="number"></td>'+
           '<td>'+fmt(val)+'</td><td class="'+cc(pnl)+'">'+fmt(pnl)+'</td><td class="'+cc(pct)+'">'+fmtP(pct)+'</td>'+
-          '<td style="white-space:nowrap"><button class="btn btns" onclick="saveEdit('+a.id+')">저장</button> <button class="btn btns btnd" onclick="editingId=null;renderPortfolio()">취소</button></td></tr>';
-      } else {
-        rows+='<tr><td><strong>'+a.name+'</strong><br><span style="color:#444;font-size:10px">'+a.symbol+'</span></td>'+
+          '<td style="white-space:nowrap"><button class="btn btns" onclick="saveEdit('+a.id+')">&#51€&#51₯;</button> <button class="btn btns btnd" onclick="editingId=null;renderPortfolio()">&#52712;&#49548;</button></td></tr>';
+      }else{
+        rows+='<tr><td><strong>'+a.name+'</strong><br><span style="color:#555;font-size:10px">'+a.symbol+'</span></td>'+
           '<td><span class="badge '+catBadge[a.cat]+'">'+catLabel[a.cat]+'</span></td>'+
           '<td>'+(a.sector?'<span class="badge bs">'+a.sector+'</span>':'-')+'</td>'+
           '<td>'+a.qty+'</td><td>'+costCell+'</td><td>'+priceCell+'</td>'+
           '<td>'+fmt(val)+'</td><td class="'+cc(pnl)+'">'+fmt(pnl)+'</td><td class="'+cc(pct)+'">'+fmtP(pct)+'</td>'+
-          '<td style="white-space:nowrap"><button class="btn btns" onclick="editingId='+a.id+';renderPortfolio()">수정</button> <button class="btn btns btnd" onclick="delAsset('+a.id+')">삭제</button></td></tr>';
+          '<td style="white-space:nowrap"><button class="btn btns" onclick="editingId='+a.id+';renderPortfolio()">\uc218\uc815</button> <button class="btn btns btnd" onclick="delAsset('+a.id+')">\uc0ad\uc81c</button></td></tr>';
       }
     }
   }
@@ -652,7 +714,7 @@ function saveEdit(id){
   a.qty=parseFloat(document.getElementById('e-qty-'+id).value)||a.qty;
   a.avgCost=parseFloat(document.getElementById('e-cost-'+id).value)||a.avgCost;
   a.price=parseFloat(document.getElementById('e-price-'+id).value)||a.price;
-  editingId=null; renderAll();
+  editingId=null;renderAll();
 }
 function delAsset(id){assets=assets.filter(a=>a.id!==id);renderAll();}
 
@@ -660,43 +722,40 @@ function renderDashCharts(){
   const cats=['crypto','us','kr','cash'];
   const vals=cats.map(c=>assets.filter(a=>a.cat===c).reduce((s,a)=>s+a.price*a.qty,0));
   if(donutChart)donutChart.destroy();
-  donutChart=new Chart(document.getElementById('donut-chart'),{type:'doughnut',data:{labels:cats.map(c=>catLabel[c]),datasets:[{data:vals,backgroundColor:cats.map(c=>catColors[c]),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#666',font:{size:10},padding:8,boxWidth:8}}}}});
+  donutChart=new Chart(document.getElementById('donut-chart'),{type:'doughnut',data:{labels:cats.map(c=>catLabel[c]),datasets:[{data:vals,backgroundColor:cats.map(c=>catColors[c]),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#888',font:{size:10},padding:8,boxWidth:8}}}}});
   const pcts=cats.map(c=>{const ca=assets.filter(a=>a.cat===c),v=ca.reduce((s,a)=>s+a.price*a.qty,0),co=ca.reduce((s,a)=>s+a.avgCost*a.qty,0);return co?parseFloat(((v-co)/co*100).toFixed(2)):0;});
   if(catChart)catChart.destroy();
-  catChart=new Chart(document.getElementById('cat-chart'),{type:'bar',data:{labels:cats.map(c=>catLabel[c]),datasets:[{data:pcts,backgroundColor:pcts.map(p=>p>=0?'#10b981':'#f87171'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'#1a1a22'}},y:{ticks:{color:'#555',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}});
+  catChart=new Chart(document.getElementById('cat-chart'),{type:'bar',data:{labels:cats.map(c=>catLabel[c]),datasets:[{data:pcts,backgroundColor:pcts.map(p=>p>=0?'#10b981':'#f87171'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:10}},grid:{color:'#1a1a22'}},y:{ticks:{color:'#888',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}});
 }
 
 function setAcRange(r,btn){
-  acRange=r;
-  document.querySelectorAll('#chartpage .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderChartPage();
+  acRange=r;document.querySelectorAll('#chartpage .pb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderChartPage();
 }
-
 function renderChartPage(){
   const msMap={week:7*86400000,month:30*86400000};
   const cutoff=acRange==='all'?0:Date.now()-msMap[acRange];
   const hist=assetHistory.filter(h=>h.ts>=cutoff);
   const labels=hist.map(h=>{const d=new Date(h.ts);return(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');});
   if(assetChart)assetChart.destroy();
-  assetChart=new Chart(document.getElementById('asset-chart'),{type:'line',data:{labels,datasets:[{data:hist.map(h=>Math.round(h.totalVal)),borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.08)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#a78bfa'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:'#1a1a22'}},y:{ticks:{color:'#555',callback:v=>{const m=v/100000000;return m>=1?m.toFixed(1)+'억':Math.round(v/10000)+'만'}},grid:{color:'#1a1a22'}}}}});
+  assetChart=new Chart(document.getElementById('asset-chart'),{type:'line',data:{labels,datasets:[{data:hist.map(h=>Math.round(h.totalVal)),borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.08)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#a78bfa'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:'#1a1a22'}},y:{ticks:{color:'#888',callback:v=>{const m=v/100000000;return m>=1?m.toFixed(1)+'\uc5b5':Math.round(v/10000)+'\ub9cc'}},grid:{color:'#1a1a22'}}}}});
   if(retChart)retChart.destroy();
-  retChart=new Chart(document.getElementById('ret-chart'),{type:'line',data:{labels,datasets:[{data:hist.map(h=>h.pct),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.06)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#38bdf8'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:'#1a1a22'}},y:{ticks:{color:'#555',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}});
+  retChart=new Chart(document.getElementById('ret-chart'),{type:'line',data:{labels,datasets:[{data:hist.map(h=>h.pct),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.06)',fill:true,tension:.3,pointRadius:hist.length>30?0:3,pointBackgroundColor:'#38bdf8'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:'#1a1a22'}},y:{ticks:{color:'#888',callback:v=>v+'%'},grid:{color:'#1a1a22'}}}}});
   const monthly={};
   trades.filter(t=>t.side==='sell').forEach(t=>{const m=t.date.substring(0,7);monthly[m]=(monthly[m]||0)+t.realizedPnl;});
   const mk=Object.keys(monthly).sort(),mv=mk.map(k=>Math.round(monthly[k]));
   if(monthlyChart)monthlyChart.destroy();
-  monthlyChart=new Chart(document.getElementById('monthly-chart'),{type:'bar',data:{labels:mk.length?mk:['데이터없음'],datasets:[{data:mk.length?mv:[0],backgroundColor:mv.map(v=>v>=0?'#10b981':'#f87171'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555'},grid:{color:'#1a1a22'}},y:{ticks:{color:'#555',callback:v=>(v>=0?'+':'')+Math.round(v/10000)+'만'},grid:{color:'#1a1a22'}}}}});
+  monthlyChart=new Chart(document.getElementById('monthly-chart'),{type:'bar',data:{labels:mk.length?mk:['\ub370\uc774\ud130\uc5c6\uc74c'],datasets:[{data:mk.length?mv:[0],backgroundColor:mv.map(v=>v>=0?'#10b981':'#f87171'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888'},grid:{color:'#1a1a22'}},y:{ticks:{color:'#888',callback:v=>(v>=0?'+':'')+Math.round(v/10000)+'\ub9cc'},grid:{color:'#1a1a22'}}}}});
 }
 
-// ── 매매일지 ────────────────────────────────────────────────
+// ── 매매일지 ──
 function addTrade(){
   const sym=document.getElementById('t-sym').value,side=document.getElementById('t-side').value;
   const qty=parseFloat(document.getElementById('t-qty').value),price=parseFloat(document.getElementById('t-price').value);
   const fee=parseFloat(document.getElementById('t-fee').value)||0,date=document.getElementById('t-date').value;
-  if(!sym||!qty||!price||!date){alert('날짜, 종목, 수량, 가격을 입력해주세요');return;}
+  if(!sym||!qty||!price||!date){alert('\ub0a0\uc9dc, \uc885\ubaa9, \uc218\ub7c9, \uac00\uaca9\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694');return;}
   trades.push({id:Date.now(),date,symbol:sym,side,qty,price,fee,realizedPnl:0});
   calcPnl();renderAll();
-  document.getElementById('t-qty').value='';document.getElementById('t-price').value='';document.getElementById('t-fee').value='';
+  ['t-qty','t-price','t-fee'].forEach(id=>document.getElementById(id).value='');
 }
 function calcPnl(){
   const lots={};
@@ -717,60 +776,59 @@ function renderTradeSummary(){
   const totalR=sells.reduce((s,t)=>s+t.realizedPnl,0),totalF=trades.reduce((s,t)=>s+t.fee,0);
   const wins=sells.filter(t=>t.realizedPnl>0).length,wr=sells.length?(wins/sells.length*100).toFixed(0):0;
   document.getElementById('pnl-cards').innerHTML=
-    '<div class="pcrd"><div class="cl">총 실현손익</div><div class="cv '+cc(totalR)+'" style="font-size:17px">'+fmt(totalR)+'</div></div>'+
-    '<div class="pcrd"><div class="cl">총 수수료</div><div class="cv" style="font-size:17px;color:#f59e0b">'+fmt(totalF)+'</div></div>'+
-    '<div class="pcrd"><div class="cl">매도 거래수</div><div class="cv" style="font-size:17px">'+sells.length+'건</div></div>'+
-    '<div class="pcrd"><div class="cl">승률</div><div class="cv" style="font-size:17px">'+wr+'%</div></div>';
+    '<div class="pcrd"><div class="cl">\ucd1d \uc2e4\ud604\uc190\uc775</div><div class="cv '+cc(totalR)+'" style="font-size:17px">'+fmt(totalR)+'</div></div>'+
+    '<div class="pcrd"><div class="cl">\ucd1d \uc218\uc218\ub8cc</div><div class="cv" style="font-size:17px;color:#f59e0b">'+fmt(totalF)+'</div></div>'+
+    '<div class="pcrd"><div class="cl">\ub9e4\ub3c4 \uac70\ub798\uc218</div><div class="cv" style="font-size:17px">'+sells.length+'\uac74</div></div>'+
+    '<div class="pcrd"><div class="cl">\uc2b9\ub960</div><div class="cv" style="font-size:17px">'+wr+'%</div></div>';
 }
 function renderTradeTable(){
   const tbody=document.getElementById('trade-table');
   const sorted=[...trades].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(!sorted.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#333;padding:22px">거래 내역이 없습니다</td></tr>';return;}
-  tbody.innerHTML=sorted.map(t=>'<tr><td>'+t.date+'</td><td><strong>'+t.symbol+'</strong></td>'+
-    '<td><span style="padding:2px 6px;border-radius:10px;font-size:10px;'+(t.side==='buy'?'background:#1a3a2a;color:#34d399':'background:#3a1a1a;color:#f87171')+'">'+(t.side==='buy'?'매수':'매도')+'</span></td>'+
+  if(!sorted.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#333;padding:22px">\uac70\ub798 \ub0b4\uc5ed\uc774 \uc5c6\uc2b5\ub2c8\ub2e4</td></tr>';return;}
+  tbody.innerHTML=sorted.map(t=>
+    '<tr><td>'+t.date+'</td><td><strong>'+t.symbol+'</strong></td>'+
+    '<td><span style="padding:2px 6px;border-radius:10px;font-size:10px;'+(t.side==='buy'?'background:#1a3a2a;color:#34d399':'background:#3a1a1a;color:#f87171')+'">'+
+    (t.side==='buy'?'\ub9e4\uc218':'\ub9e4\ub3c4')+'</span></td>'+
     '<td>'+t.qty+'</td><td>'+fmt(t.price)+'</td><td>'+fmt(t.fee)+'</td>'+
     '<td class="'+(t.side==='sell'?cc(t.realizedPnl):'')+'">'+(t.side==='sell'?fmt(t.realizedPnl):'-')+'</td>'+
-    '<td><button class="btn btns btnd" onclick="delTrade('+t.id+')">삭제</button></td></tr>').join('');
+    '<td><button class="btn btns btnd" onclick="delTrade('+t.id+')">\uc0ad\uc81c</button></td></tr>'
+  ).join('');
 }
 function delTrade(id){trades=trades.filter(t=>t.id!==id);calcPnl();renderAll();}
 function updateTradeSym(){
   const sel=document.getElementById('t-sym'),cur=sel.value;
-  sel.innerHTML='<option value="">선택</option>'+assets.map(a=>'<option value="'+a.symbol+'"'+(a.symbol===cur?' selected':'')+'>'+a.name+' ('+a.symbol+')</option>').join('');
+  sel.innerHTML='<option value="">\uc120\ud0dd</option>'+assets.map(a=>'<option value="'+a.symbol+'"'+(a.symbol===cur?' selected':'')+'>'+a.name+' ('+a.symbol+')</option>').join('');
 }
 
-// ── 부동산 ──────────────────────────────────────────────────
+// ── 부동산 ──
 function daysBetween(d1,d2){return Math.max(1,Math.round((new Date(d2)-new Date(d1))/86400000));}
 function calcReStats(re){
   const cost=(re.buyPrice||0)+(re.tax||0);
   const cur=re.status==='sold'?(re.sellPrice||re.curPrice||0):(re.curPrice||0);
-  const pnl=cur-cost, pct=cost?(pnl/cost*100):0;
+  const pnl=cur-cost,pct=cost?(pnl/cost*100):0;
   const endDate=re.status==='sold'&&re.sellDate?re.sellDate:new Date().toISOString().split('T')[0];
-  const days=re.buyDate?daysBetween(re.buyDate,endDate):365, years=days/365;
+  const days=re.buyDate?daysBetween(re.buyDate,endDate):365,years=days/365;
   const annualPct=years>0?((Math.pow(1+pct/100,1/years)-1)*100):0;
   const realizedPnl=re.status==='sold'&&re.sellPrice?(re.sellPrice-cost):null;
   return{cost,cur,pnl,pct,annualPct,days,realizedPnl};
 }
 function calcRePreview(){
-  const buy=parseFloat(document.getElementById('re-buy').value);
-  const cur=parseFloat(document.getElementById('re-cur').value);
-  const tax=parseFloat(document.getElementById('re-tax').value)||0;
-  const buyDate=document.getElementById('re-buydate').value;
-  const wrap=document.getElementById('re-preview');
+  const buy=parseFloat(document.getElementById('re-buy').value),cur=parseFloat(document.getElementById('re-cur').value),tax=parseFloat(document.getElementById('re-tax').value)||0;
+  const buyDate=document.getElementById('re-buydate').value,wrap=document.getElementById('re-preview');
   if(!buy||!cur){wrap.style.display='none';return;}
   wrap.style.display='grid';
-  const cost=buy+tax, pnl=cur-cost, pct=cost?(pnl/cost*100):0;
-  const days=buyDate?daysBetween(buyDate,new Date().toISOString().split('T')[0]):365, years=days/365;
+  const cost=buy+tax,pnl=cur-cost,pct=cost?(pnl/cost*100):0;
+  const days=buyDate?daysBetween(buyDate,new Date().toISOString().split('T')[0]):365,years=days/365;
   const annual=years>0?((Math.pow(1+pct/100,1/years)-1)*100):0;
-  const periodStr=buyDate?Math.floor(days/365)+'년 '+Math.floor((days%365)/30)+'개월':'-';
+  const ps=buyDate?Math.floor(days/365)+'\ub144 '+Math.floor((days%365)/30)+'\uac1c\uc6d4':'-';
   document.getElementById('rep-pnl').innerHTML='<span class="'+cc(pnl)+'">'+fmt(pnl)+'</span>';
   document.getElementById('rep-pct').innerHTML='<span class="'+cc(pct)+'">'+fmtP(pct)+'</span>';
-  document.getElementById('rep-annual').innerHTML='<span class="'+cc(annual)+'">'+fmtP(annual)+'/년</span>';
-  document.getElementById('rep-period').textContent=periodStr;
+  document.getElementById('rep-annual').innerHTML='<span class="'+cc(annual)+'">'+fmtP(annual)+'/\ub144</span>';
+  document.getElementById('rep-period').textContent=ps;
 }
 function addRealEstate(){
-  const name=document.getElementById('re-name').value.trim();
-  const buyPrice=parseFloat(document.getElementById('re-buy').value);
-  if(!name||!buyPrice){alert('물건명과 매입금액을 입력해주세요');return;}
+  const name=document.getElementById('re-name').value.trim(),buyPrice=parseFloat(document.getElementById('re-buy').value);
+  if(!name||!buyPrice){alert('\ubb3c\uac74\uba85\uacfc \ub9e4\uc785\uae08\uc561\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694');return;}
   realEstates.push({id:Date.now(),name,reType:document.getElementById('re-type').value,location:document.getElementById('re-location').value.trim(),buyPrice,buyDate:document.getElementById('re-buydate').value,curPrice:parseFloat(document.getElementById('re-cur').value)||buyPrice,deposit:parseFloat(document.getElementById('re-deposit').value)||0,rent:parseFloat(document.getElementById('re-rent').value)||0,status:document.getElementById('re-status').value,sellPrice:parseFloat(document.getElementById('re-sell').value)||0,sellDate:document.getElementById('re-selldate').value,tax:parseFloat(document.getElementById('re-tax').value)||0});
   ['re-name','re-location','re-buy','re-buydate','re-cur','re-deposit','re-rent','re-sell','re-selldate','re-tax'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('re-preview').style.display='none';
@@ -778,40 +836,40 @@ function addRealEstate(){
 }
 function renderRealEstates(){
   const tbody=document.getElementById('re-table');
-  if(!realEstates.length){tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:#333;padding:22px">부동산을 추가해주세요</td></tr>';return;}
+  if(!realEstates.length){tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:#333;padding:22px">\ubd€\ub3d9\uc0b0\uc744 \ucd94\uac00\ud574\uc8fc\uc138\uc694</td></tr>';return;}
   tbody.innerHTML=realEstates.map(re=>{
     const s=calcReStats(re);
-    const periodStr=re.buyDate?Math.floor(s.days/365)+'년 '+Math.floor((s.days%365)/30)+'개월':'-';
-    return '<tr>'+
-      '<td><strong>'+re.name+'</strong>'+(re.buyDate?'<br><span style="color:#444;font-size:10px">'+re.buyDate+' 매입</span>':'')+' </td>'+
+    const ps=re.buyDate?Math.floor(s.days/365)+'\ub144 '+Math.floor((s.days%365)/30)+'\uac1c\uc6d4':'-';
+    return'<tr>'+
+      '<td><strong>'+re.name+'</strong>'+(re.buyDate?'<br><span style="color:#555;font-size:10px">'+re.buyDate+' \ub9e4\uc785</span>':'')+' </td>'+
       '<td><span class="badge bs">'+reTypeLabel[re.reType]+'</span></td>'+
       '<td style="color:#888;font-size:11px">'+(re.location||'-')+'</td>'+
       '<td><span style="padding:2px 7px;border-radius:10px;font-size:10px;background:#1e1e28;color:'+reStatusColor[re.status]+'">'+reStatusLabel[re.status]+'</span></td>'+
-      '<td>'+fmt(re.buyPrice)+(re.tax?'<br><span style="font-size:10px;color:#555">+취득세 '+fmt(re.tax)+'</span>':'')+' </td>'+
+      '<td>'+fmt(re.buyPrice)+(re.tax?'<br><span style="font-size:10px;color:#555">+\ucde8\ub4dd\uc138 '+fmt(re.tax)+'</span>':'')+' </td>'+
       '<td>'+fmt(re.curPrice)+'</td>'+
       '<td class="'+cc(s.pnl)+'">'+fmt(s.pnl)+'</td>'+
       '<td class="'+cc(s.pct)+'">'+fmtP(s.pct)+'</td>'+
-      '<td class="'+cc(s.annualPct)+'">'+fmtP(s.annualPct)+'/년<br><span style="font-size:10px;color:#555">'+periodStr+'</span></td>'+
-      '<td>'+(re.rent?'<span style="color:#34d399">'+fmt(re.rent)+'/월</span>':'-')+'</td>'+
+      '<td class="'+cc(s.annualPct)+'">'+fmtP(s.annualPct)+'/\ub144<br><span style="font-size:10px;color:#555">'+ps+'</span></td>'+
+      '<td>'+(re.rent?'<span style="color:#34d399">'+fmt(re.rent)+'/\uc6d4</span>':'-')+'</td>'+
       '<td>'+(s.realizedPnl!==null?'<span class="'+cc(s.realizedPnl)+'">'+fmt(s.realizedPnl)+'</span>'+(re.sellDate?'<br><span style="font-size:10px;color:#555">'+re.sellDate+'</span>':''):'-')+'</td>'+
-      '<td style="white-space:nowrap"><button class="btn btns" onclick="openReModal('+re.id+')">수정</button> <button class="btn btns btnd" onclick="delRe('+re.id+')">삭제</button></td></tr>';
+      '<td style="white-space:nowrap"><button class="btn btns" onclick="openReModal('+re.id+')">\uc218\uc815</button> <button class="btn btns btnd" onclick="delRe('+re.id+')">\uc0ad\uc81c</button></td></tr>';
   }).join('');
 }
 function renderReSummary(){
-  const totalCost=realEstates.reduce((s,re)=>s+re.buyPrice+(re.tax||0),0);
-  const totalVal=realEstates.filter(re=>re.status!=='sold').reduce((s,re)=>s+re.curPrice,0);
-  const totalPnl=realEstates.reduce((s,re)=>{const st=calcReStats(re);return s+st.pnl;},0);
-  const totalRealized=realEstates.filter(re=>re.status==='sold').reduce((s,re)=>{const st=calcReStats(re);return s+(st.realizedPnl||0);},0);
-  const pct=totalCost?(totalPnl/totalCost*100):0;
-  document.getElementById('re-cost').textContent=fmt(totalCost);
-  document.getElementById('re-value').textContent=fmt(totalVal);
-  document.getElementById('re-pnl').innerHTML='<span class="'+cc(totalPnl)+'">'+fmt(totalPnl)+'</span>';
+  const tc=realEstates.reduce((s,re)=>s+re.buyPrice+(re.tax||0),0);
+  const tv=realEstates.filter(re=>re.status!=='sold').reduce((s,re)=>s+re.curPrice,0);
+  const tp=realEstates.reduce((s,re)=>{const st=calcReStats(re);return s+st.pnl;},0);
+  const tr2=realEstates.filter(re=>re.status==='sold').reduce((s,re)=>{const st=calcReStats(re);return s+(st.realizedPnl||0);},0);
+  const pct=tc?(tp/tc*100):0;
+  document.getElementById('re-cost').textContent=fmt(tc);
+  document.getElementById('re-value').textContent=fmt(tv);
+  document.getElementById('re-pnl').innerHTML='<span class="'+cc(tp)+'">'+fmt(tp)+'</span>';
   document.getElementById('re-pct').innerHTML='<span class="'+cc(pct)+'">'+fmtP(pct)+'</span>';
-  document.getElementById('re-realized').innerHTML='<span class="'+cc(totalRealized)+'">'+fmt(totalRealized)+'</span>';
+  document.getElementById('re-realized').innerHTML='<span class="'+cc(tr2)+'">'+fmt(tr2)+'</span>';
 }
 function delRe(id){realEstates=realEstates.filter(r=>r.id!==id);renderRealEstates();renderReSummary();renderSummary();}
 function openReModal(id){
-  const re=realEstates.find(x=>x.id===id); editingReId=id;
+  const re=realEstates.find(x=>x.id===id);editingReId=id;
   document.getElementById('rem-name').value=re.name;
   document.getElementById('rem-location').value=re.location||'';
   document.getElementById('rem-buy').value=re.buyPrice;
@@ -837,30 +895,10 @@ function saveRe(){
   re.status=document.getElementById('rem-status').value;
   re.sellPrice=parseFloat(document.getElementById('rem-sell').value)||0;
   re.sellDate=document.getElementById('rem-selldate').value;
-  closeReModal(); renderRealEstates();renderReSummary();renderSummary();
+  closeReModal();renderRealEstates();renderReSummary();renderSummary();
 }
 
-// ── 대출 ────────────────────────────────────────────────────
-function calcMonthly(principal,annualRate,months,type){
-  const r=annualRate/100/12;
-  if(type==='bullet')return{monthly:Math.round(principal*r),totalPay:Math.round(principal+principal*r*months),totalInterest:Math.round(principal*r*months),schedule:[]};
-  if(type==='principal'){
-    const pmt=principal/months; let bal=principal,totalInt=0; const schedule=[];
-    for(let i=1;i<=months;i++){const interest=bal*r;totalInt+=interest;schedule.push({n:i,payment:Math.round(pmt+interest),principal:Math.round(pmt),interest:Math.round(interest),balance:Math.max(0,Math.round(bal-=pmt))});}
-    return{monthly:Math.round(principal/months+principal*r),totalPay:Math.round(principal+totalInt),totalInterest:Math.round(totalInt),schedule};
-  }
-  if(r===0){const pmt=principal/months;return{monthly:Math.round(pmt),totalPay:Math.round(principal),totalInterest:0,schedule:[]};}
-  const pmt=principal*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1);
-  let bal=principal,totalInt=0; const schedule=[];
-  for(let i=1;i<=months;i++){const interest=bal*r,princ=pmt-interest;totalInt+=interest;bal-=princ;schedule.push({n:i,payment:Math.round(pmt),principal:Math.round(princ),interest:Math.round(interest),balance:Math.max(0,Math.round(bal))});}
-  return{monthly:Math.round(pmt),totalPay:Math.round(pmt*months),totalInterest:Math.round(totalInt),schedule};
-}
-function calcRemain(loan){
-  if(!loan.schedule||!loan.schedule.length)return loan.principal;
-  const paid=loan.paidMonths||0;
-  if(paid>=loan.schedule.length)return 0;
-  return loan.schedule[paid]?loan.schedule[paid].balance:loan.principal;
-}
+// ── 대출 ──
 function calcLoanPreview(){
   const p=parseFloat(document.getElementById('l-principal').value),r=parseFloat(document.getElementById('l-rate').value),m=parseInt(document.getElementById('l-months').value),type=document.getElementById('l-type').value;
   const wrap=document.getElementById('loan-preview');
@@ -873,65 +911,62 @@ function calcLoanPreview(){
   document.getElementById('lp-iratio').textContent=((res.totalInterest/p)*100).toFixed(1)+'%';
 }
 function addLoan(){
-  const name=document.getElementById('l-name').value.trim()||'대출';
+  const name=document.getElementById('l-name').value.trim()||'\ub300\uccd9';
   const principal=parseFloat(document.getElementById('l-principal').value),rate=parseFloat(document.getElementById('l-rate').value),months=parseInt(document.getElementById('l-months').value),type=document.getElementById('l-type').value,start=document.getElementById('l-start').value;
-  if(!principal||!rate||!months){alert('원금, 이자율, 상환기간을 입력해주세요');return;}
+  if(!principal||!rate||!months){alert('\uc6d0\uae08, \uc774\uc790\uc728, \uc0c1\ud658\uae30\uac04\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694');return;}
   const calc=calcMonthly(principal,rate,months,type);
-  loans.push({id:Date.now(),name,principal,rate,months,type,start,paidMonths:0,...calc});
+  loans.push(Object.assign({id:Date.now(),name,principal,rate,months,type,start,paidMonths:0},calc));
   renderLoans();renderLoanSummary();renderSummary();
   ['l-name','l-principal','l-rate','l-months'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('loan-preview').style.display='none';
 }
 function renderLoans(){
   const tbody=document.getElementById('loan-table');
-  if(!loans.length){tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#333;padding:22px">대출을 추가해주세요</td></tr>';return;}
-  const typeLabel={equal:'원리금균등',principal:'원금균등',bullet:'만기일시'};
+  if(!loans.length){tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#333;padding:22px">\ub300\uccd9\uc744 \ucd94\uac00\ud574\uc8fc\uc138\uc694</td></tr>';return;}
+  const typeLabel={equal:'\uc6d0\ub9ac\uae08\uade0\ub4f1',principal:'\uc6d0\uae08\uade0\ub4f1',bullet:'\ub9cc\uae30\uc77c\uc2dc'};
   tbody.innerHTML=loans.map(l=>{
     const remain=calcRemain(l),progress=((l.paidMonths||0)/l.months*100).toFixed(0);
-    return '<tr>'+
-      '<td><strong>'+l.name+'</strong>'+(l.start?'<br><span style="color:#444;font-size:10px">'+l.start+' 시작</span>':'')+' </td>'+
-      '<td>'+fmt(l.principal)+'</td><td>'+l.rate+'%</td><td>'+l.months+'개월</td>'+
+    return'<tr>'+
+      '<td><strong>'+l.name+'</strong>'+(l.start?'<br><span style="color:#555;font-size:10px">'+l.start+' \uc2dc\uc791</span>':'')+' </td>'+
+      '<td>'+fmt(l.principal)+'</td><td>'+l.rate+'%</td><td>'+l.months+'\uac1c\uc6d4</td>'+
       '<td><span class="badge bs">'+typeLabel[l.type]+'</span></td>'+
-      '<td style="color:#a78bfa;font-weight:600">'+fmt(l.monthly)+(l.type==='principal'?'~':'')+'/월</td>'+
+      '<td style="color:#a78bfa;font-weight:600">'+fmt(l.monthly)+(l.type==='principal'?'~':'')+'/\uc6d4</td>'+
       '<td>'+fmt(l.totalPay)+'</td><td class="neg">'+fmt(l.totalInterest)+'</td>'+
       '<td class="neg"><strong>'+fmt(remain)+'</strong></td>'+
-      '<td><div style="width:80px;background:#1e1e28;border-radius:4px;height:5px;display:inline-block;vertical-align:middle"><div style="width:'+progress+'%;background:#a78bfa;height:5px;border-radius:4px"></div></div><span style="font-size:10px;color:#555;margin-left:4px">'+(l.paidMonths||0)+'/'+l.months+'개월</span></td>'+
-      '<td style="white-space:nowrap"><button class="btn btns" onclick="showSchedule('+l.id+')">스케줄</button> <button class="btn btns" onclick="openLoanModal('+l.id+')">수정</button> <button class="btn btns btnd" onclick="delLoan('+l.id+')">삭제</button></td></tr>';
+      '<td><div style="width:80px;background:#1e1e28;border-radius:4px;height:5px;display:inline-block;vertical-align:middle"><div style="width:'+progress+'%;background:#a78bfa;height:5px;border-radius:4px"></div></div>'+
+      '<span style="font-size:10px;color:#555;margin-left:4px">'+(l.paidMonths||0)+'/'+l.months+'\uac1c\uc6d4</span></td>'+
+      '<td style="white-space:nowrap"><button class="btn btns" onclick="showSchedule('+l.id+')">\uc2a4\ucf00\uc904</button> <button class="btn btns" onclick="openLoanModal('+l.id+')">\uc218\uc815</button> <button class="btn btns btnd" onclick="delLoan('+l.id+')">\uc0ad\uc81c</button></td></tr>';
   }).join('');
 }
 function renderLoanSummary(){
-  const totalP=loans.reduce((s,l)=>s+l.principal,0),totalRemain=loans.reduce((s,l)=>s+calcRemain(l),0),totalMonthly=loans.reduce((s,l)=>s+l.monthly,0);
-  const totalAsset=assets.reduce((s,a)=>s+a.price*a.qty,0)+realEstates.filter(re=>re.status!=='sold').reduce((s,re)=>s+re.curPrice,0);
-  const net=totalAsset-totalRemain;
+  const totalP=loans.reduce((s,l)=>s+l.principal,0),totalR=loans.reduce((s,l)=>s+calcRemain(l),0),totalM=loans.reduce((s,l)=>s+l.monthly,0);
+  const ta=assets.reduce((s,a)=>s+a.price*a.qty,0)+realEstates.filter(re=>re.status!=='sold').reduce((s,re)=>s+re.curPrice,0);
+  const net=ta-totalR;
   document.getElementById('ls-principal').textContent=fmt(totalP);
-  document.getElementById('ls-remain').textContent=fmt(totalRemain);
-  document.getElementById('ls-monthly').textContent=fmt(totalMonthly)+'/월';
+  document.getElementById('ls-remain').textContent=fmt(totalR);
+  document.getElementById('ls-monthly').textContent=fmt(totalM)+'/\uc6d4';
   document.getElementById('ls-net').innerHTML='<span class="'+cc(net)+'">'+fmt(net)+'</span>';
 }
 function showSchedule(id){
   const l=loans.find(x=>x.id===id);
-  if(!l||!l.schedule||!l.schedule.length){alert('스케줄 데이터가 없습니다');return;}
-  const wrap=document.getElementById('schedule-wrap');
-  wrap.style.display='block';
-  document.getElementById('schedule-title').textContent=l.name+' 상환 스케줄';
-  const startDate=l.start?new Date(l.start):new Date();
+  if(!l||!l.schedule||!l.schedule.length){alert('\uc2a4\ucf00\uc904 \ub370\uc774\ud130\uac00 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
+  const wrap=document.getElementById('schedule-wrap');wrap.style.display='block';
+  document.getElementById('schedule-title').textContent=l.name+' \uc0c1\ud658 \uc2a4\ucf00\uc904';
+  const sd=l.start?new Date(l.start):new Date();
   document.getElementById('schedule-table').innerHTML=l.schedule.map((s,i)=>{
-    const d=new Date(startDate); d.setMonth(d.getMonth()+i);
-    const dateStr=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0');
-    const isPaid=i<(l.paidMonths||0);
-    return '<tr style="'+(isPaid?'opacity:.4':'')+'">'+'<td>'+s.n+'</td><td>'+dateStr+(isPaid?' <span style="font-size:9px;color:#34d399">납입완료</span>':'')+' </td><td style="color:#a78bfa">'+fmt(s.payment)+'</td><td>'+fmt(s.principal)+'</td><td class="neg">'+fmt(s.interest)+'</td><td>'+fmt(s.balance)+'</td></tr>';
+    const d=new Date(sd);d.setMonth(d.getMonth()+i);
+    const ds=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0');
+    const ip=i<(l.paidMonths||0);
+    return'<tr style="'+(ip?'opacity:.4':'')+'"><td>'+s.n+'</td><td>'+ds+(ip?' <span style="font-size:9px;color:#34d399">\ub0a9\uc785\uc644\ub8cc</span>':'')+' </td><td style="color:#a78bfa">'+fmt(s.payment)+'</td><td>'+fmt(s.principal)+'</td><td class="neg">'+fmt(s.interest)+'</td><td>'+fmt(s.balance)+'</td></tr>';
   }).join('');
   wrap.scrollIntoView({behavior:'smooth'});
 }
 function delLoan(id){loans=loans.filter(l=>l.id!==id);renderLoans();renderLoanSummary();renderSummary();}
 function openLoanModal(id){
-  const l=loans.find(x=>x.id===id); editingLoanId=id;
-  document.getElementById('lm-name').value=l.name;
-  document.getElementById('lm-principal').value=l.principal;
-  document.getElementById('lm-rate').value=l.rate;
-  document.getElementById('lm-months').value=l.months;
-  document.getElementById('lm-type').value=l.type;
-  document.getElementById('lm-paid').value=l.paidMonths||0;
+  const l=loans.find(x=>x.id===id);editingLoanId=id;
+  document.getElementById('lm-name').value=l.name;document.getElementById('lm-principal').value=l.principal;
+  document.getElementById('lm-rate').value=l.rate;document.getElementById('lm-months').value=l.months;
+  document.getElementById('lm-type').value=l.type;document.getElementById('lm-paid').value=l.paidMonths||0;
   document.getElementById('loan-modal').classList.add('open');
 }
 function closeLoanModal(){document.getElementById('loan-modal').classList.remove('open');editingLoanId=null;}
@@ -944,10 +979,10 @@ function saveLoan(){
   l.type=document.getElementById('lm-type').value;
   l.paidMonths=parseInt(document.getElementById('lm-paid').value)||0;
   Object.assign(l,calcMonthly(l.principal,l.rate,l.months,l.type));
-  closeLoanModal(); renderLoans();renderLoanSummary();renderSummary();
+  closeLoanModal();renderLoans();renderLoanSummary();renderSummary();
 }
 
-// ── 공통 ────────────────────────────────────────────────────
+// ── 공통 ──
 function openAddModal(){document.getElementById('add-modal').classList.add('open');}
 function closeModal(){document.getElementById('add-modal').classList.remove('open');}
 function addAsset(){
@@ -955,16 +990,14 @@ function addAsset(){
   const cat=document.getElementById('m-cat').value,sector=document.getElementById('m-sector').value;
   const qty=parseFloat(document.getElementById('m-qty').value),cost=parseFloat(document.getElementById('m-cost').value);
   const price=parseFloat(document.getElementById('m-price').value)||cost;
-  if(!sym||!name||!qty||!cost){alert('심볼, 종목명, 수량, 매입가를 입력해주세요');return;}
+  if(!sym||!name||!qty||!cost){alert('\uc2ec\ubcfc, \uc885\ubaa9\uba85, \uc218\ub7c9, \ub9e4\uc785\uac00\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694');return;}
   assets.push({id:Date.now(),symbol:sym,name,cat,sector,qty,avgCost:cost,price,priceHistory:{}});
-  closeModal();renderAll();
-  if(cat!=='cash')fetchPrices();
+  closeModal();renderAll();if(cat!=='cash')fetchPrices();
 }
 function showPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
 }
 
 document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
