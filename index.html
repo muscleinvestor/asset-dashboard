@@ -505,57 +505,52 @@ tr:hover td{background:rgba(167,139,250,.03)}
 </div>
 
 <!-- 섹터맵 -->
-<div id="heatmappage" class="page">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <div>
-      <div style="font-size:15px;font-weight:600">섹터 히트맵</div>
-      <div style="font-size:11px;color:#555;margin-top:2px">블록 크기 = 시총 비중 · 색상 = 전일대비 등락</div>
+<div id="heatmappage" class="page" style="padding:10px">
+
+  <!-- 컨트롤 바 -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <!-- 시장 탭 -->
+    <div style="display:flex;background:#141418;border-radius:8px;padding:3px;border:1px solid #2a2a38;gap:2px">
+      <button class="pb active" id="hmt-snp"    onclick="hmSelectMarket('SNP500','S&P 500',this)">S&P 500</button>
+      <button class="pb"        id="hmt-ndx"    onclick="hmSelectMarket('NDX','NASDAQ 100',this)">NASDAQ 100</button>
+      <button class="pb"        id="hmt-kospi"  onclick="hmSelectMarket('KOSPI','KOSPI',this)">KOSPI</button>
+      <button class="pb"        id="hmt-kosdaq" onclick="hmSelectMarket('KOSDAQ','KOSDAQ',this)">KOSDAQ</button>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <div style="display:flex;background:#141418;border-radius:8px;padding:3px;border:1px solid #2a2a38">
-        <button class="pb active" id="hm-tab-both" onclick="setHmView('both',this)">전체</button>
-        <button class="pb" id="hm-tab-us" onclick="setHmView('us',this)">미국</button>
-        <button class="pb" id="hm-tab-kr" onclick="setHmView('kr',this)">한국</button>
+    <div style="font-size:13px;font-weight:600;color:#e8e8f0" id="hm-market-label">S&P 500</div>
+    <div style="font-size:11px;color:#555">시총 기준 상위 종목 · 블록 크기=시총 · 색상=등락</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <!-- 레전드 -->
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#555">
+        <span style="color:#f87171">-3%</span>
+        <div id="hm-legend" style="width:80px;height:7px;border-radius:3px"></div>
+        <span style="color:#34d399">+3%</span>
       </div>
       <button class="btn" onclick="loadHeatmap()">새로고침</button>
-      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#555">
-        <div id="hm-legend" style="width:100px;height:8px;border-radius:3px"></div>
-        <span>-3%</span><span style="margin-left:2px">+3%</span>
-      </div>
     </div>
   </div>
 
   <!-- 요약 카드 -->
-  <div id="hm-summary" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"></div>
+  <div id="hm-summary" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
 
-  <!-- 미국 S&P500 섹터 -->
-  <div id="hm-us-wrap" style="margin-bottom:20px">
-    <div style="font-size:11px;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-      <span style="background:#1a2a3a;color:#38bdf8;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🇺🇸 S&P500 섹터</span>
-      <span style="font-size:10px;color:#444">GICS 섹터 지수 기준 · Yahoo Finance</span>
-      <span class="tdot" style="margin-left:4px"></span>
-    </div>
-    <div id="hm-us" style="position:relative;width:100%;height:260px"></div>
-  </div>
+  <!-- 히트맵 캔버스 영역 -->
+  <div id="hm-canvas" style="position:relative;width:100%;background:#0f0f13;border-radius:10px;border:1px solid #1e1e2a;overflow:hidden"></div>
 
-  <!-- 한국 KOSPI 섹터 -->
-  <div id="hm-kr-wrap">
-    <div style="font-size:11px;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-      <span style="background:#1a2540;color:#818cf8;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🇰🇷 KOSPI 업종</span>
-      <span style="font-size:10px;color:#444">네이버 증권 업종 지수 기준 · 실시간</span>
-      <span class="tdot" style="margin-left:4px"></span>
-    </div>
-    <div id="hm-kr" style="position:relative;width:100%;height:260px"></div>
-  </div>
-
-  <div style="font-size:11px;color:#444;margin-top:14px;text-align:right" id="hm-status">--</div>
+  <div style="font-size:10px;color:#333;margin-top:6px;text-align:right" id="hm-status">--</div>
 </div>
 
 <!-- 히트맵 툴팁 -->
-<div id="hm-tooltip" style="display:none;position:fixed;background:#1e1e2a;border:1px solid #3a3a4a;border-radius:9px;padding:12px 14px;font-size:12px;pointer-events:none;z-index:1000;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.5)">
-  <div id="hmt-name" style="font-weight:600;font-size:13px;margin-bottom:6px"></div>
-  <div style="display:flex;justify-content:space-between;gap:16px;margin-bottom:3px;color:#888">전일대비<span id="hmt-chg" style="font-weight:600"></span></div>
-  <div style="display:flex;justify-content:space-between;gap:16px;color:#888">비중<span id="hmt-weight" style="color:#e8e8f0;font-weight:500"></span></div>
+<div id="hm-tooltip" style="display:none;position:fixed;background:#1e1e2a;border:1px solid #3a3a4a;border-radius:9px;padding:12px 14px;font-size:12px;pointer-events:none;z-index:9999;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.6)">
+  <div id="hmt-name"   style="font-weight:700;font-size:13px;margin-bottom:2px;color:#f0f0f8"></div>
+  <div id="hmt-sym"    style="font-size:10px;color:#666;margin-bottom:8px"></div>
+  <div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px">
+    <span style="color:#888">등락률</span><span id="hmt-chg"   style="font-weight:700"></span>
+  </div>
+  <div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px">
+    <span style="color:#888">현재가</span><span id="hmt-price" style="color:#e8e8f0"></span>
+  </div>
+  <div style="display:flex;justify-content:space-between;gap:20px">
+    <span style="color:#888">시총비중</span><span id="hmt-cap"  style="color:#a78bfa"></span>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
