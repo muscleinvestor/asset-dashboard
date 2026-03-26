@@ -568,31 +568,88 @@ function renderSearchResults(containerId, quotes, onSelectFn) {
   }
   res.innerHTML = quotes.map(function(q, i) {
     var isCrypto = q.type === "CRYPTOCURRENCY";
+    var isUpbit  = !!q._upbit;
     var isKr = q.exchange && (q.exchange.includes("KSC") || q.exchange.includes("KSE"));
     var tc = isCrypto ? "#a78bfa" : isKr ? "#818cf8" : "#38bdf8";
-    var tl = isCrypto ? "가상자산" : isKr ? "한국주식" : "주식/ETF";
+    var tl = isUpbit ? "업비트 코인" : isCrypto ? "가상자산" : isKr ? "한국주식" : "주식/ETF";
+    var exch = isUpbit ? "Upbit KRW" : (q.exchange || "");
     return "<div class='search-item' onclick='"+onSelectFn+"("+i+")'" +
       " data-sym='" + q.symbol + "'" +
       " data-name='" + q.name.replace(/'/g, "&#39;") + "'" +
-      " data-exch='" + (q.exchange || "") + "'" +
-      " data-type='" + (q.type || "") + "'>" +
+      " data-exch='" + exch + "'" +
+      " data-type='" + (q.type || "") + "'" +
+      " data-upbit='" + (isUpbit ? "1" : "0") + "'>" +
       "<div style='display:flex;justify-content:space-between;align-items:center'>" +
         "<span style='font-weight:600;font-size:12px;color:#f0f0f8'>" + q.symbol + "</span>" +
         "<span style='font-size:10px;padding:1px 6px;border-radius:10px;background:#1e1e28;color:" + tc + "'>" + tl + "</span>" +
       "</div>" +
       "<div style='font-size:11px;color:#888;margin-top:2px'>" + q.name + "</div>" +
-      "<div style='font-size:10px;color:#444;margin-top:1px'>" + (q.exchange || "") + "</div>" +
+      (isUpbit ? "<div style='font-size:10px;color:#7c3aed;margin-top:1px'>KRW-" + q.symbol + " · 업비트 실시간</div>" :
+                 "<div style='font-size:10px;color:#444;margin-top:1px'>" + exch + "</div>") +
       "</div>";
   }).join("");
 }
 
-// ── 공통 야후 검색 fetch ──────────────────────────────────
-function fetchYahooSearch(rawQuery, callback) {
-  var q = resolveQuery(rawQuery); // 한글이면 티커로 변환
-  fetch(PROXY + "?mode=search&q=" + encodeURIComponent(q))
+// ── 업비트 마켓 목록 캐시 ─────────────────────────────────
+var upbitMarkets = null;
+function loadUpbitMarkets() {
+  if (upbitMarkets) return Promise.resolve(upbitMarkets);
+  return fetch("https://api.upbit.com/v1/market/all?isDetails=false")
     .then(function(r) { return r.json(); })
-    .then(function(d) { callback(null, d.quotes || []); })
-    .catch(function(e) { callback(e, []); });
+    .then(function(d) {
+      // KRW 마켓만 필터링
+      upbitMarkets = d.filter(function(m) { return m.market.startsWith("KRW-"); });
+      return upbitMarkets;
+    }).catch(function() { return []; });
+}
+
+// 업비트 마켓에서 검색
+function searchUpbitMarkets(q, markets) {
+  var lower = q.toLowerCase().replace(/\s/g, "");
+  return markets.filter(function(m) {
+    var sym  = m.market.replace("KRW-", "").toLowerCase();
+    var name = (m.korean_name || "").replace(/\s/g, "");
+    var eng  = (m.english_name || "").toLowerCase().replace(/\s/g, "");
+    return sym.includes(lower) || name.includes(lower) || eng.includes(lower);
+  }).slice(0, 8).map(function(m) {
+    var sym = m.market.replace("KRW-", "");
+    return {
+      symbol:   sym,
+      name:     m.korean_name + " (" + m.english_name + ")",
+      exchange: "Upbit KRW",
+      type:     "CRYPTOCURRENCY",
+      _upbit:   true
+    };
+  });
+}
+
+// ── 통합 검색 (야후 + 업비트 병렬) ───────────────────────
+function fetchYahooSearch(rawQuery, callback) {
+  var q = resolveQuery(rawQuery);
+
+  var yahooP = fetch(PROXY + "?mode=search&q=" + encodeURIComponent(q))
+    .then(function(r) { return r.json(); })
+    .then(function(d) { return d.quotes || []; })
+    .catch(function() { return []; });
+
+  var upbitP = loadUpbitMarkets()
+    .then(function(markets) { return searchUpbitMarkets(rawQuery, markets); })
+    .catch(function() { return []; });
+
+  Promise.all([yahooP, upbitP]).then(function(results) {
+    var yahooQuotes  = results[0];
+    var upbitQuotes  = results[1];
+
+    // 업비트 결과에서 이미 야후에 있는 심볼 제거 (중복 방지)
+    var yahoSyms = yahooQuotes.map(function(q) { return q.symbol.toUpperCase(); });
+    var filteredUpbit = upbitQuotes.filter(function(u) {
+      return !yahoSyms.includes(u.symbol.toUpperCase());
+    });
+
+    // 업비트 코인 먼저, 야후 주식 뒤에
+    var combined = filteredUpbit.concat(yahooQuotes);
+    callback(null, combined);
+  });
 }
 
 // ── localStorage ──────────────────────────────────────────
@@ -767,14 +824,41 @@ function renderDashCharts() {
 }
 
 // ── 시장 상태 ──────────────────────────────────────────────
+function isDST() {
+  // 미국 서머타임: 3월 두 번째 일요일 ~ 11월 첫 번째 일요일
+  var now = new Date();
+  var year = now.getFullYear();
+
+  // 3월 두 번째 일요일 (미국 동부 기준 새벽 2시 = KST 당일 16시)
+  var mar = new Date(year, 2, 1);
+  var dstStart = new Date(year, 2, 8 + (7 - mar.getDay()) % 7, 16); // 두 번째 일요일
+
+  // 11월 첫 번째 일요일
+  var nov = new Date(year, 10, 1);
+  var dstEnd = new Date(year, 10, 1 + (7 - nov.getDay()) % 7, 16); // 첫 번째 일요일
+
+  return now >= dstStart && now < dstEnd;
+}
+
 function marketStatus() {
   var kst = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Seoul"}));
   var day = kst.getDay(), t = kst.getHours()*60 + kst.getMinutes(), wd = day >= 1 && day <= 5;
+  var dst = isDST();
+
+  // 서머타임: KST 22:30~05:00 / 일반: KST 23:30~06:00
+  var usOpen_start = dst ? 1350 : 1410; // 22:30 or 23:30
+  var usOpen_end   = dst ?  300 :  360; // 05:00 or 06:00
+  var usOpenNow    = wd && (t >= usOpen_start || t < usOpen_end);
+
+  var usOpenStr  = dst ? "22:30" : "23:30";
+  var usCloseStr = dst ? "05:00" : "06:00";
+
   return {
     krOpen: wd && t >= 540 && t < 930,
-    usOpen: wd && (t >= 1410 || t < 360),
+    usOpen: usOpenNow,
+    dst:    dst,
     krNext: (wd && t >= 540 && t < 930) ? "15:30 KST 마감" : (wd && t < 540) ? "09:00 KST 개장" : "다음 영업일 09:00",
-    usNext: (wd && (t >= 1410 || t < 360)) ? "06:00 KST 마감" : (wd && t < 1410 && t >= 360) ? "23:30 KST 개장" : "다음 영업일 23:30"
+    usNext: usOpenNow ? (usCloseStr + " KST 마감") : (usOpenStr + " KST 개장" + (dst ? " (서머타임)" : ""))
   };
 }
 function setChg(id, val, prev) {
@@ -805,6 +889,51 @@ function fetchTickers() {
   var krEl = g("tk-kr-ms"), usEl = g("tk-us-ms");
   if (krEl) { krEl.textContent = ms.krOpen ? "장중" : "장마감"; krEl.className = "ms " + (ms.krOpen ? "ms-open" : "ms-closed"); krEl.title = ms.krNext; }
   if (usEl) { usEl.textContent = ms.usOpen ? "장중" : "장마감"; usEl.className = "ms " + (ms.usOpen ? "ms-open" : "ms-closed"); usEl.title = ms.usNext; }
+
+  // ★ 네이버 증권 API로 해외지수 한번에 조회 (실시간에 가까운 데이터)
+  fetch(PROXY + "?mode=naver_world")
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.ok || !d.data) return;
+      var data = d.data;
+
+      var map = [
+        { key:"usdkrw",  tv:"tk-usdkrw",  ch:"ch-usdkrw",  fn:function(v){return W+v.toFixed(2);},                           cb:function(v){usdKrwVal=v;updatePremium();} },
+        { key:"kospi",   tv:"tk-kospi",   ch:"ch-kospi",   fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});} },
+        { key:"kosdaq",  tv:"tk-kosdaq",  ch:"ch-kosdaq",  fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});} },
+        { key:"snp",     tv:"tk-snp",     ch:"ch-snp",     fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
+        { key:"nasdaq",  tv:"tk-nasdaq",  ch:"ch-nasdaq",  fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
+        { key:"russell", tv:"tk-russell", ch:"ch-russell", fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});} },
+        { key:"vix",     tv:"tk-vix",     ch:"ch-vix",     fn:function(v){return v.toFixed(2);} },
+        { key:"gold",    tv:"tk-gold",    ch:"ch-gold",    fn:function(v){return "$"+v.toLocaleString("en-US",{maximumFractionDigits:2});} },
+        { key:"silver",  tv:"tk-silver",  ch:"ch-silver",  fn:function(v){return "$"+v.toFixed(3);} },
+        { key:"wti",     tv:"tk-wti",     ch:"ch-wti",     fn:function(v){return "$"+v.toFixed(2);} },
+        { key:"brent",   tv:"tk-brent",   ch:"ch-brent",   fn:function(v){return "$"+v.toFixed(2);} },
+      ];
+
+      map.forEach(function(m) {
+        var item = data[m.key];
+        if (!item || !item.price) return;
+        var el = g(m.tv);
+        if (el) el.textContent = m.fn(item.price);
+        if (m.cb) m.cb(item.price);
+        // 전일대비: change는 등락률(%), prev는 전일종가와의 차이(포인트)
+        var chEl = g(m.ch);
+        if (chEl && item.change !== undefined) {
+          var chg = item.change;
+          chEl.textContent = (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%";
+          chEl.style.color = clr(chg);
+        }
+      });
+    })
+    .catch(function() {
+      // 네이버 실패 시 Yahoo로 fallback
+      fetchTickersYahoo();
+    });
+}
+
+// Yahoo fallback
+function fetchTickersYahoo() {
   var list = [
     {tv:"tk-usdkrw", ch:"ch-usdkrw", sym:"USDKRW=X", fn:function(v){return W+v.toFixed(2);}, cb:function(v){usdKrwVal=v;updatePremium();}},
     {tv:"tk-kospi",  ch:"ch-kospi",  sym:"^KS11",    fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},
@@ -1047,12 +1176,13 @@ function doTradeSearch() {
 }
 function selectTradeTicker(idx) {
   var items = document.querySelectorAll("#t-search-results .search-item"), item = items[idx]; if (!item) return;
-  var sym  = item.getAttribute("data-sym");
-  var name = item.getAttribute("data-name");
-  var exch = item.getAttribute("data-exch");
-  var type = item.getAttribute("data-type");
+  var sym    = item.getAttribute("data-sym");
+  var name   = item.getAttribute("data-name");
+  var exch   = item.getAttribute("data-exch");
+  var type   = item.getAttribute("data-type");
+  var isUpbit = item.getAttribute("data-upbit") === "1";
   var cat = "us";
-  if (type === "CRYPTOCURRENCY") cat = "crypto";
+  if (isUpbit || type === "CRYPTOCURRENCY") cat = "crypto";
   else if (exch && (exch.includes("KSC") || exch.includes("KSE"))) cat = "kr";
   var cs = cleanSym(sym);
   // 드롭다운 초기화
@@ -1344,12 +1474,13 @@ function doSearch() {
 }
 function selectTicker(idx) {
   var items = document.querySelectorAll("#search-results .search-item"), item = items[idx]; if (!item) return;
-  var sym  = item.getAttribute("data-sym");
-  var name = item.getAttribute("data-name");
-  var exch = item.getAttribute("data-exch");
-  var type = item.getAttribute("data-type");
+  var sym    = item.getAttribute("data-sym");
+  var name   = item.getAttribute("data-name");
+  var exch   = item.getAttribute("data-exch");
+  var type   = item.getAttribute("data-type");
+  var isUpbit = item.getAttribute("data-upbit") === "1";
   var cat = "us";
-  if (type === "CRYPTOCURRENCY") cat = "crypto";
+  if (isUpbit || type === "CRYPTOCURRENCY") cat = "crypto";
   else if (exch && (exch.includes("KSC") || exch.includes("KSE"))) cat = "kr";
   var cs = cleanSym(sym);
   g("m-sym").value = cs; g("m-name").value = name; g("m-cat").value = cat;
