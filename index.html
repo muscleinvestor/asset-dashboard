@@ -357,12 +357,12 @@ tr:hover td{background:rgba(167,139,250,.03)}
   <!-- 요약 -->
   <div id="hm-summary" style="display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;align-items:center;flex-shrink:0"></div>
 
-  <!-- 미국 패널: S&P500 (상) + NASDAQ100 (하) -->
+  <!-- 미국 패널: 다우존스 (상) + NASDAQ100 (하) -->
   <div id="hm-us-panel" class="hm-panel-wrap">
     <div class="hm-sub-panel">
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-        <span style="font-size:10px;font-weight:700;color:#38bdf8;background:#1a2a3a;padding:2px 8px;border-radius:10px">S&amp;P 500</span>
-        <span style="font-size:10px;color:#444">시총 상위 50개</span>
+        <span style="font-size:10px;font-weight:700;color:#38bdf8;background:#1a2a3a;padding:2px 8px;border-radius:10px">다우존스</span>
+        <span style="font-size:10px;color:#444">시총 상위 30개</span>
         <span style="font-size:10px;color:#333" id="hm-snp-status"></span>
       </div>
       <div id="hm-snp" class="hm-sub-canvas"></div>
@@ -1462,7 +1462,7 @@ function hmSelectRegion(btn){
   g("hm-kr-panel").style.display = hmCurrentRegion==="kr" ? "flex" : "none";
   // 해당 지역 데이터 없으면 로드
   if(hmCurrentRegion==="us"){
-    if(!hmDataCache["SNP500"])hmLoadMarket("SNP500","hm-snp","hm-snp-status");
+    if(!hmDataCache["DJI"])hmLoadMarket("DJI","hm-snp","hm-snp-status");
     if(!hmDataCache["NDX"])hmLoadMarket("NDX","hm-ndx","hm-ndx-status");
   } else {
     if(!hmDataCache["KOSPI"])hmLoadMarket("KOSPI","hm-kospi","hm-kospi-status");
@@ -1591,7 +1591,7 @@ function hmRenderPanel(data, el){
 
 // 현재 지역의 요약 카드 갱신
 function hmUpdateSummary(){
-  var keys = hmCurrentRegion==="us" ? ["SNP500","NDX"] : ["KOSPI","KOSDAQ"];
+  var keys = hmCurrentRegion==="us" ? ["DJI","NDX"] : ["KOSPI","KOSDAQ"];
   var all=[];
   keys.forEach(function(k){if(hmDataCache[k])all=all.concat(hmDataCache[k]);});
   if(!all.length){g("hm-summary").innerHTML="";return;}
