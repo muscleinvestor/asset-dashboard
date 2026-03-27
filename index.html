@@ -1492,22 +1492,21 @@ function hmLoadMarket(mkt, canvasId, statusId){
   var el=g(canvasId), stEl=g(statusId);
   el.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:12px'><span class='loading'></span>&nbsp;로딩중...</div>";
   if(stEl)stEl.textContent="조회중...";
-  var syms=HM_STOCKS[mkt]||[];
-  fetchBatchPrices(syms, function(data){
+
+  fetchBatchPrices(mkt, function(data){
     hmLoadingState[mkt]=false;
     if(!data||!data.length){
-      el.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#444;font-size:11px;text-align:center;padding:20px'>데이터 없음<br><span style='color:#333;font-size:10px'>Worker Deploy 확인 필요</span></div>";
+      el.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#444;font-size:11px;text-align:center;padding:20px'>데이터 없음<br><span style='color:#333;font-size:10px'>Worker Deploy 확인 필요<br>?mode=debug&market="+mkt+"</span></div>";
       if(stEl)stEl.textContent="데이터 없음"; return;
     }
-    // cap 보정
-    data.forEach(function(s,i){if(!s.cap||s.cap<1)s.cap=(data.length-i+1)*200;});
+    // 시총 내림차순 정렬
     data.sort(function(a,b){return b.cap-a.cap;});
     hmDataCache[mkt]=data;
     hmRenderPanel(data, el);
     var now=new Date();
     if(stEl)stEl.textContent=now.getHours()+":"+("0"+now.getMinutes()).slice(-2)+" · "+data.length+"종목";
     hmUpdateSummary();
-    g("hm-status").textContent="Yahoo Finance (15분지연)";
+    g("hm-status").textContent="Yahoo Finance Screener (실시간 시총 기준)";
   });
 }
 
@@ -1607,19 +1606,18 @@ function hmUpdateSummary(){
   g("hm-summary").innerHTML=card("평균 등락",hmFmt(avg),avg>=0?"#34d399":"#f87171")+card("상승/하락",up+"↑  "+dn+"↓","#e8e8f0")+card("🔥 상위",best3.join("  "),"#34d399")+card("🧊 하위",worst3.join("  "),"#f87171");
 }
 
-// 배치 가격 조회
-function fetchBatchPrices(syms,cb){
-  var chunks=[],size=40;
-  for(var i=0;i<syms.length;i+=size)chunks.push(syms.slice(i,i+size));
-  var all=[],done=0;
-  if(!chunks.length){cb([]);return;}
-  chunks.forEach(function(chunk){
-    fetch(PROXY+"?mode=batch&syms="+chunk.join(","))
-      .then(function(r){return r.json();})
-      .then(function(d){if(d.ok&&d.data)all=all.concat(d.data);})
-      .catch(function(){})
-      .finally(function(){done++;if(done===chunks.length)cb(all);});
-  });
+// 배치 가격 조회 — screener 방식 (실제 시총 기준)
+function fetchBatchPrices(mkt, cb){
+  // mkt: "SNP500" | "NDX" | "KOSPI" | "KOSDAQ"
+  var countMap = {SNP500:50, NDX:40, KOSPI:30, KOSDAQ:20};
+  var count = countMap[mkt] || 40;
+  fetch(PROXY+"?mode=batch&market="+mkt+"&count="+count)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok && d.data && d.data.length) cb(d.data);
+      else cb([]);
+    })
+    .catch(function(){ cb([]); });
 }
 
 // 트리맵 알고리즘
