@@ -1511,39 +1511,82 @@ function hmLoadMarket(mkt, canvasId, statusId){
   });
 }
 
+// ── 한글 종목명 매핑 ──────────────────────────────────
+var KR_NAME = {
+  "005930":"삼성전자","000660":"SK하이닉스","035420":"NAVER","005380":"현대차",
+  "000270":"기아","035720":"카카오","051910":"LG화학","006400":"삼성SDI",
+  "028260":"삼성물산","096770":"SK이노베이션","068270":"셀트리온","105560":"KB금융",
+  "055550":"신한지주","086790":"하나금융","207940":"삼성바이오로직스","066570":"LG전자",
+  "003550":"LG","017670":"SK텔레콤","034020":"두산에너빌리티","015760":"한국전력",
+  "259960":"크래프톤","036570":"엔씨소프트","018260":"삼성에스디에스","000810":"삼성화재",
+  "373220":"LG에너지솔루션","003670":"포스코홀딩스","009150":"삼성전기","011200":"HMM",
+  "010950":"S-Oil","024110":"기업은행",
+  // KOSDAQ
+  "263750":"펄어비스","196170":"알테오젠","357780":"솔브레인","112040":"위메이드",
+  "041510":"에스엠","086520":"에코프로","214150":"클래시스","064550":"바이오니아",
+  "323410":"카카오뱅크","377300":"카카오페이","251270":"넷마블","293490":"카카오게임즈",
+  "140610":"엔에이치스팩","091990":"셀트리온헬스케어","330350":"현대바이오","078600":"아프리카TV",
+  "240810":"원익IPS","226950":"오리온홀딩스","131970":"두산테스나","058470":"리노공업",
+};
+function hmDispName(sym, rawName){
+  var code = sym.replace(/\.(KS|KQ)$/,"");
+  return KR_NAME[code] || rawName || code;
+}
+
+// ── 시총 스케일 완화 (루트 적용) ─────────────────────
+function hmScaledCap(cap){ return cap>0 ? Math.pow(cap, 0.55) : 1; }
+
 // 패널에 트리맵 렌더
 function hmRenderPanel(data, el){
   var W=el.offsetWidth||600;
   var H=el.offsetHeight||280;
   if(!data||!data.length){el.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#333;font-size:12px'>데이터 없음</div>";return;}
-  var top=data.slice(0,60),totalCap=top.reduce(function(s,i){return s+i.cap;},0),blocks=hmTreemap(top,W,H);
+
+  // 시총 스케일 완화 복사본
+  var top=data.slice(0,60).map(function(s){
+    return Object.assign({},s,{cap: hmScaledCap(s.cap)});
+  });
+  var totalCap=top.reduce(function(s,i){return s+i.cap;},0);
+  var blocks=hmTreemap(top,W,H);
+
   el.innerHTML=blocks.map(function(b){
-    var s=b.it,bg=hmClr(s.chg),tc=hmTClr(s.chg),bw=b.w-2,bh=b.h-2;
-    // 블록 크기에 따른 3단계 분류
-    var large = bw>140&&bh>70;
-    var mid   = bw>70 &&bh>38;
-    var small = bw>36 &&bh>24;
-    // 심볼 폰트: large=15px, mid=13px, small=11px
-    var fsSym = large?"15px":mid?"13px":"11px";
-    // 등락률 폰트: large=14px, mid=12px, small=10px
-    var fsChg = large?"14px":mid?"12px":"10px";
-    // 종목명 폰트 (large 블록만 표시)
-    var fsName= "9px";
-    var capPct=totalCap>0?(s.cap/totalCap*100).toFixed(1):"";
-    var dispSym=s.sym.replace(/\.(KS|KQ)$/,"");
-    // 심볼 글자수 너비에 따라 자르기
-    var maxSymLen = bw>120?8:bw>70?6:5;
-    var symLabel = dispSym.length>maxSymLen ? dispSym.substring(0,maxSymLen)+"…" : dispSym;
-    return"<div style='position:absolute;left:"+(b.x+1)+"px;top:"+(b.y+1)+"px;width:"+bw+"px;height:"+bh+"px;background:"+bg+";border-radius:3px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;cursor:default;border:1px solid rgba(0,0,0,.25);transition:filter .12s;gap:1px'"+
-      " onmouseover='this.style.filter=\"brightness(1.3)\";hmTipShow(event,\""+s.name.replace(/"/g,"'").replace(/\\/g,"")+"\",\""+dispSym+"\","+s.chg+","+s.price+",\""+capPct+"\")'" +
-      " onmouseout='this.style.filter=\"\";hmTipHide()'>" +
+    var s=b.it, origS=data.find(function(x){return x.sym===s.sym;})||s;
+    var bg=hmClr(s.chg),tc=hmTClr(s.chg),bw=b.w-2,bh=b.h-2;
+
+    // 블록 면적 기준으로 단계 분류 (높이+너비 모두 충족)
+    var large = bw>120 && bh>60;
+    var mid   = bw>60  && bh>34;
+    var small = bw>28  && bh>20;
+
+    var fsSym = large?"16px":mid?"13px":"11px";
+    var fsChg = large?"13px":mid?"12px":"10px";
+    var fsName= large?"10px":"9px";
+
+    var dispSym  = s.sym.replace(/\.(KS|KQ)$/,"");
+    var dispName = hmDispName(s.sym, origS.name);
+    // 너비에 따라 이름 자르기
+    var maxNameLen = bw>160?9:bw>100?7:5;
+    var nameLabel  = dispName.length>maxNameLen ? dispName.substring(0,maxNameLen)+"…" : dispName;
+    var capPct = totalCap>0 ? (s.cap/totalCap*100).toFixed(1) : "";
+
+    // 툴팁용 원본 데이터
+    var tipName = dispName.replace(/"/g,"'");
+
+    return "<div style='position:absolute;left:"+(b.x+1)+"px;top:"+(b.y+1)+"px;width:"+bw+"px;height:"+bh+"px;"
+      +"background:"+bg+";border-radius:3px;display:flex;flex-direction:column;justify-content:center;"
+      +"align-items:center;overflow:hidden;cursor:default;border:1px solid rgba(0,0,0,.25);transition:filter .12s;gap:1px'"
+      +" onmouseover='this.style.filter=\"brightness(1.3)\";hmTipShow(event,\""+tipName+"\",\""+dispSym+"\","+s.chg+","+origS.price+",\""+capPct+"\")'"
+      +" onmouseout='this.style.filter=\"\";hmTipHide()'>"
       // 종목명 (large 전용)
-      (large?"<div style='font-size:"+fsName+";color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;max-width:90%;text-overflow:ellipsis;line-height:1'>"+s.name.substring(0,16)+"</div>":"")+
-      // 심볼 (small 이상)
-      (small?"<div style='font-size:"+fsSym+";font-weight:800;color:#fff;letter-spacing:-.3px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.5)'>"+symLabel+"</div>":"")+
-      // 등락률 (small 이상)
-      (small?"<div style='font-size:"+fsChg+";font-weight:700;color:"+tc+";line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.4)'>"+hmFmt(s.chg)+"</div>":"")+
-      "</div>";
+      +(large?"<div style='font-size:"+fsName+";color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;"
+        +"max-width:92%;text-overflow:ellipsis;line-height:1;margin-bottom:1px'>"+nameLabel+"</div>":"")
+      // 티커 심볼
+      +(small?"<div style='font-size:"+fsSym+";font-weight:800;color:#fff;letter-spacing:-.3px;"
+        +"line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6)'>"+dispSym+"</div>":"")
+      // 등락률
+      +(small?"<div style='font-size:"+fsChg+";font-weight:700;color:"+tc+";line-height:1;"
+        +"text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:1px'>"+hmFmt(s.chg)+"</div>":"")
+      +"</div>";
   }).join("");
 }
 
