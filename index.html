@@ -27,6 +27,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;
 .nb{padding:8px 14px;border:none;background:none;color:#666;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .nb.active{color:#a78bfa;border-bottom-color:#a78bfa}
 .nb:hover{color:#c4b5fd}
+.nb.nb-fixed{color:#888;font-size:12px}
+.nb.nb-fixed.active{color:#f59e0b;border-bottom-color:#f59e0b}
+.nb.nb-fixed:hover{color:#fcd34d}
+.nav-sep{width:1px;height:20px;background:#2a2a38;margin:0 6px;flex-shrink:0;align-self:center;margin-bottom:1px}
 .nav-right{margin-left:auto;display:flex;gap:6px;padding-bottom:4px;flex-shrink:0}
 .page{display:none;padding:14px}
 .page.active{display:block}
@@ -149,8 +153,10 @@ tr:hover td{background:rgba(167,139,250,.03)}
   <button class="nb" onclick="showPage('dividend',this)">배당</button>
   <button class="nb" onclick="showPage('chartpage',this)">수익차트</button>
   <button class="nb" onclick="showPage('heatmappage',this);initHeatmap()">섹터맵</button>
-  <button class="nb" onclick="showPage('realpage',this)">부동산</button>
-  <button class="nb" onclick="showPage('loanpage',this)">대출관리</button>
+  <div class="nav-sep"></div>
+  <button class="nb nb-fixed" onclick="showPage('realpage',this)">부동산</button>
+  <button class="nb nb-fixed" onclick="showPage('loanpage',this)">대출관리</button>
+  <button class="nb nb-fixed" onclick="showPage('savingspage',this)">예적금</button>
   <div class="nav-right">
     <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()">저장</button>
     <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer">불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -481,6 +487,86 @@ tr:hover td{background:rgba(167,139,250,.03)}
   </div>
 </div>
 
+<!-- ═══ 예적금 ═══ -->
+<div id="savingspage" class="page">
+  <div class="cards">
+    <div class="card"><div class="cl">총 원금</div><div class="cv" id="sv-principal">--</div></div>
+    <div class="card"><div class="cl">총 평가금액</div><div class="cv pos" id="sv-value">--</div></div>
+    <div class="card"><div class="cl">총 이자수익</div><div class="cv pos" id="sv-interest">--</div></div>
+    <div class="card"><div class="cl">평균 금리</div><div class="cv" id="sv-avgrate" style="color:#f59e0b">--</div></div>
+    <div class="card"><div class="cl">만기 임박 (30일)</div><div class="cv" id="sv-expiring" style="color:#f87171">--</div></div>
+  </div>
+
+  <!-- 추가 폼 -->
+  <div class="cw">
+    <div class="ct" style="margin-bottom:10px">예적금 추가</div>
+    <div class="fg">
+      <div><label>상품명</label><input type="text" id="sv-name" placeholder="국민은행 정기예금"></div>
+      <div><label>종류</label>
+        <select id="sv-type">
+          <option value="deposit">정기예금</option>
+          <option value="installment">정기적금</option>
+          <option value="free">자유적금</option>
+          <option value="demand">입출금통장</option>
+          <option value="isa">ISA</option>
+          <option value="pension">연금저축</option>
+        </select>
+      </div>
+      <div><label>은행/기관</label><input type="text" id="sv-bank" placeholder="국민은행"></div>
+      <div><label>원금 / 납입액 (원)</label><input type="number" id="sv-amt" placeholder="10000000" oninput="calcSvPreview()"></div>
+      <div><label>연 이자율 (%)</label><input type="number" id="sv-rate" placeholder="3.5" step="0.01" oninput="calcSvPreview()"></div>
+      <div><label>이자 방식</label>
+        <select id="sv-interest-type" onchange="calcSvPreview()">
+          <option value="simple">단리</option>
+          <option value="compound">복리</option>
+        </select>
+      </div>
+      <div><label>가입일</label><input type="date" id="sv-start" oninput="calcSvPreview()"></div>
+      <div><label>만기일</label><input type="date" id="sv-end" oninput="calcSvPreview()"></div>
+      <div><label>세금우대</label>
+        <select id="sv-tax">
+          <option value="normal">일반과세 (15.4%)</option>
+          <option value="prefer">세금우대 (9.9%)</option>
+          <option value="exempt">비과세</option>
+        </select>
+      </div>
+    </div>
+    <!-- 미리보기 -->
+    <div id="sv-preview" class="prev-box">
+      <div class="prev-grid">
+        <div><div class="cl">세전 이자</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="svp-gross">--</div></div>
+        <div><div class="cl">세후 이자</div><div style="font-size:15px;font-weight:600" id="svp-net">--</div></div>
+        <div><div class="cl">만기 수령액</div><div style="font-size:15px;font-weight:600;color:#34d399" id="svp-total">--</div></div>
+        <div><div class="cl">실효 수익률</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="svp-eff">--</div></div>
+      </div>
+    </div>
+    <button class="btn" onclick="addSavings()">추가</button>
+  </div>
+
+  <!-- 목록 -->
+  <div class="tw">
+    <div class="th2"><h3>예적금 목록</h3>
+      <div class="bg">
+        <button class="pb active" onclick="setSvFilter('all',this)">전체</button>
+        <button class="pb" onclick="setSvFilter('active',this)">진행중</button>
+        <button class="pb" onclick="setSvFilter('expired',this)">만기완료</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>상품명</th><th>종류</th><th>은행</th><th>원금</th><th>금리</th><th>가입일</th><th>만기일</th><th>D-Day</th><th>세전이자</th><th>세후이자</th><th>만기수령액</th><th>상태</th><th>수정</th></tr></thead>
+        <tbody id="sv-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 월별 만기 캘린더 요약 -->
+  <div class="cw">
+    <div class="ct">월별 만기 현황</div>
+    <div id="sv-maturity-chart" style="position:relative;height:180px"><canvas id="sv-chart"></canvas></div>
+  </div>
+</div>
+
 <!-- ═══ 모달들 ═══ -->
 <div class="mo" id="add-modal">
   <div class="md">
@@ -678,7 +764,7 @@ function loadLS(){
   }catch(e){return false;}
 }
 function exportData(){
-  var blob=new Blob([JSON.stringify({v:11,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends},null,2)],{type:"application/json"});
+  var blob=new Blob([JSON.stringify({v:11,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});
   var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();
   a.href=url; a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";
   a.click(); URL.revokeObjectURL(url);
@@ -692,7 +778,8 @@ function importData(e){
       if(d.assets)assets=d.assets; if(d.trades)trades=d.trades;
       if(d.loans)loans=d.loans;    if(d.realEstates)realEstates=d.realEstates;
       if(d.assetHistory)assetHistory=d.assetHistory; if(d.dividends)dividends=d.dividends;
-      saveLS(); renderAll(); fetchPrices(); alert("불러오기 완료!");
+      if(d.savings)savings=d.savings;
+      saveLS();saveSvLS();renderAll();renderSavings();fetchPrices();alert("불러오기 완료!");
     }catch(err){alert("파일 형식이 올바르지 않습니다.");}
   };
   reader.readAsText(file); e.target.value="";
@@ -1432,16 +1519,30 @@ function hmRenderPanel(data, el){
   var top=data.slice(0,60),totalCap=top.reduce(function(s,i){return s+i.cap;},0),blocks=hmTreemap(top,W,H);
   el.innerHTML=blocks.map(function(b){
     var s=b.it,bg=hmClr(s.chg),tc=hmTClr(s.chg),bw=b.w-2,bh=b.h-2;
-    var big=bw>100&&bh>55,small=bw>28&&bh>20;
-    var fs1=bw>130?"12px":bw>70?"10px":"9px",fs2=bw>130?"14px":bw>70?"12px":"10px";
+    // 블록 크기에 따른 3단계 분류
+    var large = bw>140&&bh>70;
+    var mid   = bw>70 &&bh>38;
+    var small = bw>36 &&bh>24;
+    // 심볼 폰트: large=15px, mid=13px, small=11px
+    var fsSym = large?"15px":mid?"13px":"11px";
+    // 등락률 폰트: large=14px, mid=12px, small=10px
+    var fsChg = large?"14px":mid?"12px":"10px";
+    // 종목명 폰트 (large 블록만 표시)
+    var fsName= "9px";
     var capPct=totalCap>0?(s.cap/totalCap*100).toFixed(1):"";
     var dispSym=s.sym.replace(/\.(KS|KQ)$/,"");
-    return"<div style='position:absolute;left:"+(b.x+1)+"px;top:"+(b.y+1)+"px;width:"+bw+"px;height:"+bh+"px;background:"+bg+";border-radius:3px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;cursor:default;border:1px solid rgba(0,0,0,.2);transition:filter .1s'"+
-      " onmouseover='this.style.filter=\"brightness(1.25)\";hmTipShow(event,\""+s.name.replace(/"/g,"'").replace(/\\/g,"")+"\",\""+dispSym+"\","+s.chg+","+s.price+",\""+capPct+"\")'" +
+    // 심볼 글자수 너비에 따라 자르기
+    var maxSymLen = bw>120?8:bw>70?6:5;
+    var symLabel = dispSym.length>maxSymLen ? dispSym.substring(0,maxSymLen)+"…" : dispSym;
+    return"<div style='position:absolute;left:"+(b.x+1)+"px;top:"+(b.y+1)+"px;width:"+bw+"px;height:"+bh+"px;background:"+bg+";border-radius:3px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;cursor:default;border:1px solid rgba(0,0,0,.25);transition:filter .12s;gap:1px'"+
+      " onmouseover='this.style.filter=\"brightness(1.3)\";hmTipShow(event,\""+s.name.replace(/"/g,"'").replace(/\\/g,"")+"\",\""+dispSym+"\","+s.chg+","+s.price+",\""+capPct+"\")'" +
       " onmouseout='this.style.filter=\"\";hmTipHide()'>" +
-      (small?"<div style='font-size:"+fs1+";font-weight:700;color:rgba(255,255,255,.9);text-align:center;padding:0 2px;line-height:1.1'>"+dispSym+"</div>":"")+
-      (big?"<div style='font-size:8px;color:rgba(255,255,255,.4);margin-top:1px;text-align:center;padding:0 2px;overflow:hidden;white-space:nowrap;max-width:100%'>"+s.name.substring(0,14)+"</div>":"")+
-      (small?"<div style='font-size:"+fs2+";font-weight:700;color:"+tc+";margin-top:1px'>"+hmFmt(s.chg)+"</div>":"")+
+      // 종목명 (large 전용)
+      (large?"<div style='font-size:"+fsName+";color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;max-width:90%;text-overflow:ellipsis;line-height:1'>"+s.name.substring(0,16)+"</div>":"")+
+      // 심볼 (small 이상)
+      (small?"<div style='font-size:"+fsSym+";font-weight:800;color:#fff;letter-spacing:-.3px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.5)'>"+symLabel+"</div>":"")+
+      // 등락률 (small 이상)
+      (small?"<div style='font-size:"+fsChg+";font-weight:700;color:"+tc+";line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.4)'>"+hmFmt(s.chg)+"</div>":"")+
       "</div>";
   }).join("");
 }
@@ -1549,6 +1650,171 @@ function initHeatmap(){
 }
 
 // ══════════════════════════════════════════════════════
+// 예적금
+// ══════════════════════════════════════════════════════
+var savings = [];
+var svChart = null;
+var svFilter = "all";
+var editingSvId = null;
+
+var SV_TYPE  = {deposit:"정기예금",installment:"정기적금",free:"자유적금",demand:"입출금통장",isa:"ISA",pension:"연금저축"};
+var SV_TAX   = {normal:0.154, prefer:0.099, exempt:0};
+var SV_TAX_L = {normal:"일반과세",prefer:"세금우대",exempt:"비과세"};
+var SV_COLOR = {deposit:"#38bdf8",installment:"#a78bfa",free:"#34d399",demand:"#f59e0b",isa:"#f97316",pension:"#ec4899"};
+
+function calcSvStats(sv){
+  var p=sv.amount||0, r=(sv.rate||0)/100, start=sv.startDate, end=sv.endDate;
+  var days=0, years=0;
+  if(start&&end){
+    days=Math.max(0,Math.round((new Date(end)-new Date(start))/86400000));
+    years=days/365;
+  }
+  var grossInterest=0;
+  if(sv.interestType==="compound"){
+    grossInterest=p*(Math.pow(1+r,years)-1);
+  } else {
+    grossInterest=p*r*years;
+  }
+  var taxRate=SV_TAX[sv.taxType]||0.154;
+  var netInterest=grossInterest*(1-taxRate);
+  var total=p+netInterest;
+  var effRate=p&&years>0?(netInterest/p/years*100):0;
+  // 만기까지 남은일
+  var today=new Date();
+  var dday=end?Math.round((new Date(end)-today)/86400000):null;
+  return{grossInterest,netInterest,total,effRate,days,years,dday};
+}
+
+function calcSvPreview(){
+  var p=parseFloat(g("sv-amt").value),r=parseFloat(g("sv-rate").value);
+  var start=g("sv-start").value,end=g("sv-end").value,wrap=g("sv-preview");
+  if(!p||!r||!start||!end){wrap.style.display="none";return;}
+  var sv={amount:p,rate:r,startDate:start,endDate:end,interestType:g("sv-interest-type").value,taxType:g("sv-tax").value};
+  var st=calcSvStats(sv);
+  wrap.style.display="block";
+  g("svp-gross").textContent=fmt(st.grossInterest);
+  g("svp-net").innerHTML="<span class='pos'>"+fmt(st.netInterest)+"</span>";
+  g("svp-total").textContent=fmt(st.total);
+  g("svp-eff").textContent=fmtP(st.effRate)+"/년";
+}
+
+function addSavings(){
+  var name=g("sv-name").value.trim();
+  var amount=parseFloat(g("sv-amt").value);
+  if(!name||!amount){alert("상품명과 원금을 입력해주세요");return;}
+  savings.push({
+    id:Date.now(),name,
+    svType:g("sv-type").value,
+    bank:g("sv-bank").value.trim(),
+    amount,rate:parseFloat(g("sv-rate").value)||0,
+    interestType:g("sv-interest-type").value,
+    startDate:g("sv-start").value,
+    endDate:g("sv-end").value,
+    taxType:g("sv-tax").value,
+    status:"active"
+  });
+  ["sv-name","sv-bank","sv-amt","sv-rate","sv-start","sv-end"].forEach(function(id){g(id).value="";});
+  g("sv-preview").style.display="none";
+  renderSavings();saveSvLS();
+}
+
+function setSvFilter(f,btn){
+  svFilter=f;
+  document.querySelectorAll("#savingspage .tw .pb").forEach(function(b){b.classList.remove("active");});
+  btn.classList.add("active");renderSavings();
+}
+
+function renderSavings(){
+  // 요약 카드
+  var totalPrincipal=savings.reduce(function(s,sv){return s+sv.amount;},0);
+  var totalNet=savings.reduce(function(s,sv){return s+calcSvStats(sv).netInterest;},0);
+  var totalVal=savings.reduce(function(s,sv){return s+calcSvStats(sv).total;},0);
+  var avgRate=savings.length?savings.reduce(function(s,sv){return s+sv.rate;},0)/savings.length:0;
+  var today=new Date();
+  var expiring=savings.filter(function(sv){
+    if(!sv.endDate)return false;
+    var d=Math.round((new Date(sv.endDate)-today)/86400000);
+    return d>=0&&d<=30;
+  }).length;
+  g("sv-principal").textContent=fmt(totalPrincipal);
+  g("sv-value").textContent=fmt(totalVal);
+  g("sv-interest").textContent=fmt(totalNet);
+  g("sv-avgrate").textContent=avgRate.toFixed(2)+"%";
+  g("sv-expiring").textContent=expiring+"건";
+
+  // 테이블
+  var tbody=g("sv-table");
+  var filtered=savings.filter(function(sv){
+    if(svFilter==="active")return sv.status==="active";
+    if(svFilter==="expired")return sv.status==="expired";
+    return true;
+  });
+  if(!filtered.length){tbody.innerHTML="<tr><td colspan='13' style='text-align:center;color:#333;padding:22px'>예적금을 추가해주세요</td></tr>";return;}
+
+  tbody.innerHTML=filtered.map(function(sv){
+    var st=calcSvStats(sv);
+    var dday=st.dday;
+    var ddayStr=dday===null?"--":dday<0?"만기완료":dday===0?"오늘만기":"D-"+dday;
+    var ddayColor=dday===null?"#555":dday<0?"#34d399":dday<=7?"#f87171":dday<=30?"#f59e0b":"#888";
+    var tc=SV_COLOR[sv.svType]||"#888";
+    var isExpired=sv.status==="expired"||(dday!==null&&dday<0);
+    return"<tr style='"+(isExpired?"opacity:.6":"")+"'>"+
+      "<td><strong>"+sv.name+"</strong>"+(sv.bank?"<br><span style='color:#555;font-size:10px'>"+sv.bank+"</span>":"")+"</td>"+
+      "<td><span style='padding:2px 7px;border-radius:10px;font-size:10px;background:#1e1e28;color:"+tc+"'>"+SV_TYPE[sv.svType]+"</span></td>"+
+      "<td style='color:#888;font-size:11px'>"+(sv.bank||"-")+"</td>"+
+      "<td>"+fmt(sv.amount)+"</td>"+
+      "<td style='color:#f59e0b;font-weight:600'>"+sv.rate+"%</td>"+
+      "<td style='font-size:11px;color:#888'>"+(sv.startDate||"-")+"</td>"+
+      "<td style='font-size:11px;color:#888'>"+(sv.endDate||"-")+"</td>"+
+      "<td style='font-weight:700;color:"+ddayColor+"'>"+ddayStr+"</td>"+
+      "<td style='color:#f59e0b'>"+fmt(st.grossInterest)+"</td>"+
+      "<td class='pos'>"+fmt(st.netInterest)+"</td>"+
+      "<td style='color:#34d399;font-weight:600'>"+fmt(st.total)+"</td>"+
+      "<td>"+(isExpired&&sv.status!=="expired"
+        ?"<span style='color:#f87171;font-size:10px'>만기도래</span>"
+        :sv.status==="expired"
+        ?"<span style='color:#34d399;font-size:10px'>완료</span>"
+        :"<span style='color:#a78bfa;font-size:10px'>진행중</span>")+"</td>"+
+      "<td style='white-space:nowrap'>"+
+        "<button class='btn btns' onclick='toggleSvStatus("+sv.id+")'>"+(sv.status==="expired"?"복원":"만기처리")+"</button> "+
+        "<button class='btn btns btnd' onclick='delSavings("+sv.id+")'>삭제</button>"+
+      "</td></tr>";
+  }).join("");
+
+  // 월별 만기 차트
+  var monthly={};
+  savings.forEach(function(sv){
+    if(!sv.endDate)return;
+    var m=sv.endDate.substring(0,7);
+    monthly[m]=(monthly[m]||0)+sv.amount;
+  });
+  var mk=Object.keys(monthly).sort(),mv=mk.map(function(k){return Math.round(monthly[k]/10000);});
+  if(svChart)svChart.destroy();
+  svChart=new Chart(g("sv-chart"),{
+    type:"bar",
+    data:{labels:mk.length?mk:["데이터없음"],datasets:[{
+      data:mk.length?mv:[0],
+      backgroundColor:"rgba(56,189,248,.6)",
+      borderColor:"#38bdf8",borderWidth:1,borderRadius:4,
+      label:"원금(만원)"
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:"#888"},grid:{color:"#1a1a22"}},
+              y:{ticks:{color:"#888",callback:function(v){return v+"만";}},grid:{color:"#1a1a22"}}}}
+  });
+}
+
+function toggleSvStatus(id){
+  var sv=savings.find(function(x){return x.id===id;});
+  if(sv)sv.status=sv.status==="expired"?"active":"expired";
+  renderSavings();saveSvLS();
+}
+function delSavings(id){savings=savings.filter(function(x){return x.id!==id;});renderSavings();saveSvLS();}
+
+function saveSvLS(){try{localStorage.setItem("ad11_savings",JSON.stringify(savings));}catch(e){}}
+function loadSvLS(){try{var d=localStorage.getItem("ad11_savings");if(d)savings=JSON.parse(d);}catch(e){}}
+
+// ══════════════════════════════════════════════════════
 // 페이지 전환
 // ══════════════════════════════════════════════════════
 function showPage(id,btn){
@@ -1562,7 +1828,9 @@ function showPage(id,btn){
 // ══════════════════════════════════════════════════════
 g("t-date").value=new Date().toISOString().split("T")[0];
 var hasSaved=loadLS();
+loadSvLS();
 if(hasSaved){renderAll();setTimeout(fetchPrices,300);}else{fetchPrices();}
+renderSavings();
 setInterval(fetchPrices,30000);
 setInterval(fetchAllDividends,300000);
 </script>
