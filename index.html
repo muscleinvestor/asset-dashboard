@@ -1510,7 +1510,7 @@ function hmLoadMarket(mkt, canvasId, statusId){
   });
 }
 
-// ── 한글 종목명 매핑 ──────────────────────────────────
+// ── 한글 종목명 매핑 (hmDispName 보다 먼저 선언) ──────
 var KR_NAME = {
   "005930":"삼성전자","000660":"SK하이닉스","035420":"NAVER","005380":"현대차",
   "000270":"기아","035720":"카카오","051910":"LG화학","006400":"삼성SDI",
@@ -1532,7 +1532,6 @@ function hmDispName(sym, rawName){
   return KR_NAME[code] || rawName || code;
 }
 
-// ── 시총 스케일 완화 (루트 적용) ─────────────────────
 function hmScaledCap(cap){ return cap>0 ? Math.pow(cap, 0.55) : 1; }
 
 // 패널에 트리맵 렌더
