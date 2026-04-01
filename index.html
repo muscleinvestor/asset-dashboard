@@ -948,22 +948,25 @@ function fetchTickers(){
       if(!resp.ok||!resp.data)return;
       var d=resp.data;
 
-      // USD/KRW
+      // USD/KRW — Frankfurter
       if(d.usdkrw&&d.usdkrw.price){
-        usdKrwVal=d.usdkrw.price;updatePremium();
+        usdKrwVal=d.usdkrw.price; usdKrw=d.usdkrw.price; updatePremium();
         g("tk-usdkrw").textContent=W+d.usdkrw.price.toFixed(2);
-        g("ch-usdkrw").textContent=fmtP(d.usdkrw.chg||0);g("ch-usdkrw").style.color=clr(d.usdkrw.chg||0);
+        // Frankfurter는 당일 고정환율이라 chg=0
+        g("ch-usdkrw").textContent="ECB 기준";
+        g("ch-usdkrw").style.color="#555";
       }
 
-      // 지수/원자재 맵
+      // 미국 ETF 대체 지수 + 원자재
+      // snp=SPY, nasdaq=QQQ, ndx=QQQ, russell=IWM, vix=VIXY, gold=GLD, silver=SLV, wti=USO, brent=BNO
       var map=[
-        {k:"snp",    tv:"tk-snp",    ch:"ch-snp",    fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"nasdaq", tv:"tk-nasdaq", ch:"ch-nasdaq",  fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"ndx",    tv:"tk-ndx",    ch:"ch-ndx",     fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"russell",tv:"tk-russell",ch:"ch-russell",  fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"vix",    tv:"tk-vix",    ch:"ch-vix",     fn:function(v){return v.toFixed(2);}},
-        {k:"gold",   tv:"tk-gold",   ch:"ch-gold",    fn:function(v){return "$"+v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"silver", tv:"tk-silver", ch:"ch-silver",  fn:function(v){return "$"+v.toFixed(3);}},
+        {k:"snp",    tv:"tk-snp",    ch:"ch-snp",    fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"nasdaq", tv:"tk-nasdaq", ch:"ch-nasdaq",  fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"ndx",    tv:"tk-ndx",    ch:"ch-ndx",     fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"russell",tv:"tk-russell",ch:"ch-russell",  fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"vix",    tv:"tk-vix",    ch:"ch-vix",     fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"gold",   tv:"tk-gold",   ch:"ch-gold",    fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"silver", tv:"tk-silver", ch:"ch-silver",  fn:function(v){return "$"+v.toFixed(2);}},
         {k:"wti",    tv:"tk-wti",    ch:"ch-wti",     fn:function(v){return "$"+v.toFixed(2);}},
         {k:"brent",  tv:"tk-brent",  ch:"ch-brent",   fn:function(v){return "$"+v.toFixed(2);}},
         {k:"kospi",  tv:"tk-kospi",  ch:"ch-kospi",   fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},
@@ -1041,11 +1044,15 @@ function fetchKRPrices(){
   var krAssets=assets.filter(function(a){return a.cat==="kr";});
   if(!krAssets.length)return;
   Promise.all(krAssets.map(function(a){
-    var code=a.symbol.includes(".")?a.symbol:a.symbol+".KS";
+    // KIS는 6자리 숫자 코드 사용 (.KS/.KQ 제거)
+    var code=a.symbol.replace(/\.(KS|KQ)$/i,"");
     return fetch(PROXY+"?mode=kr_price&code="+encodeURIComponent(code))
       .then(function(r){return r.json();})
       .then(function(d){
-        if(d.ok&&d.data)a.price=d.data.price;
+        if(d.ok&&d.data){
+          a.price=d.data.price;
+          a.chgPct=d.data.chg;
+        }
         a.prePrice=null;a.postPrice=null;
       }).catch(function(){});
   })).then(function(){
