@@ -933,11 +933,15 @@ function importData(e){
 // 티커바 데이터 (지수/환율/원자재 — Yahoo)
 // ══════════════════════════════════════════════════════
 function updatePremium(){
+  // usdtKrwVal = Upbit USDT/KRW 실시간
+  // usdKrwVal  = Naver USD/KRW 실시간
+  // 둘 다 있어야 계산 가능
   if(!usdtKrwVal||!usdKrwVal)return;
   var p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100;
-  ["tk-premium","ch-premium"].forEach(function(id){
-    var el=g(id);if(el){el.textContent=fmtP(p);el.style.color=p>=0?"#f59e0b":"#a78bfa";}
-  });
+  var s=fmtP(p),c=p>=0?"#f59e0b":"#a78bfa";
+  var tkP=g("tk-premium"),chP=g("ch-premium");
+  if(tkP){tkP.textContent=s;tkP.style.color=c;}
+  if(chP){chP.textContent=s;chP.style.color=c;}
 }
 
 function fetchTickers(){
@@ -948,13 +952,16 @@ function fetchTickers(){
       if(!resp.ok||!resp.data)return;
       var d=resp.data;
 
-      // USD/KRW — Frankfurter
+      // USD/KRW — Naver Finance 실시간
       if(d.usdkrw&&d.usdkrw.price){
-        usdKrwVal=d.usdkrw.price; usdKrw=d.usdkrw.price; updatePremium();
-        g("tk-usdkrw").textContent=W+d.usdkrw.price.toFixed(2);
-        // Frankfurter는 당일 고정환율이라 chg=0
-        g("ch-usdkrw").textContent="ECB 기준";
-        g("ch-usdkrw").style.color="#555";
+        var fxPrice=d.usdkrw.price;
+        usdKrwVal=fxPrice;
+        usdKrw=fxPrice;   // 미국주식 원화환산에도 사용
+        g("tk-usdkrw").textContent=W+fxPrice.toFixed(2);
+        var fxChg=d.usdkrw.chg||0;
+        g("ch-usdkrw").textContent=fmtP(fxChg);
+        g("ch-usdkrw").style.color=clr(fxChg);
+        updatePremium();  // 환율 갱신 후 즉시 김치P 재계산
       }
 
       // 미국 ETF 대체 지수 + 원자재
@@ -1074,7 +1081,14 @@ function recordHistory(){
 function fetchAll(){
   g("c-time").innerHTML="<span class='loading'></span>갱신중...";
   g("r-status").textContent="가격 조회중...";
-  fetchCoinPrices();fetchUSPrices();fetchKRPrices();fetchTickers();
+  // 티커바(환율 포함) 먼저 → 코인 → 주식 순서로
+  // 환율이 먼저 와야 김치P 계산 가능
+  fetchTickers();
+  setTimeout(function(){
+    fetchCoinPrices();
+    fetchUSPrices();
+    fetchKRPrices();
+  },300);
   setTimeout(function(){
     var t=new Date();
     g("c-time").textContent=t.getHours()+":"+pad2(t.getMinutes())+" 갱신";
