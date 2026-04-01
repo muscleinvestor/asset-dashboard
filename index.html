@@ -468,7 +468,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
     <div style="font-size:14px;font-weight:700">섹터 히트맵</div>
     <div class="hm-tabs" id="hm-region-tabs">
       <button class="hm-tab active" data-region="us" onclick="hmSelectRegion(this)">🇺🇸 미국 (Finnhub 실시간)</button>
-      <button class="hm-tab" data-region="kr" onclick="hmSelectRegion(this)">🇰🇷 한국 (Yahoo 20분지연)</button>
+      <button class="hm-tab" data-region="kr" onclick="hmSelectRegion(this)">🇰🇷 한국 (Naver 실시간)</button>
     </div>
     <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
       <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#555">
@@ -1546,7 +1546,7 @@ function hmLoadMarket(mkt,canvasId,statusId){
       hmDataCache[mkt]=d.data;hmRenderPanel(d.data,el);
       var now=new Date();
       if(stEl)stEl.textContent=now.getHours()+":"+pad2(now.getMinutes())+" · "+d.data.length+"종목";
-      g("hm-status").textContent=(mkt==="KOSPI"||mkt==="KOSDAQ")?"Yahoo 20분지연":"Finnhub 실시간";
+      g("hm-status").textContent=(mkt==="KOSPI"||mkt==="KOSDAQ")?"Naver 실시간":"Finnhub 실시간";
       hmUpdateSummary();
     }).catch(function(e){hmLoadingState[mkt]=false;el.innerHTML="<div style='text-align:center;color:#444;font-size:11px;padding:20px'>오류: "+e.message+"</div>";if(stEl)stEl.textContent="오류";});
 }
