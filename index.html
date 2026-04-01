@@ -957,22 +957,26 @@ function fetchTickers(){
 
       // 지수/원자재 맵
       var map=[
-        {k:"snp",    tv:"tk-snp",    ch:"ch-snp",    ext:"tk-snp-ext",    fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"nasdaq", tv:"tk-nasdaq", ch:"ch-nasdaq",  ext:"tk-nasdaq-ext", fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"ndx",    tv:"tk-ndx",    ch:"ch-ndx",     ext:null,            fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"russell",tv:"tk-russell",ch:"ch-russell",  ext:null,            fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"vix",    tv:"tk-vix",    ch:"ch-vix",     ext:null,            fn:function(v){return v.toFixed(2);}},
-        {k:"gold",   tv:"tk-gold",   ch:"ch-gold",    ext:null,            fn:function(v){return "$"+v.toLocaleString("en-US",{maximumFractionDigits:2});}},
-        {k:"silver", tv:"tk-silver", ch:"ch-silver",  ext:null,            fn:function(v){return "$"+v.toFixed(3);}},
-        {k:"wti",    tv:"tk-wti",    ch:"ch-wti",     ext:null,            fn:function(v){return "$"+v.toFixed(2);}},
-        {k:"brent",  tv:"tk-brent",  ch:"ch-brent",   ext:null,            fn:function(v){return "$"+v.toFixed(2);}},
-        {k:"kospi",  tv:"tk-kospi",  ch:"ch-kospi",   ext:null,            fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},
-        {k:"kosdaq", tv:"tk-kosdaq", ch:"ch-kosdaq",  ext:null,            fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},
+        {k:"snp",    tv:"tk-snp",    ch:"ch-snp",    fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
+        {k:"nasdaq", tv:"tk-nasdaq", ch:"ch-nasdaq",  fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
+        {k:"ndx",    tv:"tk-ndx",    ch:"ch-ndx",     fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
+        {k:"russell",tv:"tk-russell",ch:"ch-russell",  fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},
+        {k:"vix",    tv:"tk-vix",    ch:"ch-vix",     fn:function(v){return v.toFixed(2);}},
+        {k:"gold",   tv:"tk-gold",   ch:"ch-gold",    fn:function(v){return "$"+v.toLocaleString("en-US",{maximumFractionDigits:2});}},
+        {k:"silver", tv:"tk-silver", ch:"ch-silver",  fn:function(v){return "$"+v.toFixed(3);}},
+        {k:"wti",    tv:"tk-wti",    ch:"ch-wti",     fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"brent",  tv:"tk-brent",  ch:"ch-brent",   fn:function(v){return "$"+v.toFixed(2);}},
+        {k:"kospi",  tv:"tk-kospi",  ch:"ch-kospi",   fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},
+        {k:"kosdaq", tv:"tk-kosdaq", ch:"ch-kosdaq",  fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},
       ];
       map.forEach(function(m){
-        var item=d[m.k];if(!item||!item.price)return;
+        var item=d[m.k];
+        if(!item||item.price==null||item.price===0)return;
         var el=g(m.tv);if(el)el.textContent=m.fn(item.price);
-        var chEl=g(m.ch);if(chEl){chEl.textContent=fmtP(item.chg||0);chEl.style.color=clr(item.chg||0);}
+        var chg=item.chg;
+        if(chg==null&&item.price&&item.pc&&item.pc!==0)chg=(item.price-item.pc)/item.pc*100;
+        var chEl=g(m.ch);
+        if(chEl&&chg!=null){chEl.textContent=fmtP(chg);chEl.style.color=clr(chg);}
       });
 
       var t=new Date();
@@ -1184,6 +1188,7 @@ function renderAll(){
   renderSummary();renderPortfolio();renderDashCharts();renderPeriodChart();
   renderPeriodSummary(periodTab,"period-summary");renderTradeSummary();renderTradeTable();
   renderTradePeriodSummary(tradePeriodTab);renderChartPage();
+  renderRealEstates();renderReSummary();renderLoans();renderLoanSummary();renderSavings();
   updateTradeSym();updateDivSymOptions();saveLS();
 }
 function renderSummary(){
