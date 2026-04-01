@@ -515,10 +515,188 @@ tr:hover td{background:rgba(167,139,250,.03)}
   </div>
 </div>
 
-<!-- 부동산 / 대출 / 예적금 (구조 유지) -->
-<div id="realpage" class="page"><div style="padding:40px;text-align:center;color:#555">부동산 — 이전 코드 유지</div></div>
-<div id="loanpage" class="page"><div style="padding:40px;text-align:center;color:#555">대출관리 — 이전 코드 유지</div></div>
-<div id="savingspage" class="page"><div style="padding:40px;text-align:center;color:#555">예적금 — 이전 코드 유지</div></div>
+<!-- 부동산 -->
+<div id="realpage" class="page">
+  <div class="cards">
+    <div class="card"><div class="cl">총 매입금액</div><div class="cv" id="re-cost">--</div></div>
+    <div class="card"><div class="cl">총 현재가치</div><div class="cv" id="re-value">--</div></div>
+    <div class="card"><div class="cl">평가손익</div><div class="cv" id="re-pnl">--</div><div class="cs" id="re-pct"></div></div>
+    <div class="card"><div class="cl">실현손익 (매도)</div><div class="cv" id="re-realized">--</div></div>
+  </div>
+  <div class="cw">
+    <div class="ct" style="margin-bottom:10px">부동산 추가</div>
+    <div class="fg">
+      <div><label>물건명</label><input type="text" id="re-name" placeholder="강남 아파트 101호"></div>
+      <div><label>종류</label><select id="re-type"><option value="apt">아파트</option><option value="villa">빌라/다세대</option><option value="officetel">오피스텔</option><option value="commercial">상가/사무실</option><option value="land">토지</option><option value="house">단독주택</option><option value="other">기타</option></select></div>
+      <div><label>지역</label><input type="text" id="re-location" placeholder="서울 강남구"></div>
+      <div><label>매입금액 (원)</label><input type="number" id="re-buy" placeholder="500000000" oninput="calcRePreview()"></div>
+      <div><label>매입일</label><input type="date" id="re-buydate"></div>
+      <div><label>현재 추정가 (원)</label><input type="number" id="re-cur" placeholder="600000000" oninput="calcRePreview()"></div>
+      <div><label>보증금/전세 (원)</label><input type="number" id="re-deposit" placeholder="0"></div>
+      <div><label>월세 (원)</label><input type="number" id="re-rent" placeholder="0"></div>
+      <div><label>상태</label><select id="re-status"><option value="hold">보유중</option><option value="sold">매도완료</option><option value="rent_out">임대중</option><option value="rent_in">임차중</option></select></div>
+      <div><label>매도금액 (원)</label><input type="number" id="re-sell" placeholder="0"></div>
+      <div><label>매도일</label><input type="date" id="re-selldate"></div>
+      <div><label>취득세+기타 (원)</label><input type="number" id="re-tax" placeholder="0" oninput="calcRePreview()"></div>
+    </div>
+    <div id="re-preview" style="display:none;background:#111116;border-radius:8px;padding:10px 12px;margin:10px 0;border:1px solid #2a2a38">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+        <div><div class="cl">평가손익</div><div style="font-size:15px;font-weight:600" id="rep-pnl">--</div></div>
+        <div><div class="cl">수익률</div><div style="font-size:15px;font-weight:600" id="rep-pct">--</div></div>
+        <div><div class="cl">연환산 수익률</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="rep-annual">--</div></div>
+        <div><div class="cl">보유기간</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="rep-period">--</div></div>
+      </div>
+    </div>
+    <button class="btn" onclick="addRealEstate()">추가</button>
+  </div>
+  <div class="tw">
+    <div class="th2"><h3>부동산 목록</h3></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>물건명</th><th>종류</th><th>지역</th><th>상태</th><th>매입금액</th><th>현재가치</th><th>평가손익</th><th>수익률</th><th>연환산</th><th>월세수입</th><th>매도손익</th><th>수정</th></tr></thead>
+        <tbody id="re-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- 부동산 수정 모달 -->
+  <div class="mo" id="re-modal">
+    <div class="md">
+      <h3>부동산 수정</h3>
+      <div class="fg" style="grid-template-columns:1fr 1fr">
+        <div><label>물건명</label><input type="text" id="rem-name"></div>
+        <div><label>지역</label><input type="text" id="rem-location"></div>
+        <div><label>매입금액 (원)</label><input type="number" id="rem-buy"></div>
+        <div><label>현재 추정가 (원)</label><input type="number" id="rem-cur"></div>
+        <div><label>취득세+기타 (원)</label><input type="number" id="rem-tax"></div>
+        <div><label>보증금/전세 (원)</label><input type="number" id="rem-deposit"></div>
+        <div><label>월세 (원)</label><input type="number" id="rem-rent"></div>
+        <div><label>상태</label><select id="rem-status"><option value="hold">보유중</option><option value="sold">매도완료</option><option value="rent_out">임대중</option><option value="rent_in">임차중</option></select></div>
+        <div><label>매도금액 (원)</label><input type="number" id="rem-sell"></div>
+        <div><label>매도일</label><input type="date" id="rem-selldate"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+        <button class="btn" onclick="closeReModal()">취소</button>
+        <button class="btn" onclick="saveRe()" style="background:#2d1f4a;border-color:#7c3aed">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 대출관리 -->
+<div id="loanpage" class="page">
+  <div class="cards">
+    <div class="card"><div class="cl">총 대출원금</div><div class="cv" id="ls-principal">--</div></div>
+    <div class="card"><div class="cl">총 잔여부채</div><div class="cv neg" id="ls-remain">--</div></div>
+    <div class="card"><div class="cl">총 월 상환액</div><div class="cv" id="ls-monthly">--</div></div>
+    <div class="card"><div class="cl">순자산 (자산-부채)</div><div class="cv" id="ls-net">--</div></div>
+  </div>
+  <div class="cw">
+    <div class="ct" style="margin-bottom:10px">대출 추가</div>
+    <div class="fg">
+      <div><label>대출명</label><input type="text" id="l-name" placeholder="주택담보대출"></div>
+      <div><label>대출원금 (원)</label><input type="number" id="l-principal" placeholder="100000000" oninput="calcLoanPreview()"></div>
+      <div><label>연 이자율 (%)</label><input type="number" id="l-rate" placeholder="3.5" step="0.01" oninput="calcLoanPreview()"></div>
+      <div><label>상환기간 (개월)</label><input type="number" id="l-months" placeholder="120" oninput="calcLoanPreview()"></div>
+      <div><label>상환방식</label><select id="l-type" onchange="calcLoanPreview()"><option value="equal">원리금균등</option><option value="principal">원금균등</option><option value="bullet">만기일시상환</option></select></div>
+      <div><label>대출 시작일</label><input type="date" id="l-start"></div>
+    </div>
+    <div id="loan-preview" style="display:none;background:#111116;border-radius:8px;padding:10px 12px;margin:10px 0;border:1px solid #2a2a38">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+        <div><div class="cl">월 상환액</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="lp-monthly">--</div></div>
+        <div><div class="cl">총 상환금액</div><div style="font-size:15px;font-weight:600" id="lp-total">--</div></div>
+        <div><div class="cl">총 이자</div><div style="font-size:15px;font-weight:600;color:#f87171" id="lp-interest">--</div></div>
+        <div><div class="cl">이자 비율</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="lp-iratio">--</div></div>
+      </div>
+    </div>
+    <button class="btn" onclick="addLoan()">대출 추가</button>
+  </div>
+  <div class="tw">
+    <div class="th2"><h3>대출 목록</h3></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>대출명</th><th>원금</th><th>이자율</th><th>기간</th><th>방식</th><th>월 상환액</th><th>총 상환액</th><th>총 이자</th><th>잔여부채</th><th>진행률</th><th>수정</th></tr></thead>
+        <tbody id="loan-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="cw" id="schedule-wrap" style="display:none">
+    <div class="ct"><span id="schedule-title">상환 스케줄</span><button class="btn btns" onclick="g('schedule-wrap').style.display='none'">닫기</button></div>
+    <div style="overflow-x:auto;max-height:320px;overflow-y:auto">
+      <table>
+        <thead><tr><th>회차</th><th>날짜</th><th>월 납입액</th><th>원금</th><th>이자</th><th>잔여원금</th></tr></thead>
+        <tbody id="schedule-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- 대출 수정 모달 -->
+  <div class="mo" id="loan-modal">
+    <div class="md">
+      <h3>대출 수정</h3>
+      <div class="fg" style="grid-template-columns:1fr 1fr">
+        <div><label>대출명</label><input type="text" id="lm-name"></div>
+        <div><label>대출원금 (원)</label><input type="number" id="lm-principal"></div>
+        <div><label>연 이자율 (%)</label><input type="number" id="lm-rate" step="0.01"></div>
+        <div><label>총 상환기간 (개월)</label><input type="number" id="lm-months"></div>
+        <div><label>상환방식</label><select id="lm-type"><option value="equal">원리금균등</option><option value="principal">원금균등</option><option value="bullet">만기일시상환</option></select></div>
+        <div><label>납입 완료 개월수</label><input type="number" id="lm-paid" placeholder="0"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+        <button class="btn" onclick="closeLoanModal()">취소</button>
+        <button class="btn" onclick="saveLoan()" style="background:#2d1f4a;border-color:#7c3aed">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 예적금 -->
+<div id="savingspage" class="page">
+  <div class="cards">
+    <div class="card"><div class="cl">총 원금</div><div class="cv" id="sv-principal">--</div></div>
+    <div class="card"><div class="cl">총 평가금액</div><div class="cv pos" id="sv-value">--</div></div>
+    <div class="card"><div class="cl">총 이자수익</div><div class="cv pos" id="sv-interest">--</div></div>
+    <div class="card"><div class="cl">평균 금리</div><div class="cv" id="sv-avgrate" style="color:#f59e0b">--</div></div>
+    <div class="card"><div class="cl">만기 임박 (30일)</div><div class="cv" id="sv-expiring" style="color:#f87171">--</div></div>
+  </div>
+  <div class="cw">
+    <div class="ct" style="margin-bottom:10px">예적금 추가</div>
+    <div class="fg">
+      <div><label>상품명</label><input type="text" id="sv-name" placeholder="국민은행 정기예금"></div>
+      <div><label>종류</label><select id="sv-type"><option value="deposit">정기예금</option><option value="installment">정기적금</option><option value="free">자유적금</option><option value="demand">입출금통장</option><option value="isa">ISA</option><option value="pension">연금저축</option></select></div>
+      <div><label>은행/기관</label><input type="text" id="sv-bank" placeholder="국민은행"></div>
+      <div><label>원금 / 납입액 (원)</label><input type="number" id="sv-amt" placeholder="10000000" oninput="calcSvPreview()"></div>
+      <div><label>연 이자율 (%)</label><input type="number" id="sv-rate" placeholder="3.5" step="0.01" oninput="calcSvPreview()"></div>
+      <div><label>이자 방식</label><select id="sv-interest-type" onchange="calcSvPreview()"><option value="simple">단리</option><option value="compound">복리</option></select></div>
+      <div><label>가입일</label><input type="date" id="sv-start" oninput="calcSvPreview()"></div>
+      <div><label>만기일</label><input type="date" id="sv-end" oninput="calcSvPreview()"></div>
+      <div><label>세금우대</label><select id="sv-tax"><option value="normal">일반과세 (15.4%)</option><option value="prefer">세금우대 (9.9%)</option><option value="exempt">비과세</option></select></div>
+    </div>
+    <div id="sv-preview" style="display:none;background:#111116;border-radius:8px;padding:10px 12px;margin:10px 0;border:1px solid #2a2a38">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+        <div><div class="cl">세전 이자</div><div style="font-size:15px;font-weight:600;color:#f59e0b" id="svp-gross">--</div></div>
+        <div><div class="cl">세후 이자</div><div style="font-size:15px;font-weight:600" id="svp-net">--</div></div>
+        <div><div class="cl">만기 수령액</div><div style="font-size:15px;font-weight:600;color:#34d399" id="svp-total">--</div></div>
+        <div><div class="cl">실효 수익률</div><div style="font-size:15px;font-weight:600;color:#a78bfa" id="svp-eff">--</div></div>
+      </div>
+    </div>
+    <button class="btn" onclick="addSavings()">추가</button>
+  </div>
+  <div class="tw">
+    <div class="th2"><h3>예적금 목록</h3>
+      <div class="bg">
+        <button class="pb active" onclick="setSvFilter('all',this)">전체</button>
+        <button class="pb" onclick="setSvFilter('active',this)">진행중</button>
+        <button class="pb" onclick="setSvFilter('expired',this)">만기완료</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>상품명</th><th>종류</th><th>은행</th><th>원금</th><th>금리</th><th>가입일</th><th>만기일</th><th>D-Day</th><th>세전이자</th><th>세후이자</th><th>만기수령액</th><th>상태</th><th>수정</th></tr></thead>
+        <tbody id="sv-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="cw"><div class="ct">월별 만기 현황</div><div style="position:relative;height:180px"><canvas id="sv-chart"></canvas></div></div>
+</div>
 
 <!-- 자산 추가 모달 -->
 <div class="mo" id="add-modal">
@@ -1450,6 +1628,270 @@ function initHeatmap(){
     else{hmDataCache["KOSPI"]=null;hmDataCache["KOSDAQ"]=null;hmLoadMarket("KOSPI","hm-kospi","hm-kospi-status");hmLoadMarket("KOSDAQ","hm-kosdaq","hm-kosdaq-status");}
   },5*60*1000);
 }
+
+// ══════════════════════════════════════════════════════
+// 부동산
+// ══════════════════════════════════════════════════════
+var RE_STATUS={hold:"보유중",sold:"매도완료",rent_out:"임대중",rent_in:"임차중"};
+var RE_COLOR={hold:"#818cf8",sold:"#34d399",rent_out:"#f59e0b",rent_in:"#38bdf8"};
+var RE_TYPE_L={apt:"아파트",villa:"빌라/다세대",officetel:"오피스텔",commercial:"상가/사무실",land:"토지",house:"단독주택",other:"기타"};
+var editingReId=null;
+
+function daysBetween(d1,d2){return Math.max(1,Math.round((new Date(d2)-new Date(d1))/86400000));}
+function calcReStats(re){
+  var cost=(re.buyPrice||0)+(re.tax||0),cur2=re.status==="sold"?(re.sellPrice||re.curPrice||0):(re.curPrice||0);
+  var pnl=cur2-cost,pct=cost?pnl/cost*100:0;
+  var endDate=(re.status==="sold"&&re.sellDate)?re.sellDate:new Date().toISOString().split("T")[0];
+  var days=re.buyDate?daysBetween(re.buyDate,endDate):365,years=days/365;
+  return{cost,cur:cur2,pnl,pct,annualPct:years>0?((Math.pow(1+pct/100,1/years)-1)*100):0,days,
+    realizedPnl:(re.status==="sold"&&re.sellPrice)?(re.sellPrice-cost):null};
+}
+function calcRePreview(){
+  var buy=parseFloat(g("re-buy").value),cur2=parseFloat(g("re-cur").value),tax=parseFloat(g("re-tax").value)||0,bd=g("re-buydate").value;
+  var wrap=g("re-preview");if(!buy||!cur2){wrap.style.display="none";return;}wrap.style.display="block";
+  var cost=buy+tax,pnl=cur2-cost,pct=cost?pnl/cost*100:0;
+  var days=bd?daysBetween(bd,new Date().toISOString().split("T")[0]):365,years=days/365;
+  var annual=years>0?((Math.pow(1+pct/100,1/years)-1)*100):0;
+  var ps=bd?Math.floor(days/365)+"년 "+Math.floor((days%365)/30)+"개월":"-";
+  g("rep-pnl").innerHTML="<span class='"+cc(pnl)+"'>"+fmt(pnl)+"</span>";
+  g("rep-pct").innerHTML="<span class='"+cc(pct)+"'>"+fmtP(pct)+"</span>";
+  g("rep-annual").innerHTML="<span class='"+cc(annual)+"'>"+fmtP(annual)+"/년</span>";
+  g("rep-period").textContent=ps;
+}
+function addRealEstate(){
+  var name=g("re-name").value.trim(),buyPrice=parseFloat(g("re-buy").value);
+  if(!name||!buyPrice){alert("물건명과 매입금액을 입력해주세요");return;}
+  realEstates.push({id:Date.now(),name,reType:g("re-type").value,location:g("re-location").value.trim(),
+    buyPrice,buyDate:g("re-buydate").value,curPrice:parseFloat(g("re-cur").value)||buyPrice,
+    deposit:parseFloat(g("re-deposit").value)||0,rent:parseFloat(g("re-rent").value)||0,
+    status:g("re-status").value,sellPrice:parseFloat(g("re-sell").value)||0,
+    sellDate:g("re-selldate").value,tax:parseFloat(g("re-tax").value)||0});
+  ["re-name","re-location","re-buy","re-buydate","re-cur","re-deposit","re-rent","re-sell","re-selldate","re-tax"].forEach(function(id){g(id).value="";});
+  g("re-preview").style.display="none";renderRealEstates();renderReSummary();renderSummary();saveLS();
+}
+function renderRealEstates(){
+  var tbody=g("re-table");
+  if(!realEstates.length){tbody.innerHTML="<tr><td colspan='12' style='text-align:center;color:#333;padding:22px'>부동산을 추가해주세요</td></tr>";return;}
+  tbody.innerHTML=realEstates.map(function(re){
+    var s=calcReStats(re),ps=re.buyDate?Math.floor(s.days/365)+"년 "+Math.floor((s.days%365)/30)+"개월":"-";
+    return"<tr><td><strong>"+re.name+"</strong>"+(re.buyDate?"<br><span style='color:#555;font-size:10px'>"+re.buyDate+"</span>":"")+"</td>"
+      +"<td><span class='badge bs'>"+RE_TYPE_L[re.reType]+"</span></td>"
+      +"<td style='color:#888;font-size:11px'>"+(re.location||"-")+"</td>"
+      +"<td><span style='padding:2px 7px;border-radius:10px;font-size:10px;background:#1e1e28;color:"+RE_COLOR[re.status]+"'>"+RE_STATUS[re.status]+"</span></td>"
+      +"<td>"+fmt(re.buyPrice)+(re.tax?"<br><span style='font-size:10px;color:#555'>+취득세 "+fmt(re.tax)+"</span>":"")+"</td>"
+      +"<td>"+fmt(re.curPrice)+"</td>"
+      +"<td class='"+cc(s.pnl)+"'>"+fmt(s.pnl)+"</td>"
+      +"<td class='"+cc(s.pct)+"'>"+fmtP(s.pct)+"</td>"
+      +"<td class='"+cc(s.annualPct)+"'>"+fmtP(s.annualPct)+"/년<br><span style='font-size:10px;color:#555'>"+ps+"</span></td>"
+      +"<td>"+(re.rent?"<span style='color:#34d399'>"+fmt(re.rent)+"/월</span>":"-")+"</td>"
+      +"<td>"+(s.realizedPnl!==null?"<span class='"+cc(s.realizedPnl)+"'>"+fmt(s.realizedPnl)+"</span>":"-")+"</td>"
+      +"<td style='white-space:nowrap'><button class='btn btns' onclick='openReModal("+re.id+")'>수정</button> <button class='btn btns btnd' onclick='delRe("+re.id+")'>삭제</button></td></tr>";
+  }).join("");
+}
+function renderReSummary(){
+  var tc=realEstates.reduce(function(s,re){return s+re.buyPrice+(re.tax||0);},0);
+  var tv2=realEstates.filter(function(re){return re.status!=="sold";}).reduce(function(s,re){return s+re.curPrice;},0);
+  var tp=realEstates.reduce(function(s,re){return s+calcReStats(re).pnl;},0);
+  var tr2=realEstates.filter(function(re){return re.status==="sold";}).reduce(function(s,re){return s+(calcReStats(re).realizedPnl||0);},0);
+  var pct=tc?tp/tc*100:0;
+  g("re-cost").textContent=fmt(tc);g("re-value").textContent=fmt(tv2);
+  g("re-pnl").innerHTML="<span class='"+cc(tp)+"'>"+fmt(tp)+"</span>";
+  g("re-pct").innerHTML="<span class='"+cc(pct)+"'>"+fmtP(pct)+"</span>";
+  g("re-realized").innerHTML="<span class='"+cc(tr2)+"'>"+fmt(tr2)+"</span>";
+}
+function delRe(id){realEstates=realEstates.filter(function(r){return r.id!==id;});renderRealEstates();renderReSummary();renderSummary();saveLS();}
+function openReModal(id){
+  var re=realEstates.find(function(x){return x.id===id;});editingReId=id;
+  g("rem-name").value=re.name;g("rem-location").value=re.location||"";
+  g("rem-buy").value=re.buyPrice;g("rem-cur").value=re.curPrice;
+  g("rem-tax").value=re.tax||0;g("rem-deposit").value=re.deposit||0;
+  g("rem-rent").value=re.rent||0;g("rem-status").value=re.status;
+  g("rem-sell").value=re.sellPrice||0;g("rem-selldate").value=re.sellDate||"";
+  g("re-modal").classList.add("open");
+}
+function closeReModal(){g("re-modal").classList.remove("open");editingReId=null;}
+function saveRe(){
+  var re=realEstates.find(function(x){return x.id===editingReId;});
+  re.name=g("rem-name").value.trim()||re.name;re.location=g("rem-location").value.trim();
+  re.buyPrice=parseFloat(g("rem-buy").value)||re.buyPrice;re.curPrice=parseFloat(g("rem-cur").value)||re.curPrice;
+  re.tax=parseFloat(g("rem-tax").value)||0;re.deposit=parseFloat(g("rem-deposit").value)||0;
+  re.rent=parseFloat(g("rem-rent").value)||0;re.status=g("rem-status").value;
+  re.sellPrice=parseFloat(g("rem-sell").value)||0;re.sellDate=g("rem-selldate").value;
+  closeReModal();renderRealEstates();renderReSummary();renderSummary();saveLS();
+}
+
+// ══════════════════════════════════════════════════════
+// 대출관리
+// ══════════════════════════════════════════════════════
+var editingLoanId=null;
+
+function calcMonthly(principal,annualRate,months,type){
+  var r=annualRate/100/12;
+  if(type==="bullet")return{monthly:Math.round(principal*r),totalPay:Math.round(principal+principal*r*months),totalInterest:Math.round(principal*r*months),schedule:[]};
+  if(type==="principal"){
+    var pmt=principal/months,bal=principal,totalInt=0,schedule=[];
+    for(var i=1;i<=months;i++){var interest=bal*r;totalInt+=interest;bal-=pmt;schedule.push({n:i,payment:Math.round(pmt+interest),principal:Math.round(pmt),interest:Math.round(interest),balance:Math.max(0,Math.round(bal))});}
+    return{monthly:Math.round(principal/months+principal*r),totalPay:Math.round(principal+totalInt),totalInterest:Math.round(totalInt),schedule};
+  }
+  if(r===0){var p2=principal/months;return{monthly:Math.round(p2),totalPay:Math.round(principal),totalInterest:0,schedule:[]};}
+  var pmt3=principal*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1),bal2=principal,totalInt2=0,schedule2=[];
+  for(var j=1;j<=months;j++){var int2=bal2*r,princ=pmt3-int2;totalInt2+=int2;bal2-=princ;schedule2.push({n:j,payment:Math.round(pmt3),principal:Math.round(princ),interest:Math.round(int2),balance:Math.max(0,Math.round(bal2))});}
+  return{monthly:Math.round(pmt3),totalPay:Math.round(pmt3*months),totalInterest:Math.round(totalInt2),schedule:schedule2};
+}
+function calcRemain(loan){
+  if(!loan.schedule||!loan.schedule.length)return loan.principal;
+  var paid=loan.paidMonths||0;if(paid>=loan.schedule.length)return 0;
+  return loan.schedule[paid]?loan.schedule[paid].balance:loan.principal;
+}
+function calcLoanPreview(){
+  var p=parseFloat(g("l-principal").value),r=parseFloat(g("l-rate").value),m=parseInt(g("l-months").value),type=g("l-type").value;
+  var wrap=g("loan-preview");if(!p||!r||!m){wrap.style.display="none";return;}
+  var res=calcMonthly(p,r,m,type);wrap.style.display="block";
+  g("lp-monthly").textContent=fmt(res.monthly)+(type==="principal"?"~":"");
+  g("lp-total").textContent=fmt(res.totalPay);g("lp-interest").textContent=fmt(res.totalInterest);
+  g("lp-iratio").textContent=((res.totalInterest/p)*100).toFixed(1)+"%";
+}
+function addLoan(){
+  var name=g("l-name").value.trim()||"대출",principal=parseFloat(g("l-principal").value),rate=parseFloat(g("l-rate").value),months=parseInt(g("l-months").value),type=g("l-type").value,start=g("l-start").value;
+  if(!principal||!rate||!months){alert("원금, 이자율, 상환기간을 입력해주세요");return;}
+  var calc=calcMonthly(principal,rate,months,type),obj={id:Date.now(),name,principal,rate,months,type,start,paidMonths:0};
+  Object.keys(calc).forEach(function(k){obj[k]=calc[k];});
+  loans.push(obj);renderLoans();renderLoanSummary();renderSummary();saveLS();
+  ["l-name","l-principal","l-rate","l-months"].forEach(function(id){g(id).value="";});
+  g("loan-preview").style.display="none";
+}
+function renderLoans(){
+  var tbody=g("loan-table");if(!loans.length){tbody.innerHTML="<tr><td colspan='11' style='text-align:center;color:#333;padding:22px'>대출을 추가해주세요</td></tr>";return;}
+  var TL={equal:"원리금균등",principal:"원금균등",bullet:"만기일시"};
+  tbody.innerHTML=loans.map(function(l){
+    var remain=calcRemain(l),progress=((l.paidMonths||0)/l.months*100).toFixed(0);
+    return"<tr><td><strong>"+l.name+"</strong>"+(l.start?"<br><span style='color:#555;font-size:10px'>"+l.start+"</span>":"")+"</td>"
+      +"<td>"+fmt(l.principal)+"</td><td>"+l.rate+"%</td><td>"+l.months+"개월</td>"
+      +"<td><span class='badge bs'>"+TL[l.type]+"</span></td>"
+      +"<td style='color:#a78bfa;font-weight:600'>"+fmt(l.monthly)+(l.type==="principal"?"~":"")+"/월</td>"
+      +"<td>"+fmt(l.totalPay)+"</td><td class='neg'>"+fmt(l.totalInterest)+"</td>"
+      +"<td class='neg'><strong>"+fmt(remain)+"</strong></td>"
+      +"<td><div style='width:80px;background:#1e1e28;border-radius:4px;height:5px;display:inline-block;vertical-align:middle'><div style='width:"+progress+"%;background:#a78bfa;height:5px;border-radius:4px'></div></div><span style='font-size:10px;color:#555;margin-left:4px'>"+(l.paidMonths||0)+"/"+l.months+"개월</span></td>"
+      +"<td style='white-space:nowrap'><button class='btn btns' onclick='showSchedule("+l.id+")'>스케줄</button> <button class='btn btns' onclick='openLoanModal("+l.id+")'>수정</button> <button class='btn btns btnd' onclick='delLoan("+l.id+")'>삭제</button></td></tr>";
+  }).join("");
+}
+function renderLoanSummary(){
+  var tP=loans.reduce(function(s,l){return s+l.principal;},0);
+  var tR=loans.reduce(function(s,l){return s+calcRemain(l);},0);
+  var tM=loans.reduce(function(s,l){return s+l.monthly;},0);
+  var ta=assets.reduce(function(s,a){return s+a.price*a.qty;},0)+realEstates.filter(function(re){return re.status!=="sold";}).reduce(function(s,re){return s+re.curPrice;},0);
+  var net=ta-tR;
+  g("ls-principal").textContent=fmt(tP);g("ls-remain").textContent=fmt(tR);
+  g("ls-monthly").textContent=fmt(tM)+"/월";g("ls-net").innerHTML="<span class='"+cc(net)+"'>"+fmt(net)+"</span>";
+}
+function showSchedule(id){
+  var l=loans.find(function(x){return x.id===id;});if(!l||!l.schedule||!l.schedule.length){alert("스케줄 데이터가 없습니다");return;}
+  var wrap=g("schedule-wrap");wrap.style.display="block";g("schedule-title").textContent=l.name+" 상환 스케줄";
+  var sd=l.start?new Date(l.start):new Date();
+  g("schedule-table").innerHTML=l.schedule.map(function(s,i){
+    var d=new Date(sd);d.setMonth(d.getMonth()+i);
+    var ds=d.getFullYear()+"."+pad2(d.getMonth()+1),ip=i<(l.paidMonths||0);
+    return"<tr style='"+(ip?"opacity:.4":"")+"'><td>"+s.n+"</td><td>"+ds+(ip?" <span style='font-size:9px;color:#34d399'>납입완료</span>":"")+"</td>"
+      +"<td style='color:#a78bfa'>"+fmt(s.payment)+"</td><td>"+fmt(s.principal)+"</td>"
+      +"<td class='neg'>"+fmt(s.interest)+"</td><td>"+fmt(s.balance)+"</td></tr>";
+  }).join("");
+  wrap.scrollIntoView({behavior:"smooth"});
+}
+function delLoan(id){loans=loans.filter(function(l){return l.id!==id;});renderLoans();renderLoanSummary();renderSummary();saveLS();}
+function openLoanModal(id){
+  var l=loans.find(function(x){return x.id===id;});editingLoanId=id;
+  g("lm-name").value=l.name;g("lm-principal").value=l.principal;g("lm-rate").value=l.rate;
+  g("lm-months").value=l.months;g("lm-type").value=l.type;g("lm-paid").value=l.paidMonths||0;
+  g("loan-modal").classList.add("open");
+}
+function closeLoanModal(){g("loan-modal").classList.remove("open");editingLoanId=null;}
+function saveLoan(){
+  var l=loans.find(function(x){return x.id===editingLoanId;});
+  l.name=g("lm-name").value.trim()||l.name;l.principal=parseFloat(g("lm-principal").value)||l.principal;
+  l.rate=parseFloat(g("lm-rate").value)||l.rate;l.months=parseInt(g("lm-months").value)||l.months;
+  l.type=g("lm-type").value;l.paidMonths=parseInt(g("lm-paid").value)||0;
+  var calc=calcMonthly(l.principal,l.rate,l.months,l.type);Object.keys(calc).forEach(function(k){l[k]=calc[k];});
+  closeLoanModal();renderLoans();renderLoanSummary();renderSummary();saveLS();
+}
+
+// ══════════════════════════════════════════════════════
+// 예적금
+// ══════════════════════════════════════════════════════
+var SV_TYPE={deposit:"정기예금",installment:"정기적금",free:"자유적금",demand:"입출금통장",isa:"ISA",pension:"연금저축"};
+var SV_TAX={normal:0.154,prefer:0.099,exempt:0};
+var SV_COLOR={deposit:"#38bdf8",installment:"#a78bfa",free:"#34d399",demand:"#f59e0b",isa:"#f97316",pension:"#ec4899"};
+var svFilter="all";
+
+function calcSvStats(sv){
+  var p=sv.amount||0,r=(sv.rate||0)/100,start=sv.startDate,end=sv.endDate;
+  var days=0,years=0;
+  if(start&&end){days=Math.max(0,Math.round((new Date(end)-new Date(start))/86400000));years=days/365;}
+  var gross=sv.interestType==="compound"?p*(Math.pow(1+r,years)-1):p*r*years;
+  var taxRate=SV_TAX[sv.taxType]||0.154;
+  var net2=gross*(1-taxRate),total=p+net2,effRate=p&&years>0?(net2/p/years*100):0;
+  var dday=end?Math.round((new Date(end)-new Date())/86400000):null;
+  return{grossInterest:gross,netInterest:net2,total,effRate,days,years,dday};
+}
+function calcSvPreview(){
+  var p=parseFloat(g("sv-amt").value),r=parseFloat(g("sv-rate").value);
+  var start=g("sv-start").value,end=g("sv-end").value,wrap=g("sv-preview");
+  if(!p||!r||!start||!end){wrap.style.display="none";return;}
+  var st=calcSvStats({amount:p,rate:r,startDate:start,endDate:end,interestType:g("sv-interest-type").value,taxType:g("sv-tax").value});
+  wrap.style.display="block";
+  g("svp-gross").textContent=fmt(st.grossInterest);
+  g("svp-net").innerHTML="<span class='pos'>"+fmt(st.netInterest)+"</span>";
+  g("svp-total").textContent=fmt(st.total);g("svp-eff").textContent=fmtP(st.effRate)+"/년";
+}
+function addSavings(){
+  var name=g("sv-name").value.trim(),amount=parseFloat(g("sv-amt").value);
+  if(!name||!amount){alert("상품명과 원금을 입력해주세요");return;}
+  savings.push({id:Date.now(),name,svType:g("sv-type").value,bank:g("sv-bank").value.trim(),amount,
+    rate:parseFloat(g("sv-rate").value)||0,interestType:g("sv-interest-type").value,
+    startDate:g("sv-start").value,endDate:g("sv-end").value,taxType:g("sv-tax").value,status:"active"});
+  ["sv-name","sv-bank","sv-amt","sv-rate","sv-start","sv-end"].forEach(function(id){g(id).value="";});
+  g("sv-preview").style.display="none";renderSavings();saveLS();
+}
+function setSvFilter(f,btn){svFilter=f;document.querySelectorAll("#savingspage .tw .pb").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderSavings();}
+function renderSavings(){
+  var totalPrincipal=savings.reduce(function(s,sv){return s+sv.amount;},0);
+  var totalNet=savings.reduce(function(s,sv){return s+calcSvStats(sv).netInterest;},0);
+  var totalVal=savings.reduce(function(s,sv){return s+calcSvStats(sv).total;},0);
+  var avgRate=savings.length?savings.reduce(function(s,sv){return s+sv.rate;},0)/savings.length:0;
+  var today=new Date();
+  var expiring=savings.filter(function(sv){if(!sv.endDate)return false;var d=Math.round((new Date(sv.endDate)-today)/86400000);return d>=0&&d<=30;}).length;
+  g("sv-principal").textContent=fmt(totalPrincipal);g("sv-value").textContent=fmt(totalVal);
+  g("sv-interest").textContent=fmt(totalNet);g("sv-avgrate").textContent=avgRate.toFixed(2)+"%";g("sv-expiring").textContent=expiring+"건";
+  var tbody=g("sv-table");
+  var filtered=savings.filter(function(sv){if(svFilter==="active")return sv.status==="active";if(svFilter==="expired")return sv.status==="expired";return true;});
+  if(!filtered.length){tbody.innerHTML="<tr><td colspan='13' style='text-align:center;color:#333;padding:22px'>예적금을 추가해주세요</td></tr>";
+  }else{
+    tbody.innerHTML=filtered.map(function(sv){
+      var st=calcSvStats(sv),dday=st.dday;
+      var ddayStr=dday===null?"--":dday<0?"만기완료":dday===0?"오늘만기":"D-"+dday;
+      var ddayColor=dday===null?"#555":dday<0?"#34d399":dday<=7?"#f87171":dday<=30?"#f59e0b":"#888";
+      var tc=SV_COLOR[sv.svType]||"#888",isExpired=sv.status==="expired"||(dday!==null&&dday<0);
+      return"<tr style='"+(isExpired?"opacity:.6":"")+"'>"
+        +"<td><strong>"+sv.name+"</strong>"+(sv.bank?"<br><span style='color:#555;font-size:10px'>"+sv.bank+"</span>":"")+"</td>"
+        +"<td><span style='padding:2px 7px;border-radius:10px;font-size:10px;background:#1e1e28;color:"+tc+"'>"+SV_TYPE[sv.svType]+"</span></td>"
+        +"<td style='color:#888;font-size:11px'>"+(sv.bank||"-")+"</td>"
+        +"<td>"+fmt(sv.amount)+"</td><td style='color:#f59e0b;font-weight:600'>"+sv.rate+"%</td>"
+        +"<td style='font-size:11px;color:#888'>"+(sv.startDate||"-")+"</td>"
+        +"<td style='font-size:11px;color:#888'>"+(sv.endDate||"-")+"</td>"
+        +"<td style='font-weight:700;color:"+ddayColor+"'>"+ddayStr+"</td>"
+        +"<td style='color:#f59e0b'>"+fmt(st.grossInterest)+"</td>"
+        +"<td class='pos'>"+fmt(st.netInterest)+"</td>"
+        +"<td style='color:#34d399;font-weight:600'>"+fmt(st.total)+"</td>"
+        +"<td>"+(isExpired&&sv.status!=="expired"?"<span style='color:#f87171;font-size:10px'>만기도래</span>":sv.status==="expired"?"<span style='color:#34d399;font-size:10px'>완료</span>":"<span style='color:#a78bfa;font-size:10px'>진행중</span>")+"</td>"
+        +"<td style='white-space:nowrap'><button class='btn btns' onclick='toggleSvStatus("+sv.id+")'>"+(sv.status==="expired"?"복원":"만기처리")+"</button> <button class='btn btns btnd' onclick='delSavings("+sv.id+")'>삭제</button></td></tr>";
+    }).join("");
+  }
+  var monthly={};savings.forEach(function(sv){if(!sv.endDate)return;var m=sv.endDate.substring(0,7);monthly[m]=(monthly[m]||0)+sv.amount;});
+  var mk=Object.keys(monthly).sort(),mv=mk.map(function(k){return Math.round(monthly[k]/10000);});
+  var svChart2=Chart.getChart("sv-chart");if(svChart2)svChart2.destroy();
+  new Chart(g("sv-chart"),{type:"bar",data:{labels:mk.length?mk:["데이터없음"],datasets:[{data:mk.length?mv:[0],backgroundColor:"rgba(56,189,248,.6)",borderColor:"#38bdf8",borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#888"},grid:{color:"#1a1a22"}},y:{ticks:{color:"#888",callback:function(v){return v+"만";}},grid:{color:"#1a1a22"}}}}});
+}
+function toggleSvStatus(id){var sv=savings.find(function(x){return x.id===id;});if(sv)sv.status=sv.status==="expired"?"active":"expired";renderSavings();saveLS();}
+function delSavings(id){savings=savings.filter(function(x){return x.id!==id;});renderSavings();saveLS();}
 
 // ══════════════════════════════════════════════════════
 // 페이지 전환
