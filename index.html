@@ -115,7 +115,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .search-item:last-child{border-bottom:none}
 
 /* ── 스크리너 전용 (섹터맵 대체) ── */
-.page.active.scr-page{display:flex;flex-direction:column;padding:0;height:calc(100vh - 148px);overflow:hidden}
+.page.scr-page.active{display:flex;flex-direction:column;padding:0;height:calc(100vh - 148px);overflow:hidden}
 .scr-top{display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0d0d12;border-bottom:1px solid #1e1e2a;flex-wrap:wrap;flex-shrink:0}
 .scr-rtabs{display:flex;gap:3px;background:#141418;border-radius:7px;padding:3px;border:1px solid #2a2a38}
 .scr-rtab{padding:4px 12px;border-radius:5px;cursor:pointer;font-size:12px;color:#666;border:none;background:transparent;white-space:nowrap}
@@ -826,7 +826,6 @@ function renderSavings(){var totalPrincipal=savings.reduce(function(s,sv){return
 function toggleSvStatus(id){var sv=savings.find(function(x){return x.id===id;});if(sv)sv.status=sv.status==="expired"?"active":"expired";renderSavings();saveLS();}
 function delSavings(id){savings=savings.filter(function(x){return x.id!==id;});renderSavings();saveLS();}
 
-// showPage - scr-page 클래스 처리
 function showPage(id,btn){
   document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
   document.querySelectorAll(".nb").forEach(function(b){b.classList.remove("active");});
