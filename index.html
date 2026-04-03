@@ -129,13 +129,13 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .scr-si{font-size:10px;color:#555;white-space:nowrap}
 .scr-si span{font-weight:700;margin-left:3px}
 .scr-body{flex:1;overflow:auto}
-.scr-tbl{width:100%;border-collapse:collapse;table-layout:fixed}
-.scr-tbl thead th{position:sticky;top:0;z-index:10;background:#111118;padding:6px 6px;font-size:10px;color:#555;font-weight:600;text-align:right;white-space:nowrap;border-bottom:2px solid #1e1e2a;border-right:1px solid #181820;overflow:hidden;user-select:none;position:relative}
+.scr-tbl{width:100%;border-collapse:collapse;table-layout:auto}
+.scr-tbl thead th{position:sticky;top:0;z-index:10;background:#111118;padding:6px 10px;font-size:10px;color:#666;font-weight:600;text-align:right;white-space:nowrap;border-bottom:2px solid #2a2a38;border-right:1px solid #181820;overflow:visible;user-select:none}
 .scr-tbl thead th.sl{text-align:left}
 .scr-tbl tbody tr{border-bottom:1px solid #141420}
 .scr-tbl tbody tr:hover{background:rgba(167,139,250,.05)}
 .scr-tbl tbody tr.sec-sep td{padding:4px 10px;font-size:10px;font-weight:700;color:#555;background:#0d0d14;border-bottom:1px solid #1e1e2a}
-.scr-tbl td{padding:5px 6px;font-size:12px;vertical-align:middle;text-align:right;border-right:1px solid #0f0f18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scr-tbl td{padding:6px 10px;font-size:12px;vertical-align:middle;text-align:right;border-right:1px solid #0f0f18;white-space:nowrap}
 .scr-tbl td.sl{text-align:left}
 .sc0{position:sticky;left:0;z-index:5;background:#0f0f13}
 .sc1{position:sticky;z-index:5;background:#0f0f13}
@@ -166,8 +166,8 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .q-fc-wrap::before{content:"예측";position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:7px;color:#7c3aed;white-space:nowrap}
 .q-fc{border:1px dashed #7c3aed!important;background:transparent!important}
 body.col-resizing{cursor:col-resize!important;user-select:none!important}
-.rz{position:absolute;right:0;top:0;width:5px;height:100%;cursor:col-resize;z-index:20}
-.rz:hover,.rz.dragging{background:#7c3aed44}
+.rz{position:absolute;right:-3px;top:0;width:6px;height:100%;cursor:col-resize;z-index:30;background:transparent}
+.rz:hover,.rz.dragging{background:#7c3aed88}
 
 /* ── 인증 UI ── */
 #auth-bar{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -454,20 +454,29 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
       <option value="mktcap">시총 ↓</option>
     </select>
   </div>
+<!-- 로딩 진행률 — 가로 바 (필터 바로 아래) -->
+<div class="scr-prog-bar-wrap" id="scr-prog-bar-wrap"><div class="scr-prog-bar" id="scr-prog-bar"></div></div>
+<div class="scr-prog-label" id="scr-prog-label">로딩중 0%</div>
   <div class="scr-sum" id="scr-sum"></div>
   <div class="scr-body">
     <div id="scr-us-wrap">
       <table class="scr-tbl" id="scr-us-tbl">
         <thead><tr id="scr-us-hdr">
-          <th class="sl sc0" data-col="0" style="width:58px">구분<div class="rz"></div></th>
-          <th class="sl sc1" data-col="1" style="width:76px">섹터<div class="rz"></div></th>
-          <th class="sl sc2" data-col="2">종목<div class="rz"></div></th>
-          <th data-col="3" style="width:76px">1일<div class="rz"></div></th>
-          <th data-col="4" style="width:76px">1주<div class="rz"></div></th>
-          <th data-col="5" style="width:76px">1달<div class="rz"></div></th>
-          <th data-col="6" style="width:76px">6개월<div class="rz"></div></th>
-          <th data-col="7" style="width:76px">1년<div class="rz"></div></th>
-          <th data-col="8" style="width:68px">밸류에이션<div class="rz"></div></th>
+          <th class="sl sc0">구분<div class="rz"></div></th>
+          <th class="sl sc1">섹터<div class="rz"></div></th>
+          <th class="sl sc2">종목<div class="rz"></div></th>
+          <th>현재가<div class="rz"></div></th>
+          <th>1일%<div class="rz"></div></th>
+          <th>일RSI<div class="rz"></div></th>
+          <th>1주%<div class="rz"></div></th>
+          <th>주RSI<div class="rz"></div></th>
+          <th>1달%<div class="rz"></div></th>
+          <th>월RSI<div class="rz"></div></th>
+          <th>6개월%<div class="rz"></div></th>
+          <th>6mRSI<div class="rz"></div></th>
+          <th>1년%<div class="rz"></div></th>
+          <th>년RSI<div class="rz"></div></th>
+          <th>상세<div class="rz"></div></th>
         </tr></thead>
         <tbody id="scr-us-body"></tbody>
       </table>
@@ -475,15 +484,23 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
     <div id="scr-kr-wrap" style="display:none">
       <table class="scr-tbl" id="scr-kr-tbl">
         <thead><tr id="scr-kr-hdr">
-          <th class="sl sc0" data-col="0" style="width:58px">구분<div class="rz"></div></th>
-          <th class="sl sc1" data-col="1" style="width:76px">섹터<div class="rz"></div></th>
-          <th class="sl sc2" data-col="2">종목<div class="rz"></div></th>
-          <th data-col="3" style="width:76px">1일<div class="rz"></div></th>
-          <th data-col="4" style="width:76px">1주<div class="rz"></div></th>
-          <th data-col="5" style="width:76px">1달<div class="rz"></div></th>
-          <th data-col="6" style="width:76px">6개월<div class="rz"></div></th>
-          <th data-col="7" style="width:76px">1년<div class="rz"></div></th>
-          <th data-col="8" style="width:68px">밸류에이션<div class="rz"></div></th>
+          <th class="sl sc0">구분<div class="rz"></div></th>
+          <th class="sl sc1">섹터<div class="rz"></div></th>
+          <th class="sl sc2">종목<div class="rz"></div></th>
+          <th>현재가<div class="rz"></div></th>
+          <th>1일%<div class="rz"></div></th>
+          <th>일RSI<div class="rz"></div></th>
+          <th>1주%<div class="rz"></div></th>
+          <th>주RSI<div class="rz"></div></th>
+          <th>1달%<div class="rz"></div></th>
+          <th>월RSI<div class="rz"></div></th>
+          <th>6개월%<div class="rz"></div></th>
+          <th>6mRSI<div class="rz"></div></th>
+          <th>1년%<div class="rz"></div></th>
+          <th>년RSI<div class="rz"></div></th>
+          <th>상세<div class="rz"></div></th>
+        </tr></thead>
+        <tbody id="scr-kr-body"></tbody>
         </tr></thead>
         <tbody id="scr-kr-body"></tbody>
       </table>
@@ -1237,6 +1254,41 @@ var KR_STOCKS=[
   {sym:"323410.KQ",name:"카카오뱅크",sec:"로봇·AI",mkt:"KOSDAQ"},{sym:"251270.KQ",name:"넷마블",sec:"로봇·AI",mkt:"KOSDAQ"},
 ];
 (function(){var seen={};KR_STOCKS=KR_STOCKS.filter(function(s){var k=s.sym+"_"+s.sec;if(seen[k])return false;seen[k]=true;return true;});})();
+// RSI 배지: 과매수/과매도만, 중립은 표시 안함
+function scrRsiBadge(v){
+  if(v==null||isNaN(v))return'';
+  if(v>=70)return'<span class="rsi-badge rsi-ob">과매수 '+v.toFixed(0)+'</span>';
+  if(v<=30)return'<span class="rsi-badge rsi-os">과매도 '+v.toFixed(0)+'</span>';
+  return''; // 중립 표시 안함
+}
+
+// 등락률 + RSI 배지 한 셀에
+function scrChgRsiCell(chg,rsi){
+  return'<div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">'
+    +scrFmtChg(chg)+scrRsiBadge(rsi)+'</div>';
+}
+
+function scrFmtRsi(v){
+  if(v==null||isNaN(v))return'<span style="color:#444">--</span>';
+  var cls=v>=70?'rsi-ob':v<=30?'rsi-os':'rsi-neu';
+  var barColor=v>=70?'#f87171':v<=30?'#34d399':'#a78bfa';
+  var pct=Math.min(100,Math.max(0,v));
+  return'<div class="rsi-wrap"><span class="rsi-val '+cls+'">'+v.toFixed(1)+'</span>'
+    +'<div class="rsi-bar"><div class="rsi-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div></div>';
+}
+
+// RSI 단독 셀 렌더
+function scrRsiCell(v){
+  if(v==null||isNaN(v))return'<span style="color:#2a2a38;font-size:11px">--</span>';
+  var color=v>=70?'#f87171':v<=30?'#60a5fa':'#666';
+  var weight=v>=70||v<=30?'700':'400';
+  return'<div style="text-align:right">'
+    +'<span style="color:'+color+';font-size:12px;font-weight:'+weight+'">'+v.toFixed(1)+'</span>'
+    +(v>=70?'<br><span style="font-size:9px;color:#f87171">과매수</span>'
+      :v<=30?'<br><span style="font-size:9px;color:#60a5fa">과매도</span>':'')
+    +'</div>';
+}
+
 function scrFmtChg(v){if(v==null||isNaN(v))return'<span style="color:#444">--</span>';var s=v>0?"+":"",c=v>0?"#34d399":v<0?"#f87171":"#555";var bg=v>2?"rgba(52,211,153,.1)":v<-2?"rgba(248,113,113,.1)":"transparent";return'<span style="color:'+c+';background:'+bg+';padding:2px 5px;border-radius:3px;display:inline-block">'+s+v.toFixed(2)+'%</span>';}
 function scrFmtCap(v,isKr){if(!v)return'--';if(isKr){if(v>=1e12)return(v/1e12).toFixed(1)+'조';if(v>=1e8)return(v/1e8).toFixed(0)+'억';}else{if(v>=1e12)return(v/1e12).toFixed(2)+'T';if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';}return v.toLocaleString();}
 function scrFmtAmt(v,isKr){if(v==null)return null;if(isKr){if(Math.abs(v)>=1e12)return(v/1e12).toFixed(1)+'조';if(Math.abs(v)>=1e8)return(v/1e8).toFixed(0)+'억';}else{if(Math.abs(v)>=1e12)return(v/1e12).toFixed(2)+'T';if(Math.abs(v)>=1e9)return(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';}return v.toFixed(0);}
@@ -1315,8 +1367,34 @@ function scrOimChart(qs){var vals=qs.map(function(q){return q.oim;}).filter(func
 function scrRow(s,c,isKr){var id='sv_'+s.sym.replace(/[^a-zA-Z0-9]/g,'_')+'_'+s.sec.replace(/[^a-zA-Z0-9]/g,'_');var badge=isKr?('<span class="scr-badge '+(s.mkt==='KOSPI'?'sb-kospi':'sb-kosdaq')+'">'+s.mkt+'</span>'):({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[s.sz]||'');var nm=isKr?('<strong>'+s.name+'</strong><br><span style="font-size:10px;color:#3a3a4a">'+s.sym.replace(/\.(KS|KQ)$/,'')+'</span>'):('<strong>'+s.name+'</strong> <span style="font-size:10px;color:#555">'+s.kr+'</span><br><span style="font-size:10px;color:#333">'+s.sym+'</span>');// 1일 셀: 등락률 + 장상태 배지
 var chg1dCell='<div>'+scrFmtChg(c.chg1d)+'</div>'
   +(c.priceSource?'<div style="margin-top:2px">'+scrMarketBadge(c)+'</div>':'');
-return'<tr data-sec="'+s.sec+'" data-sz="'+(s.sz||'')+'" data-mkt="'+(s.mkt||'')+'" data-id="'+id+'"><td class="sl sc0">'+badge+'</td><td class="sl sc1" style="font-size:10px;color:#555">'+s.sec+'</td><td class="sl sc2">'+nm+'</td><td>'+chg1dCell+'</td><td>'+scrFmtChg(c.chg1w)+'</td><td>'+scrFmtChg(c.chg1m)+'</td><td>'+scrFmtChg(c.chg6m)+'</td><td>'+scrFmtChg(c.chg1y)+'</td><td><button class="val-toggle" onclick="scrToggleVal(\''+id+'\',\''+s.sym+'\','+isKr+',this)">▶ 상세</button></td></tr><tr class="val-row" id="'+id+'"><td class="val-cell" colspan="9"><div id="'+id+'-c"><span style="color:#555;font-size:11px"><span class="loading"></span> 로딩중...</span></div></td></tr>';}
+return'<tr data-sec="'+s.sec+'" data-sz="'+(s.sz||'')+'" data-mkt="'+(s.mkt||'')+'" data-id="'+id+'">'
+  +'<td class="sl sc0">'+badge+'</td>'
+  +'<td class="sl sc1" style="font-size:10px;color:#555">'+s.sec+'</td>'
+  +'<td class="sl sc2">'+nm+'</td>'
+  +'<td>'+chg1dCell+'</td>'
+  +'<td>'+scrFmtChg(c.chg1w)+'</td>'
+  +'<td>'+scrFmtChg(c.chg1m)+'</td>'
+  +'<td>'+scrFmtChg(c.chg6m)+'</td>'
+  +'<td>'+scrFmtChg(c.chg1y)+'</td>'
+  +'<td>'+scrFmtRsi(c.rsi14)+'</td>'
+  +'<td><button class="val-toggle" onclick="scrToggleVal(\''+id+'\',\''+s.sym+'\','+isKr+',this)">▶ 상세</button></td>'
+  +'</tr>'
+  +'<tr class="val-row" id="'+id+'"><td class="val-cell" colspan="10"><div id="'+id+'-c"><span style="color:#555;font-size:11px"><span class="loading"></span> 로딩중...</span></div></td></tr>';}
 function scrToggleVal(id,sym,isKr,btn){var row=document.getElementById(id);if(!row)return;var open=row.classList.toggle('open');btn.textContent=open?'▼ 닫기':'▶ 상세';if(open&&!scrValLoading[sym]){scrValLoading[sym]=true;scrFetchFin(sym).then(function(c){var el=document.getElementById(id+'-c');if(el)el.innerHTML=scrBuildVal(c,isKr);var tr=document.querySelector('tr[data-id="'+id+'"]');if(tr){var tds=tr.querySelectorAll('td');if(tds.length>=8){tds[3].innerHTML=scrFmtChg(c.chg1d);tds[4].innerHTML=scrFmtChg(c.chg1w);tds[5].innerHTML=scrFmtChg(c.chg1m);tds[6].innerHTML=scrFmtChg(c.chg6m);tds[7].innerHTML=scrFmtChg(c.chg1y);}}});}}
+// 진행률 가로바 제어
+function scrProgShow(pct,sub){
+  var bw=g('scr-prog-bar-wrap'),bar=g('scr-prog-bar'),lbl=g('scr-prog-label');
+  if(!bw)return;
+  bw.classList.add('show');
+  bar.style.width=Math.round(pct)+'%';
+  if(lbl){lbl.classList.add('show');lbl.textContent=(sub||'로딩중')+' '+Math.round(pct)+'%';}
+}
+function scrProgHide(){
+  var bw=g('scr-prog-bar-wrap'),lbl=g('scr-prog-label');
+  if(bw)bw.classList.remove('show');
+  if(lbl)lbl.classList.remove('show');
+}
+
 function scrBuild(region){
   var stocks=region==='us'?US_STOCKS:KR_STOCKS,isKr=region==='kr';
   var bodyId=region==='us'?'scr-us-body':'scr-kr-body';
@@ -1324,6 +1402,7 @@ function scrBuild(region){
   tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#555"><span class="loading"></span> 로딩중...</td></tr>';
 
   var secs=[...new Set(stocks.map(function(s){return s.sec;}))];
+  var total=stocks.length;
 
   function render(){
     var html="";
@@ -1337,34 +1416,47 @@ function scrBuild(region){
     scrUpdateSum();
   }
 
-  // 1단계: 1일 등락 (8개씩 병렬)
+  // 1단계: 1일 등락 (8개씩)
   var chunks=[];
   for(var i=0;i<stocks.length;i+=8)chunks.push(stocks.slice(i,i+8));
+  var priceLoaded=0;
+
+  scrProgShow(0,'가격 데이터 로딩중...');
 
   function loadPrice(ci){
     if(ci>=chunks.length){render();loadHistory(0);return;}
     Promise.all(chunks[ci].map(function(s){
       return isKr?scrFetchKR(s.sym):scrFetchQ(s.sym);
-    })).then(function(){render();loadPrice(ci+1);});
+    })).then(function(){
+      priceLoaded+=chunks[ci].length;
+      var pct=priceLoaded/total*40; // 가격 = 0~40%
+      scrProgShow(pct,'가격 로딩 '+priceLoaded+'/'+total+' 종목');
+      render();
+      loadPrice(ci+1);
+    });
   }
 
-  // 2단계: 1주~1년 (chart 모드, 4개씩 병렬 — API 부하 조절)
+  // 2단계: chart 모드 (RSI + 등락률, 4개씩)
   var histChunks=[];
   for(var j=0;j<stocks.length;j+=4)histChunks.push(stocks.slice(j,j+4));
+  var histLoaded=0;
 
   function loadHistory(ci){
     if(ci>=histChunks.length){
       render();
+      scrProgHide();
       g("scr-status").textContent='완료 '+scrHhmm();
       return;
     }
-    g("scr-status").textContent='등락률 로딩중... ('+Math.round(ci/histChunks.length*100)+'%)';
+    var pct=40+histLoaded/total*60; // RSI/등락률 = 40~100%
+    scrProgShow(pct,'RSI·등락률 로딩 '+histLoaded+'/'+total+' 종목');
+    g("scr-status").textContent='로딩중 '+Math.round(pct)+'%';
     Promise.all(histChunks[ci].map(function(s){
       return scrFetchHistory(s.sym);
     })).then(function(){
+      histLoaded+=histChunks[ci].length;
       render();
-      // 약간의 딜레이로 Worker rate limit 방지
-      setTimeout(function(){loadHistory(ci+1);},200);
+      setTimeout(function(){loadHistory(ci+1);},150);
     });
   }
 
