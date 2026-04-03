@@ -796,7 +796,126 @@ var searchTimer=null,tradeSearchTimer=null;
 var CAT_LABEL={crypto:"가상자산",us:"미국주식",kr:"한국주식",cash:"현금/예적금"};
 var CAT_BADGE={crypto:"bc",us:"bu",kr:"bk",cash:"bca"};
 var CAT_COLOR={crypto:"#7c3aed",us:"#0ea5e9",kr:"#6366f1",cash:"#10b981"};
-var POLL_COIN_MS=15000,POLL_US_MS=60000,POLL_KR_MS=180000,POLL_TICK_MS=60000;
+// ══════════════════════════════════════════════
+// 스마트 폴링 매니저
+// ══════════════════════════════════════════════
+var _pollTimers = {};
+var _lastDivFetch = 0;
+
+// 공휴일 목록 (프론트에서도 사용)
+var KRX_HOL=["2025-01-01","2025-01-28","2025-01-29","2025-01-30","2025-03-03","2025-05-01","2025-05-05","2025-05-06","2025-06-06","2025-08-15","2025-10-03","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-12-25","2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-03-02","2026-05-01","2026-05-05","2026-05-25","2026-06-06","2026-08-17","2026-12-25"];
+var NYSE_HOL=["2025-01-01","2025-01-20","2025-02-17","2025-04-18","2025-05-26","2025-06-19","2025-07-04","2025-09-01","2025-11-27","2025-12-25","2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25","2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25"];
+
+function getMarketState() {
+  var kst=getKST(), et=getET();
+  var kMin=toMin(kst), eMin=toMin(et);
+  var kWd=isWeekday(kst), eWd=isWeekday(et);
+  var kDate=kst.getFullYear()+"-"+pad2(kst.getMonth()+1)+"-"+pad2(kst.getDate());
+  var eDate=et.getFullYear()+"-"+pad2(et.getMonth()+1)+"-"+pad2(et.getDate());
+  var krHol=KRX_HOL.indexOf(kDate)!==-1;
+  var usHol=NYSE_HOL.indexOf(eDate)!==-1;
+
+  var krOpen=kWd&&!krHol&&kMin>=480&&kMin<960;   // 08:00~16:00 (프리~애프터)
+  var usOpen=eWd&&!usHol&&eMin>=240&&eMin<1200;  // 04:00~20:00 (프리~애프터)
+  var krRegular=kWd&&!krHol&&kMin>=540&&kMin<930;
+  var usRegular=eWd&&!usHol&&eMin>=570&&eMin<960;
+
+  return {
+    krOpen, usOpen, krRegular, usRegular,
+    krHol, usHol,
+    coinOpen: true // 코인은 24/7
+  };
+}
+
+function getPollIntervals() {
+  var s = getMarketState();
+  return {
+    // 1️⃣ 실시간: 개장 중 3~5초, 휴장 0 (멈춤)
+    coin:   s.coinOpen ? 5000  : 0,
+    krPrice: s.krOpen  ? 5000  : 0,
+    usPrice: s.usOpen  ? 5000  : 0,
+
+    // 2️⃣ 느린 실시간: 섹터맵 현재가 (개장 중 60초, 휴장 0)
+    scrPrice: s.krOpen||s.usOpen ? 60000 : 0,
+
+    // 3️⃣ 계산형: RSI는 개장 중 5분, 휴장 0
+    scrRsi: s.krOpen||s.usOpen ? 300000 : 0,
+
+    // 5️⃣ 혼합형: 지수/원자재 (개장 중 30초, 휴장 5분)
+    tickers: s.krOpen||s.usOpen ? 30000 : 300000,
+  };
+}
+
+function stopPoller(key) {
+  if (_pollTimers[key]) { clearInterval(_pollTimers[key]); _pollTimers[key]=null; }
+}
+function startPoller(key, fn, ms) {
+  stopPoller(key);
+  if (ms > 0) { fn(); _pollTimers[key] = setInterval(fn, ms); }
+}
+
+// 배당: 하루 1회만
+function maybeFetchDividends() {
+  var now = Date.now();
+  var ONE_DAY = 86400000;
+  var lastKey = "div_last_fetch";
+  try { _lastDivFetch = parseInt(localStorage.getItem(lastKey)||"0"); } catch(e){}
+  if (now - _lastDivFetch > ONE_DAY) {
+    fetchAllDividends();
+    _lastDivFetch = now;
+    try { localStorage.setItem(lastKey, String(now)); } catch(e){}
+  }
+}
+
+// 스마트 폴링 시작/재설정
+function startSmartPolling() {
+  var iv = getPollIntervals();
+  var s  = getMarketState();
+
+  // 코인 (24/7)
+  startPoller("coin", fetchCoinPrices, iv.coin);
+
+  // 한국 주식 (KRX 개장 중)
+  startPoller("kr", fetchKRPrices, iv.krPrice);
+
+  // 미국 주식 (NYSE 개장 중)
+  startPoller("us", fetchUSPrices, iv.usPrice);
+
+  // 지수/원자재 (개장 중 30초, 휴장 5분)
+  startPoller("tickers", fetchTickers, iv.tickers);
+
+  // 섹터맵 cache 무효화 (개장 중에만 주기적 갱신)
+  stopPoller("scrCache");
+  if ((s.krOpen||s.usOpen) && scrInited) {
+    _pollTimers["scrCache"] = setInterval(function(){
+      // 캐시 초기화 후 재로딩 (RSI는 5분마다, 가격은 1분마다)
+      if (scrInited) {
+        var now2 = Date.now();
+        Object.keys(scrCache).forEach(function(sym){
+          // 가격만 초기화 (RSI 캐시는 5분 유지)
+          if (!scrCache[sym]._rsiTs || now2 - scrCache[sym]._rsiTs > 300000) {
+            delete scrCache[sym]; // RSI 포함 전체 재계산
+          } else {
+            scrCache[sym].done = false; // 가격만 재조회
+          }
+        });
+        var tbody=g(scrRegion==="us"?"scr-us-body":"scr-kr-body");
+        if(tbody && tbody.children.length>0) scrBuild(scrRegion);
+      }
+    }, iv.scrPrice);
+  }
+
+  // 1시간마다 폴링 전략 재평가 (장 개폐장 대응)
+  stopPoller("strategy");
+  _pollTimers["strategy"] = setInterval(startSmartPolling, 3600000);
+
+  // 상태 로그
+  console.log("[폴링] 코인:"+(iv.coin?iv.coin/1000+"s":"정지")
+    +" | KR:"+(iv.krPrice?iv.krPrice/1000+"s":"정지")
+    +" | US:"+(iv.usPrice?iv.usPrice/1000+"s":"정지")
+    +" | 지수:"+(iv.tickers/1000)+"s"
+    +" | 섹터:"+(iv.scrPrice?iv.scrPrice/1000+"s":"정지"));
+}
 function fmt(n){return W+Math.round(n).toLocaleString("ko-KR");}
 function fmtUSD(n){return "$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtP(n){return(n>=0?"+":"")+n.toFixed(2)+"%";}
@@ -812,7 +931,51 @@ function pad2(n){return("0"+n).slice(-2);}
 function minsLeft(target,cur){var d=target-cur;return d<0?d+1440:d;}
 function fmtLeft(m){var h=Math.floor(m/60),mn=m%60;return h>0?h+"h "+mn+"m":mn+"m 후";}
 function setSeg(segId,isActive,stateClass,badgeText,timeText){var el=g(segId);if(!el)return;el.className="ms-seg "+(isActive?stateClass:"seg-inactive");var badge=el.querySelector(".ms-seg-badge"),time=el.querySelector("[id$='-time']");if(badge)badge.textContent=badgeText;if(time)time.textContent=timeText||"";}
-function updateMarketBanner(){var kst=getKST(),et=getET(),kMin=toMin(kst),eMin=toMin(et),kWd=isWeekday(kst),eWd=isWeekday(et);var krPre=kWd&&kMin>=480&&kMin<540,krReg=kWd&&kMin>=540&&kMin<930,krAfter=kWd&&kMin>=930&&kMin<960;setSeg("kr-seg-pre",krPre,"seg-active-pre",krPre?"프리마켓 진행중":"프리마켓 (08:00~09:00)",krPre?"마감 "+fmtLeft(minsLeft(540,kMin)):(kWd&&kMin<480?"시작 "+fmtLeft(minsLeft(480,kMin)):""));setSeg("kr-seg-regular",krReg,"seg-active-regular",krReg?"정규장 진행중":"정규장 (09:00~15:30)",krReg?"마감 "+fmtLeft(minsLeft(930,kMin)):"");setSeg("kr-seg-after",krAfter,"seg-active-after",krAfter?"애프터마켓 진행중":"애프터마켓 (15:30~16:00)",krAfter?"마감 "+fmtLeft(minsLeft(960,kMin)):"");var tkKr=g("tk-kr-ms");if(tkKr){if(krPre){tkKr.textContent="프리마켓";tkKr.className="ms ms-pre";}else if(krReg){tkKr.textContent="정규장";tkKr.className="ms ms-regular";}else if(krAfter){tkKr.textContent="애프터마켓";tkKr.className="ms ms-after";}else{tkKr.textContent=kWd?"마감":"휴장";tkKr.className="ms ms-closed";}}g("kr-clock-kst").textContent=kst.getHours()+":"+pad2(kst.getMinutes())+" KST";var usPre=eWd&&eMin>=240&&eMin<570,usReg=eWd&&eMin>=570&&eMin<960,usAfter=eWd&&eMin>=960&&eMin<1200;setSeg("us-seg-pre",usPre,"seg-active-pre",usPre?"프리마켓 진행중":"프리마켓 (04:00~09:30 ET)",usPre?"마감 "+fmtLeft(minsLeft(570,eMin)):(eWd&&eMin<240?"시작 "+fmtLeft(minsLeft(240,eMin)):""));setSeg("us-seg-regular",usReg,"seg-active-regular",usReg?"정규장 진행중":"정규장 (09:30~16:00 ET)",usReg?"마감 "+fmtLeft(minsLeft(960,eMin)):"");setSeg("us-seg-after",usAfter,"seg-active-after",usAfter?"애프터마켓 진행중":"애프터마켓 (16:00~20:00 ET)",usAfter?"마감 "+fmtLeft(minsLeft(1200,eMin)):"");var tkUs=g("tk-us-ms");if(tkUs){if(usPre){tkUs.textContent="프리마켓";tkUs.className="ms ms-pre";}else if(usReg){tkUs.textContent="정규장";tkUs.className="ms ms-regular";}else if(usAfter){tkUs.textContent="애프터마켓";tkUs.className="ms ms-after";}else{tkUs.textContent=eWd?"마감":"휴장";tkUs.className="ms ms-closed";}}g("us-clock-et").textContent=et.getHours()+":"+pad2(et.getMinutes())+" ET";}
+function updateMarketBanner(){
+  var kst=getKST(),et=getET(),kMin=toMin(kst),eMin=toMin(et),kWd=isWeekday(kst),eWd=isWeekday(et);
+
+  // ── 한국 공휴일 체크 (KST 날짜)
+  var KRX_HOLIDAYS=["2025-01-01","2025-01-28","2025-01-29","2025-01-30","2025-03-03","2025-05-01","2025-05-05","2025-05-06","2025-06-06","2025-08-15","2025-10-03","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-12-25","2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-03-02","2026-05-01","2026-05-05","2026-05-25","2026-06-06","2026-08-17","2026-12-25"];
+  var NYSE_HOLIDAYS=["2025-01-01","2025-01-20","2025-02-17","2025-04-18","2025-05-26","2025-06-19","2025-07-04","2025-09-01","2025-11-27","2025-12-25","2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25","2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25"];
+  var kstDateStr=kst.getFullYear()+"-"+pad2(kst.getMonth()+1)+"-"+pad2(kst.getDate());
+  var etDateStr=et.getFullYear()+"-"+pad2(et.getMonth()+1)+"-"+pad2(et.getDate());
+  var krHoliday=KRX_HOLIDAYS.indexOf(kstDateStr)!==-1;
+  var usHoliday=NYSE_HOLIDAYS.indexOf(etDateStr)!==-1;
+
+  // ── 한국 장 상태
+  var krPre=kWd&&!krHoliday&&kMin>=480&&kMin<540;
+  var krReg=kWd&&!krHoliday&&kMin>=540&&kMin<930;
+  var krAfter=kWd&&!krHoliday&&kMin>=930&&kMin<960;
+  setSeg("kr-seg-pre",krPre,"seg-active-pre",krPre?"프리마켓 진행중":"프리마켓 (08:00~09:00)",krPre?"마감 "+fmtLeft(minsLeft(540,kMin)):(kWd&&!krHoliday&&kMin<480?"시작 "+fmtLeft(minsLeft(480,kMin)):""));
+  setSeg("kr-seg-regular",krReg,"seg-active-regular",krReg?"정규장 진행중":"정규장 (09:00~15:30)",krReg?"마감 "+fmtLeft(minsLeft(930,kMin)):"");
+  setSeg("kr-seg-after",krAfter,"seg-active-after",krAfter?"애프터마켓 진행중":"애프터마켓 (15:30~16:00)",krAfter?"마감 "+fmtLeft(minsLeft(960,kMin)):"");
+  var tkKr=g("tk-kr-ms");
+  if(tkKr){
+    if(krHoliday){tkKr.textContent="공휴일";tkKr.className="ms ms-closed";}
+    else if(krPre){tkKr.textContent="프리마켓";tkKr.className="ms ms-pre";}
+    else if(krReg){tkKr.textContent="정규장";tkKr.className="ms ms-regular";}
+    else if(krAfter){tkKr.textContent="애프터마켓";tkKr.className="ms ms-after";}
+    else{tkKr.textContent=kWd?"마감":"휴장";tkKr.className="ms ms-closed";}
+  }
+  g("kr-clock-kst").textContent=kst.getHours()+":"+pad2(kst.getMinutes())+" KST";
+
+  // ── 미국 장 상태
+  var usPre=eWd&&!usHoliday&&eMin>=240&&eMin<570;
+  var usReg=eWd&&!usHoliday&&eMin>=570&&eMin<960;
+  var usAfter=eWd&&!usHoliday&&eMin>=960&&eMin<1200;
+  setSeg("us-seg-pre",usPre,"seg-active-pre",usPre?"프리마켓 진행중":"프리마켓 (04:00~09:30 ET)",usPre?"마감 "+fmtLeft(minsLeft(570,eMin)):(eWd&&!usHoliday&&eMin<240?"시작 "+fmtLeft(minsLeft(240,eMin)):""));
+  setSeg("us-seg-regular",usReg,"seg-active-regular",usReg?"정규장 진행중":"정규장 (09:30~16:00 ET)",usReg?"마감 "+fmtLeft(minsLeft(960,eMin)):"");
+  setSeg("us-seg-after",usAfter,"seg-active-after",usAfter?"애프터마켓 진행중":"애프터마켓 (16:00~20:00 ET)",usAfter?"마감 "+fmtLeft(minsLeft(1200,eMin)):"");
+  var tkUs=g("tk-us-ms");
+  if(tkUs){
+    if(usHoliday){tkUs.textContent="🏖 공휴일";tkUs.className="ms ms-closed";}
+    else if(usPre){tkUs.textContent="프리마켓";tkUs.className="ms ms-pre";}
+    else if(usReg){tkUs.textContent="정규장";tkUs.className="ms ms-regular";}
+    else if(usAfter){tkUs.textContent="애프터마켓";tkUs.className="ms ms-after";}
+    else{tkUs.textContent=eWd?"마감":"휴장";tkUs.className="ms ms-closed";}
+  }
+  g("us-clock-et").textContent=et.getHours()+":"+pad2(et.getMinutes())+" ET";
+}
 var DEFAULT_ASSETS=[{id:1,symbol:"BTC",name:"비트코인",cat:"crypto",sector:"레이어1",qty:0.5,avgCost:55000000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:2,symbol:"ETH",name:"이더리움",cat:"crypto",sector:"레이어1",qty:3,avgCost:3200000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:3,symbol:"AAPL",name:"애플",cat:"us",sector:"IT/기술",qty:10,avgCost:180000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:4,symbol:"NVDA",name:"엔비디아",cat:"us",sector:"IT/기술",qty:5,avgCost:600000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:5,symbol:"005930",name:"삼성전자",cat:"kr",sector:"IT/기술",qty:50,avgCost:71000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:6,symbol:"SAVINGS",name:"정기예금",cat:"cash",sector:"",qty:1,avgCost:5000000,price:5000000,prePrice:null,postPrice:null,priceHistory:{}}];
 var assets=DEFAULT_ASSETS.map(function(a){return Object.assign({},a);});
 function saveLS(){try{localStorage.setItem("ad13_assets",JSON.stringify(assets));localStorage.setItem("ad13_trades",JSON.stringify(trades));localStorage.setItem("ad13_loans",JSON.stringify(loans));localStorage.setItem("ad13_real",JSON.stringify(realEstates));localStorage.setItem("ad13_hist",JSON.stringify(assetHistory.slice(-200)));localStorage.setItem("ad13_div",JSON.stringify(dividends));localStorage.setItem("ad13_savings",JSON.stringify(savings));}catch(e){}if(authUser){clearTimeout(saveLS._t);saveLS._t=setTimeout(authSaveToCloud,2000);}}
@@ -825,7 +988,28 @@ function fetchCoinPrices(){var coinAssets=assets.filter(function(a){return a.cat
 function fetchUSPrices(){var usAssets=assets.filter(function(a){return a.cat==="us";});if(!usAssets.length)return;Promise.all(usAssets.map(function(a){return fetch(PROXY+"?mode=quote&sym="+encodeURIComponent(a.symbol)).then(function(r){return r.json();}).then(function(d){if(!d.ok||!d.data)return;var data=d.data;a.price=(data.price||0)*usdKrw;a.chgPct=data.chgPct??0;a.prePrice=data.pre?data.pre*usdKrw:null;a.postPrice=data.post?data.post*usdKrw:null;a.prePct=data.prePct??null;a.postPct=data.postPct??null;}).catch(function(){});})).then(function(){recordHistory();renderPortfolio();renderSummary();saveLS();});}
 function fetchKRPrices(){var krAssets=assets.filter(function(a){return a.cat==="kr";});if(!krAssets.length)return;Promise.all(krAssets.map(function(a){var code=a.symbol.replace(/\.(KS|KQ)$/i,"");return fetch(PROXY+"?mode=kr_price&code="+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){if(d.ok&&d.data){a.price=d.data.price;a.chgPct=d.data.chg;}a.prePrice=null;a.postPrice=null;}).catch(function(){});})).then(function(){recordHistory();renderPortfolio();renderSummary();saveLS();});}
 function recordHistory(){var tv=assets.reduce(function(s,a){return s+a.price*a.qty;},0),tc=assets.reduce(function(s,a){return s+a.avgCost*a.qty;},0),pct=tc?(tv-tc)/tc*100:0,last=assetHistory[assetHistory.length-1];if(!last||Date.now()-last.ts>60000){assetHistory.push({ts:Date.now(),totalVal:tv,pct:parseFloat(pct.toFixed(2))});if(assetHistory.length>200)assetHistory.shift();}}
-function fetchAll(){g("c-time").innerHTML="<span class='loading'></span>갱신중...";g("r-status").textContent="가격 조회중...";fetchTickers();setTimeout(function(){fetchCoinPrices();fetchUSPrices();fetchKRPrices();},300);setTimeout(function(){var t=new Date();g("c-time").textContent=t.getHours()+":"+pad2(t.getMinutes())+" 갱신";g("r-status").textContent="코인 15초 / 미국 1분 / 한국 3분 자동갱신";renderDashCharts();renderChartPage();},3000);}
+function fetchAll(){
+  g("c-time").innerHTML="<span class='loading'></span>갱신중...";
+  g("r-status").textContent="가격 조회중...";
+  fetchTickers();
+  setTimeout(function(){
+    fetchCoinPrices();
+    fetchUSPrices();
+    fetchKRPrices();
+  },300);
+  setTimeout(function(){
+    var t=new Date();
+    g("c-time").textContent=t.getHours()+":"+pad2(t.getMinutes())+" 갱신";
+    var s=getMarketState();
+    var parts=[];
+    if(s.coinOpen)parts.push("코인 5초");
+    if(s.krOpen)parts.push("KR 5초");
+    if(s.usOpen)parts.push("US 5초");
+    if(!s.krOpen&&!s.usOpen)parts.push("휴장 - 지수만 5분 갱신");
+    g("r-status").textContent=parts.join(" / ");
+    renderDashCharts();renderChartPage();
+  },3000);
+}
 function getPeriodRange(tab){var now=new Date(),start=new Date();if(tab==="today")start=new Date(now.getFullYear(),now.getMonth(),now.getDate());else if(tab==="week"){var day=now.getDay();start=new Date(now);start.setDate(now.getDate()-(day===0?6:day-1));start.setHours(0,0,0,0);}else if(tab==="month")start=new Date(now.getFullYear(),now.getMonth(),1);else if(tab==="quarter"){var q=Math.floor(now.getMonth()/3);start=new Date(now.getFullYear(),q*3,1);}else if(tab==="year")start=new Date(now.getFullYear(),0,1);else start=new Date(2000,0,1);return{start:start,end:now};}
 function inRange(dateStr,range){var d=new Date(dateStr);return d>=range.start&&d<=range.end;}
 var periodToReturn={today:"day",week:"week",month:"month",quarter:"month",year:"year",total:"total"};
@@ -1239,13 +1423,28 @@ g("t-date").value=new Date().toISOString().split("T")[0];
 updateMarketBanner();
 var hasSaved=loadLS();
 if(hasSaved)renderAll();
-fetchAll();
-setInterval(fetchCoinPrices,POLL_COIN_MS);
-setInterval(fetchUSPrices,POLL_US_MS);
-setInterval(fetchKRPrices,POLL_KR_MS);
-setInterval(fetchTickers,POLL_TICK_MS);
-setInterval(updateMarketBanner,60000);
-setInterval(fetchAllDividends,300000);
+
+// 첫 데이터 로드
+fetchTickers();
+setTimeout(function(){
+  fetchCoinPrices();
+  fetchUSPrices();
+  fetchKRPrices();
+  renderDashCharts();
+  renderChartPage();
+}, 300);
+
+// 배당 하루 1회
+setTimeout(maybeFetchDividends, 2000);
+
+// 스마트 폴링 시작
+setTimeout(startSmartPolling, 1000);
+
+// 장 상태 배너는 1분마다 갱신
+setInterval(updateMarketBanner, 60000);
+
+// 30분마다 폴링 전략 재평가 (개폐장 시간 대응)
+setInterval(startSmartPolling, 1800000);
 </script>
 </body>
 </html>
