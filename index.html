@@ -709,41 +709,130 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ════════════════════════════════════════════════
-// Supabase 초기화 (원본 코드 앞에 배치)
+// Supabase REST API 직접 호출 (CDN 없이)
 // ════════════════════════════════════════════════
 var SUPA_URL="https://daizlacifrzrttdtzxwf.supabase.co";
 var SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaXpsYWNpZnJ6cnR0ZHR6eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgwMjAsImV4cCI6MjA5MDc1NDAyMH0.jSy4Eu-su_mo1tiohrFvUokfDkyWrfQ2IyjdoLPU9Lw";
-var supabase=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+
+// 세션 토큰 메모리 저장
+var _supaSession=null;
+try{var _ss=localStorage.getItem("supa_session");if(_ss)_supaSession=JSON.parse(_ss);}catch(e){}
+
+function supaHdr(extra){
+  var h={"Content-Type":"application/json","apikey":SUPA_KEY};
+  if(_supaSession&&_supaSession.access_token)h["Authorization"]="Bearer "+_supaSession.access_token;
+  return Object.assign(h,extra||{});
+}
+function supaAuthHdr(){
+  return{"Content-Type":"application/json","apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY};
+}
+
+// Auth: 로그인
+async function supaSignIn(email,pw){
+  var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{
+    method:"POST",headers:supaAuthHdr(),
+    body:JSON.stringify({email,password:pw})
+  });
+  var d=await r.json();
+  if(d.access_token){
+    _supaSession=d;
+    try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}
+    return{user:d.user,error:null};
+  }
+  return{user:null,error:d.error_description||d.msg||"로그인 실패"};
+}
+// Auth: 회원가입
+async function supaSignUp(email,pw){
+  var r=await fetch(SUPA_URL+"/auth/v1/signup",{
+    method:"POST",headers:supaAuthHdr(),
+    body:JSON.stringify({
+      email,password:pw,
+      options:{emailRedirectTo:"https://muscleinvestor.github.io/asset-dashboard/"}
+    })
+  });
+  var d=await r.json();
+  if(d.id||d.user){return{user:d.user||d,error:null};}
+  return{user:null,error:d.error_description||d.msg||"가입 실패"};
+}
+// Auth: 로그아웃
+async function supaSignOut(){
+  try{
+    await fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:supaHdr()});
+  }catch(e){}
+  _supaSession=null;
+  try{localStorage.removeItem("supa_session");}catch(e){}
+}
+// Auth: 세션 갱신
+async function supaRefresh(){
+  if(!_supaSession||!_supaSession.refresh_token)return null;
+  try{
+    var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{
+      method:"POST",headers:supaAuthHdr(),
+      body:JSON.stringify({refresh_token:_supaSession.refresh_token})
+    });
+    var d=await r.json();
+    if(d.access_token){_supaSession=d;try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}return d.user;}
+  }catch(e){}
+  return null;
+}
+// DB: upsert
+async function supaUpsert(table,obj){
+  var r=await fetch(SUPA_URL+"/rest/v1/"+table,{
+    method:"POST",
+    headers:Object.assign(supaHdr(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+    body:JSON.stringify(obj)
+  });
+  return r.ok;
+}
+// DB: select single
+async function supaSelect(table,userId){
+  var r=await fetch(SUPA_URL+"/rest/v1/"+table+"?user_id=eq."+encodeURIComponent(userId)+"&select=payload&limit=1",{
+    headers:supaHdr()
+  });
+  if(!r.ok)return null;
+  var d=await r.json();
+  return d&&d.length?d[0]:null;
+}
 var authUser=null;
 var authSyncing=false;
 
 /* ── 인증 UI 함수 ── */
 function authOpenModal(tab){
-  g("auth-modal").classList.add("open");
+  var m=g("auth-modal");
+  if(!m){console.error("auth-modal not found");return;}
+  m.classList.add("open");
   authSwitchTab(tab||"login");
-  setTimeout(function(){var el=g("auth-email-login");if(el)el.focus();},100);
+  setTimeout(function(){var el=g("auth-email-login");if(el)el.focus();},120);
 }
-function authCloseModal(){g("auth-modal").classList.remove("open");}
+function authCloseModal(){
+  var m=g("auth-modal");if(m)m.classList.remove("open");
+}
 function authSwitchTab(t){
   g("auth-form-login").style.display=t==="login"?"block":"none";
   g("auth-form-signup").style.display=t==="signup"?"block":"none";
   g("auth-tab-login").classList.toggle("active",t==="login");
   g("auth-tab-signup").classList.toggle("active",t==="signup");
 }
-function authSetMsg(id,msg,ok){var el=g(id);el.textContent=msg;el.className="auth-msg "+(ok?"ok":"err");}
-function authSetLoading(btnId,on){var b=g(btnId);b.disabled=on;b.textContent=on?"처리중...":btnId==="auth-btn-login"?"로그인":"회원가입";}
+function authSetMsg(id,msg,ok){
+  var el=g(id);if(!el)return;
+  el.textContent=msg;el.className="auth-msg "+(ok?"ok":"err");
+}
+function authSetLoading(btnId,on){
+  var b=g(btnId);if(!b)return;
+  b.disabled=on;
+  b.textContent=on?"처리중...":btnId==="auth-btn-login"?"로그인":"회원가입";
+}
 
 async function authLogin(){
   var email=g("auth-email-login").value.trim(),pw=g("auth-pw-login").value;
   if(!email||!pw){authSetMsg("auth-msg-login","이메일과 비밀번호를 입력해주세요",false);return;}
   authSetLoading("auth-btn-login",true);
-  var {data,error}=await supabase.auth.signInWithPassword({email,password:pw});
+  var res=await supaSignIn(email,pw);
   authSetLoading("auth-btn-login",false);
-  if(error){authSetMsg("auth-msg-login",error.message,false);}
-  else{authCloseModal();authOnLogin(data.user);}
+  if(res.error){authSetMsg("auth-msg-login",res.error,false);}
+  else{authCloseModal();authOnLogin(res.user);}
 }
 async function authSignUp(){
   var email=g("auth-email-signup").value.trim(),pw=g("auth-pw-signup").value,pw2=g("auth-pw-signup2").value;
@@ -751,36 +840,40 @@ async function authSignUp(){
   if(pw.length<6){authSetMsg("auth-msg-signup","비밀번호는 6자 이상이어야 합니다",false);return;}
   if(pw!==pw2){authSetMsg("auth-msg-signup","비밀번호가 일치하지 않습니다",false);return;}
   authSetLoading("auth-btn-signup",true);
-  var {data,error}=await supabase.auth.signUp({email,password:pw});
+  var res=await supaSignUp(email,pw);
   authSetLoading("auth-btn-signup",false);
-  if(error){authSetMsg("auth-msg-signup",error.message,false);}
-  else if(data.user&&data.user.confirmed_at){authCloseModal();authOnLogin(data.user);}
-  else{authSetMsg("auth-msg-signup","가입 완료! 이메일 인증 후 로그인해주세요.",true);}
+  if(res.error){authSetMsg("auth-msg-signup",res.error,false);}
+  else if(res.user&&(res.user.confirmed_at||res.user.email_confirmed_at)){
+    authCloseModal();authOnLogin(res.user);
+  }else{
+    authSetMsg("auth-msg-signup","가입 완료! 이메일 인증 후 로그인해주세요.",true);
+  }
 }
 async function authSignOut(){
-  await supabase.auth.signOut();
+  await supaSignOut();
   authUser=null;
   authUpdateUI(null);
 }
 function authUpdateUI(user){
   var li=g("auth-login-btn"),lo=g("auth-logout-btn"),info=g("auth-user-info");
+  if(!li||!lo||!info)return;
   if(user){
     li.style.display="none";lo.style.display="";
     info.style.display="";
-    info.innerHTML='<span class="sync-dot"></span>'+user.email;
+    info.innerHTML='<span class="sync-dot"></span>'+(user.email||"로그인됨");
   }else{
     li.style.display="";lo.style.display="none";
     info.style.display="none";info.textContent="";
   }
 }
 
-/* ── Supabase 데이터 동기화 ── */
+/* ── 클라우드 동기화 ── */
 async function authLoadFromCloud(user){
   if(!user)return false;
   try{
-    var {data,error}=await supabase.from("dashboard_data").select("payload").eq("user_id",user.id).single();
-    if(error||!data)return false;
-    var d=data.payload;
+    var row=await supaSelect("dashboard_data",user.id);
+    if(!row||!row.payload)return false;
+    var d=row.payload;
     if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});
     if(d.trades)trades=d.trades;
     if(d.loans)loans=d.loans;
@@ -795,8 +888,11 @@ async function authSaveToCloud(){
   if(!authUser||authSyncing)return;
   authSyncing=true;
   try{
-    var payload={v:13,assets:assets.map(function(a){var o=Object.assign({},a);delete o.prePrice;delete o.postPrice;return o;}),trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings};
-    await supabase.from("dashboard_data").upsert({user_id:authUser.id,payload,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+    var payload={v:13,
+      assets:assets.map(function(a){var o=Object.assign({},a);delete o.prePrice;delete o.postPrice;return o;}),
+      trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings
+    };
+    await supaUpsert("dashboard_data",{user_id:authUser.id,payload:payload,updated_at:new Date().toISOString()});
   }catch(e){}
   authSyncing=false;
 }
@@ -808,19 +904,54 @@ async function authOnLogin(user){
   else{await authSaveToCloud();}
 }
 
-/* ── Supabase 세션 복원 ── */
+/* ── 이메일 인증 링크 처리 (URL 해시 토큰) ── */
 (async function(){
-  var {data}=await supabase.auth.getSession();
-  if(data&&data.session&&data.session.user){
-    authUser=data.session.user;
-    authUpdateUI(authUser);
-    var loaded=await authLoadFromCloud(authUser);
-    if(loaded){saveLS();renderAll();fetchAll();}
+  var hash=window.location.hash;
+  if(hash&&hash.includes("access_token")){
+    var params={};
+    hash.replace("#","").split("&").forEach(function(p){var kv=p.split("=");params[kv[0]]=decodeURIComponent(kv[1]||"");});
+    if(params.access_token){
+      _supaSession={
+        access_token:params.access_token,
+        refresh_token:params.refresh_token||"",
+        expires_at:Math.floor(Date.now()/1000)+(parseInt(params.expires_in)||3600),
+        user:null
+      };
+      // 유저 정보 조회
+      try{
+        var r=await fetch(SUPA_URL+"/auth/v1/user",{headers:supaHdr()});
+        var u=await r.json();
+        if(u.id){
+          _supaSession.user=u;
+          try{localStorage.setItem("supa_session",JSON.stringify(_supaSession));}catch(e){}
+          history.replaceState(null,"",window.location.pathname);
+          authUser=u;authUpdateUI(u);
+          var loaded=await authLoadFromCloud(u);
+          if(loaded){saveLS();renderAll();fetchAll();}
+          else{await authSaveToCloud();}
+        }
+      }catch(e){}
+    }
   }
-  supabase.auth.onAuthStateChange(function(event,session){
-    if(event==="SIGNED_OUT"){authUser=null;authUpdateUI(null);}
-    else if(event==="SIGNED_IN"&&session){authUser=session.user;authUpdateUI(authUser);}
-  });
+})();
+
+/* ── 세션 자동 복원 ── */
+(async function(){
+  if(_supaSession&&_supaSession.user){
+    // 토큰 유효 확인
+    var exp=_supaSession.expires_at||0;
+    if(Date.now()/1000<exp-60){
+      authUser=_supaSession.user;
+      authUpdateUI(authUser);
+      var loaded=await authLoadFromCloud(authUser);
+      if(loaded){saveLS();renderAll();fetchAll();}
+    }else{
+      // 갱신 시도
+      var u=await supaRefresh();
+      if(u){authUser=u;authUpdateUI(u);var loaded2=await authLoadFromCloud(u);if(loaded2){saveLS();renderAll();fetchAll();}}
+      else{try{localStorage.removeItem("supa_session");}catch(e){}}
+    }
+  }
 })();
 
 // ════════════════════════════════════════════════
