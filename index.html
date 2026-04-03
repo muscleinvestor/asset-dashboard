@@ -129,13 +129,13 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .scr-si{font-size:10px;color:#555;white-space:nowrap}
 .scr-si span{font-weight:700;margin-left:3px}
 .scr-body{flex:1;overflow:auto}
-.scr-tbl{width:100%;border-collapse:collapse;table-layout:auto}
-.scr-tbl thead th{position:sticky;top:0;z-index:10;background:#111118;padding:6px 10px;font-size:10px;color:#666;font-weight:600;text-align:right;white-space:nowrap;border-bottom:2px solid #2a2a38;border-right:1px solid #181820;overflow:visible;user-select:none}
+.scr-tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.scr-tbl thead th{position:sticky;top:0;z-index:10;background:#111118;padding:6px 8px;font-size:10px;color:#666;font-weight:600;text-align:right;white-space:nowrap;border-bottom:2px solid #2a2a38;border-right:1px solid #181820;overflow:hidden;user-select:none;position:relative}
 .scr-tbl thead th.sl{text-align:left}
 .scr-tbl tbody tr{border-bottom:1px solid #141420}
 .scr-tbl tbody tr:hover{background:rgba(167,139,250,.05)}
 .scr-tbl tbody tr.sec-sep td{padding:4px 10px;font-size:10px;font-weight:700;color:#555;background:#0d0d14;border-bottom:1px solid #1e1e2a}
-.scr-tbl td{padding:6px 10px;font-size:12px;vertical-align:middle;text-align:right;border-right:1px solid #0f0f18;white-space:nowrap}
+.scr-tbl td{padding:6px 8px;font-size:12px;vertical-align:middle;text-align:right;border-right:1px solid #0f0f18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .scr-tbl td.sl{text-align:left}
 .sc0{position:sticky;left:0;z-index:5;background:#0f0f13}
 .sc1{position:sticky;z-index:5;background:#0f0f13}
@@ -461,44 +461,78 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <div class="scr-body">
     <div id="scr-us-wrap">
       <table class="scr-tbl" id="scr-us-tbl">
-        <thead><tr id="scr-us-hdr">
-          <th class="sl sc0">구분<div class="rz"></div></th>
-          <th class="sl sc1">섹터<div class="rz"></div></th>
-          <th class="sl sc2">종목<div class="rz"></div></th>
-          <th>현재가<div class="rz"></div></th>
-          <th>1일%<div class="rz"></div></th>
-          <th>일RSI<div class="rz"></div></th>
-          <th>1주%<div class="rz"></div></th>
-          <th>주RSI<div class="rz"></div></th>
-          <th>1달%<div class="rz"></div></th>
-          <th>월RSI<div class="rz"></div></th>
-          <th>6개월%<div class="rz"></div></th>
-          <th>6mRSI<div class="rz"></div></th>
-          <th>1년%<div class="rz"></div></th>
-          <th>년RSI<div class="rz"></div></th>
-          <th>상세<div class="rz"></div></th>
+        <colgroup>
+          <col style="width:60px">  <!-- 구분 -->
+          <col style="width:65px">  <!-- 섹터 -->
+          <col style="width:180px"> <!-- 종목 -->
+          <col style="width:110px"> <!-- 현재가 -->
+          <col style="width:76px">  <!-- 1일% -->
+          <col style="width:60px">  <!-- 일RSI -->
+          <col style="width:76px">  <!-- 1주% -->
+          <col style="width:60px">  <!-- 주RSI -->
+          <col style="width:76px">  <!-- 1달% -->
+          <col style="width:60px">  <!-- 월RSI -->
+          <col style="width:76px">  <!-- 6개월% -->
+          <col style="width:60px">  <!-- 6mRSI -->
+          <col style="width:76px">  <!-- 1년% -->
+          <col style="width:60px">  <!-- 년RSI -->
+          <col style="width:44px">  <!-- 상세 -->
+        </colgroup>
+        <thead><tr>
+          <th class="sl sc0">구분</th>
+          <th class="sl sc1">섹터</th>
+          <th class="sl sc2">종목</th>
+          <th>현재가</th>
+          <th>1일%</th>
+          <th>일RSI</th>
+          <th>1주%</th>
+          <th>주RSI</th>
+          <th>1달%</th>
+          <th>월RSI</th>
+          <th>6개월%</th>
+          <th>6mRSI</th>
+          <th>1년%</th>
+          <th>년RSI</th>
+          <th>상세</th>
         </tr></thead>
         <tbody id="scr-us-body"></tbody>
       </table>
     </div>
     <div id="scr-kr-wrap" style="display:none">
       <table class="scr-tbl" id="scr-kr-tbl">
-        <thead><tr id="scr-kr-hdr">
-          <th class="sl sc0">구분<div class="rz"></div></th>
-          <th class="sl sc1">섹터<div class="rz"></div></th>
-          <th class="sl sc2">종목<div class="rz"></div></th>
-          <th>현재가<div class="rz"></div></th>
-          <th>1일%<div class="rz"></div></th>
-          <th>일RSI<div class="rz"></div></th>
-          <th>1주%<div class="rz"></div></th>
-          <th>주RSI<div class="rz"></div></th>
-          <th>1달%<div class="rz"></div></th>
-          <th>월RSI<div class="rz"></div></th>
-          <th>6개월%<div class="rz"></div></th>
-          <th>6mRSI<div class="rz"></div></th>
-          <th>1년%<div class="rz"></div></th>
-          <th>년RSI<div class="rz"></div></th>
-          <th>상세<div class="rz"></div></th>
+        <colgroup>
+          <col style="width:60px">
+          <col style="width:65px">
+          <col style="width:180px">
+          <col style="width:110px">
+          <col style="width:76px">
+          <col style="width:60px">
+          <col style="width:76px">
+          <col style="width:60px">
+          <col style="width:76px">
+          <col style="width:60px">
+          <col style="width:76px">
+          <col style="width:60px">
+          <col style="width:76px">
+          <col style="width:60px">
+          <col style="width:44px">
+        </colgroup>
+        <thead><tr>
+          <th class="sl sc0">구분</th>
+          <th class="sl sc1">섹터</th>
+          <th class="sl sc2">종목</th>
+          <th>현재가</th>
+          <th>1일%</th>
+          <th>일RSI</th>
+          <th>1주%</th>
+          <th>주RSI</th>
+          <th>1달%</th>
+          <th>월RSI</th>
+          <th>6개월%</th>
+          <th>6mRSI</th>
+          <th>1년%</th>
+          <th>년RSI</th>
+          <th>상세</th>
         </tr></thead>
         <tbody id="scr-kr-body"></tbody>
         </tr></thead>
@@ -1451,7 +1485,13 @@ function scrSetSeg(val,btn){scrSeg=val;document.querySelectorAll('#screener-page
 function scrApplyFilters(){var secVal=g("scr-sec-filter").value,sortVal=g("scr-sort").value;var stocks=scrRegion==='us'?US_STOCKS:KR_STOCKS,isKr=scrRegion==='kr';var bodyId=scrRegion==='us'?'scr-us-body':'scr-kr-body';var tbody=g(bodyId);if(sortVal){var fn={chg1d:function(c){return-(c.chg1d||0);},chg1w:function(c){return-(c.chg1w||0);},chg1m:function(c){return-(c.chg1m||0);},chg6m:function(c){return-(c.chg6m||0);},chg1y:function(c){return-(c.chg1y||0);},mktcap:function(c){return-(c.cap||0);}}[sortVal];if(fn){var html='';stocks.slice().sort(function(a,b){return fn(scrCache[a.sym]||{})-fn(scrCache[b.sym]||{});}).forEach(function(s){var segOk=scrSeg==='all'||(isKr?s.mkt===scrSeg:s.sz===scrSeg),secOk=!secVal||s.sec===secVal;if(segOk&&secOk)html+=scrRow(s,scrCache[s.sym]||{},isKr);});tbody.innerHTML=html;scrApplyStickyLeft(scrRegion);return;}}tbody.querySelectorAll('tr:not(.sec-sep)').forEach(function(r){var segOk=scrSeg==='all'||(isKr?r.dataset.mkt===scrSeg:r.dataset.sz===scrSeg),secOk=!secVal||r.dataset.sec===secVal;r.style.display=(segOk&&secOk)?'':'none';var vid=r.dataset.id;if(vid){var vr=document.getElementById(vid);if(vr)vr.style.display=(segOk&&secOk&&vr.classList.contains('open'))?'table-row':'none';}});tbody.querySelectorAll('tr.sec-sep').forEach(function(r){var sec=r.querySelector('td').textContent.replace(/^◆ /,'').replace(/ \(\d+\)$/,'');r.style.display=(!secVal||sec===secVal)?'':'none';});}
 function scrSwitchRegion(region,btn){scrRegion=region;document.querySelectorAll('.scr-rtab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');g("scr-us-wrap").style.display=region==='us'?'block':'none';g("scr-kr-wrap").style.display=region==='kr'?'block':'none';g("scr-sec-filter").value='';scrSeg='all';scrInitFilters();document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');if(region==='kr'&&!KR_STOCKS.some(function(s){return scrCache[s.sym]?.q;}))scrBuild('kr');scrUpdateSum();}
 function scrReload(){scrCache={};scrValLoading={};g("scr-status").textContent='새로고침중...';scrBuild(scrRegion);}
-function scrHhmm(){var d=new Date();return d.getHours()+':'+(('0'+d.getMinutes()).slice(-2));}
+function scrInit(){
+  if(scrInited)return;scrInited=true;
+  scrInitFilters();
+  document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');
+  scrBuild('us');
+  setTimeout(function(){scrInitResize('us');scrInitResize('kr');},800);
+}
 function scrInitResize(region){var tblId=region==='us'?'scr-us-tbl':'scr-kr-tbl';var tbl=g(tblId);if(!tbl)return;tbl.querySelectorAll('thead th .rz').forEach(function(h){var th=h.parentElement,startX,startW;h.addEventListener('mousedown',function(e){e.preventDefault();startX=e.clientX;startW=th.offsetWidth;h.classList.add('dragging');document.body.classList.add('col-resizing');function mv(e){th.style.width=Math.max(30,startW+e.clientX-startX)+'px';scrApplyStickyLeft(region);}function up(){h.classList.remove('dragging');document.body.classList.remove('col-resizing');document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});});}
 function scrInit(){if(scrInited)return;scrInited=true;scrInitFilters();document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');scrBuild('us');setTimeout(function(){scrInitResize('us');scrInitResize('kr');},500);}
 
