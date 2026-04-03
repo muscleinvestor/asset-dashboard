@@ -1263,7 +1263,7 @@ function scrFetchKR(sym){
       return scrCache[sym];
     }).catch(function(){return scrCache[sym];});
 }
-// ★ 핵심: chart 모드로 1주~1년 등락 로드 후 캐시에 저장
+// ★ chart 모드: 1일~1년 등락 + 장 상태 한번에 로드
 function scrFetchHistory(sym){
   if(scrCache[sym]&&scrCache[sym].hist)return Promise.resolve(scrCache[sym]);
   scrCache[sym]=scrCache[sym]||{};
@@ -1272,28 +1272,50 @@ function scrFetchHistory(sym){
     .then(function(d){
       scrCache[sym].hist=true;
       if(d.ok&&d.data){
-        scrCache[sym].chg1w  = d.data.chg1w  != null ? d.data.chg1w  : null;
-        scrCache[sym].chg1m  = d.data.chg1m  != null ? d.data.chg1m  : null;
-        scrCache[sym].chg6m  = d.data.chg6m  != null ? d.data.chg6m  : null;
-        scrCache[sym].chg1y  = d.data.chg1y  != null ? d.data.chg1y  : null;
+        var data=d.data;
+        scrCache[sym].chg1d        = data.chg1d        != null ? data.chg1d        : null;
+        scrCache[sym].chg1w        = data.chg1w        != null ? data.chg1w        : null;
+        scrCache[sym].chg1m        = data.chg1m        != null ? data.chg1m        : null;
+        scrCache[sym].chg6m        = data.chg6m        != null ? data.chg6m        : null;
+        scrCache[sym].chg1y        = data.chg1y        != null ? data.chg1y        : null;
+        scrCache[sym].price        = data.price        || null;
+        scrCache[sym].regularPrice = data.regularPrice || null;
+        scrCache[sym].prePrice     = data.prePrice     || null;
+        scrCache[sym].postPrice    = data.postPrice    || null;
+        scrCache[sym].priceSource  = data.priceSource  || "closed";
+        scrCache[sym].marketStatus = data.marketStatus || "closed";
       }
       return scrCache[sym];
     }).catch(function(){scrCache[sym].hist=true;return scrCache[sym];});
 }
-// ▶ 상세 버튼용: financials 없으면 chart 결과로 대체
 function scrFetchFin(sym){
   if(scrCache[sym]&&scrCache[sym].fin)return Promise.resolve(scrCache[sym]);
   scrCache[sym]=scrCache[sym]||{};
-  // financials 모드가 Worker에 없으므로 chart 모드 결과 재활용
   return scrFetchHistory(sym).then(function(c){
     scrCache[sym].fin=true;
     return scrCache[sym];
   });
 }
+
+// 장 상태 배지 HTML
+function scrMarketBadge(c){
+  var src=c.priceSource||c.marketStatus||"";
+  var map={
+    pre:     {label:"프리마켓",  bg:"#2a2200", color:"#f59e0b"},
+    regular: {label:"정규장",    bg:"#0d2b1a", color:"#34d399"},
+    after:   {label:"애프터",    bg:"#1e0a2e", color:"#c084fc"},
+    closed:  {label:"마감",      bg:"#1e1e28", color:"#555"},
+  };
+  var m=map[src]||map.closed;
+  return '<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:'+m.bg+';color:'+m.color+';border:1px solid '+m.color+'44;white-space:nowrap">'+m.label+'</span>';
+}
 function scrBuildVal(c,isKr){var html='<div class="val-grid">';html+='<div class="val-block"><div class="val-title">기본 지표</div>';html+='<div class="val-kv"><span class="val-k">시가총액</span><span class="val-v">'+scrFmtCap(c.cap,isKr)+'</span></div>';html+='<div class="val-kv"><span class="val-k">배당수익률</span><span class="val-v">'+(c.divYield?((c.divYield*100).toFixed(2)+'%'):'--')+'</span></div>';html+='<div class="val-kv"><span class="val-k">PER</span><span class="val-v">'+(c.per&&c.per>0&&c.per<500?c.per.toFixed(1)+'x':'--')+'</span></div>';html+='<div class="val-kv"><span class="val-k">PBR</span><span class="val-v">'+(c.pbr&&c.pbr>0?c.pbr.toFixed(2)+'x':'--')+'</span></div>';html+='</div>';var qs=c.quarters||[];if(qs.length){html+=scrQChart(qs,c,'rev',isKr,'매출 (분기)');html+=scrQChart(qs,c,'oi',isKr,'영업이익 (분기)');html+=scrOimChart(qs);}html+='</div>';return html;}
 function scrQChart(qs,c,key,isKr,title){var vals=qs.map(function(q){return q[key];}).filter(function(v){return v!=null;});if(key==='rev'&&c.fwdRev)vals.push(c.fwdRev);var mx=vals.length?Math.max.apply(null,vals.map(Math.abs)):1;if(!mx)mx=1;var html='<div class="val-block"><div class="val-title">'+title+'</div><div class="q-chart">';qs.forEach(function(q){var v=q[key],h=v!=null?Math.max(2,Math.abs(v)/mx*55):2,clr2=v!=null&&v<0?"#f87171":"#818cf8";html+='<div class="q-col"><div class="q-bar-wrap"><div class="q-bar" style="height:'+h+'px;background:'+clr2+'"></div></div><div class="q-label">'+q.label+'</div><div class="q-val">'+(scrFmtAmt(v,isKr)||'--')+'</div></div>';});if(key==='rev'&&c.fwdRev!=null){var fh=Math.max(2,Math.abs(c.fwdRev)/mx*55);html+='<div class="q-col q-fc-wrap"><div class="q-bar-wrap"><div class="q-bar q-fc" style="height:'+fh+'px"></div></div><div class="q-label" style="color:#7c3aed">'+(c.fwdPeriod||'예측')+'</div><div class="q-val" style="color:#7c3aed">'+(scrFmtAmt(c.fwdRev,isKr)||'--')+'</div></div>';}return html+'</div></div>';}
 function scrOimChart(qs){var vals=qs.map(function(q){return q.oim;}).filter(function(v){return v!=null;});if(!vals.length)return'';var mx=Math.max.apply(null,vals.map(Math.abs).concat([1]));var html='<div class="val-block"><div class="val-title">영업이익률 (분기)</div><div class="q-chart">';qs.forEach(function(q){var v=q.oim,h=v!=null?Math.max(2,Math.abs(v)/mx*55):2,clr2=v==null?"#333":v<0?"#f87171":v>15?"#34d399":"#a78bfa";html+='<div class="q-col"><div class="q-bar-wrap"><div class="q-bar" style="height:'+h+'px;background:'+clr2+'"></div></div><div class="q-label">'+q.label+'</div><div class="q-val">'+(v!=null?v.toFixed(1)+'%':'--')+'</div></div>';});return html+'</div></div>';}
-function scrRow(s,c,isKr){var id='sv_'+s.sym.replace(/[^a-zA-Z0-9]/g,'_')+'_'+s.sec.replace(/[^a-zA-Z0-9]/g,'_');var badge=isKr?('<span class="scr-badge '+(s.mkt==='KOSPI'?'sb-kospi':'sb-kosdaq')+'">'+s.mkt+'</span>'):({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[s.sz]||'');var nm=isKr?('<strong>'+s.name+'</strong><br><span style="font-size:10px;color:#3a3a4a">'+s.sym.replace(/\.(KS|KQ)$/,'')+'</span>'):('<strong>'+s.name+'</strong> <span style="font-size:10px;color:#555">'+s.kr+'</span><br><span style="font-size:10px;color:#333">'+s.sym+'</span>');return'<tr data-sec="'+s.sec+'" data-sz="'+(s.sz||'')+'" data-mkt="'+(s.mkt||'')+'" data-id="'+id+'"><td class="sl sc0">'+badge+'</td><td class="sl sc1" style="font-size:10px;color:#555">'+s.sec+'</td><td class="sl sc2">'+nm+'</td><td>'+scrFmtChg(c.chg1d)+'</td><td>'+scrFmtChg(c.chg1w)+'</td><td>'+scrFmtChg(c.chg1m)+'</td><td>'+scrFmtChg(c.chg6m)+'</td><td>'+scrFmtChg(c.chg1y)+'</td><td><button class="val-toggle" onclick="scrToggleVal(\''+id+'\',\''+s.sym+'\','+isKr+',this)">▶ 상세</button></td></tr><tr class="val-row" id="'+id+'"><td class="val-cell" colspan="9"><div id="'+id+'-c"><span style="color:#555;font-size:11px"><span class="loading"></span> 로딩중...</span></div></td></tr>';}
+function scrRow(s,c,isKr){var id='sv_'+s.sym.replace(/[^a-zA-Z0-9]/g,'_')+'_'+s.sec.replace(/[^a-zA-Z0-9]/g,'_');var badge=isKr?('<span class="scr-badge '+(s.mkt==='KOSPI'?'sb-kospi':'sb-kosdaq')+'">'+s.mkt+'</span>'):({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[s.sz]||'');var nm=isKr?('<strong>'+s.name+'</strong><br><span style="font-size:10px;color:#3a3a4a">'+s.sym.replace(/\.(KS|KQ)$/,'')+'</span>'):('<strong>'+s.name+'</strong> <span style="font-size:10px;color:#555">'+s.kr+'</span><br><span style="font-size:10px;color:#333">'+s.sym+'</span>');// 1일 셀: 등락률 + 장상태 배지
+var chg1dCell='<div>'+scrFmtChg(c.chg1d)+'</div>'
+  +(c.priceSource?'<div style="margin-top:2px">'+scrMarketBadge(c)+'</div>':'');
+return'<tr data-sec="'+s.sec+'" data-sz="'+(s.sz||'')+'" data-mkt="'+(s.mkt||'')+'" data-id="'+id+'"><td class="sl sc0">'+badge+'</td><td class="sl sc1" style="font-size:10px;color:#555">'+s.sec+'</td><td class="sl sc2">'+nm+'</td><td>'+chg1dCell+'</td><td>'+scrFmtChg(c.chg1w)+'</td><td>'+scrFmtChg(c.chg1m)+'</td><td>'+scrFmtChg(c.chg6m)+'</td><td>'+scrFmtChg(c.chg1y)+'</td><td><button class="val-toggle" onclick="scrToggleVal(\''+id+'\',\''+s.sym+'\','+isKr+',this)">▶ 상세</button></td></tr><tr class="val-row" id="'+id+'"><td class="val-cell" colspan="9"><div id="'+id+'-c"><span style="color:#555;font-size:11px"><span class="loading"></span> 로딩중...</span></div></td></tr>';}
 function scrToggleVal(id,sym,isKr,btn){var row=document.getElementById(id);if(!row)return;var open=row.classList.toggle('open');btn.textContent=open?'▼ 닫기':'▶ 상세';if(open&&!scrValLoading[sym]){scrValLoading[sym]=true;scrFetchFin(sym).then(function(c){var el=document.getElementById(id+'-c');if(el)el.innerHTML=scrBuildVal(c,isKr);var tr=document.querySelector('tr[data-id="'+id+'"]');if(tr){var tds=tr.querySelectorAll('td');if(tds.length>=8){tds[3].innerHTML=scrFmtChg(c.chg1d);tds[4].innerHTML=scrFmtChg(c.chg1w);tds[5].innerHTML=scrFmtChg(c.chg1m);tds[6].innerHTML=scrFmtChg(c.chg6m);tds[7].innerHTML=scrFmtChg(c.chg1y);}}});}}
 function scrBuild(region){
   var stocks=region==='us'?US_STOCKS:KR_STOCKS,isKr=region==='kr';
