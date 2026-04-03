@@ -711,12 +711,12 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 // ════════════════════════════════════════════════
-// Supabase REST API 직접 호출 (CDN 없이)
+// Supabase REST API (스키마 v2: 개별 컬럼)
 // ════════════════════════════════════════════════
 var SUPA_URL="https://daizlacifrzrttdtzxwf.supabase.co";
 var SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaXpsYWNpZnJ6cnR0ZHR6eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgwMjAsImV4cCI6MjA5MDc1NDAyMH0.jSy4Eu-su_mo1tiohrFvUokfDkyWrfQ2IyjdoLPU9Lw";
+var SITE_URL="https://muscleinvestor.github.io/asset-dashboard/";
 
-// 세션 토큰 메모리 저장
 var _supaSession=null;
 try{var _ss=localStorage.getItem("supa_session");if(_ss)_supaSession=JSON.parse(_ss);}catch(e){}
 
@@ -725,70 +725,92 @@ function supaHdr(extra){
   if(_supaSession&&_supaSession.access_token)h["Authorization"]="Bearer "+_supaSession.access_token;
   return Object.assign(h,extra||{});
 }
-function supaAuthHdr(){
+function supaAnonHdr(){
   return{"Content-Type":"application/json","apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY};
 }
+function supaSessionSave(d){
+  _supaSession=d;
+  try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}
+}
+function supaSessionClear(){
+  _supaSession=null;
+  try{localStorage.removeItem("supa_session");}catch(e){}
+}
 
-// Auth: 로그인
+// ── Auth ──
 async function supaSignIn(email,pw){
   var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{
-    method:"POST",headers:supaAuthHdr(),
+    method:"POST",headers:supaAnonHdr(),
     body:JSON.stringify({email,password:pw})
   });
   var d=await r.json();
-  if(d.access_token){
-    _supaSession=d;
-    try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}
-    return{user:d.user,error:null};
-  }
+  if(d.access_token){supaSessionSave(d);return{user:d.user,error:null};}
   return{user:null,error:d.error_description||d.msg||"로그인 실패"};
 }
-// Auth: 회원가입
 async function supaSignUp(email,pw){
   var r=await fetch(SUPA_URL+"/auth/v1/signup",{
-    method:"POST",headers:supaAuthHdr(),
-    body:JSON.stringify({
-      email,password:pw,
-      options:{emailRedirectTo:"https://muscleinvestor.github.io/asset-dashboard/"}
-    })
+    method:"POST",headers:supaAnonHdr(),
+    body:JSON.stringify({email,password:pw,options:{emailRedirectTo:SITE_URL}})
   });
   var d=await r.json();
   if(d.id||d.user){return{user:d.user||d,error:null};}
   return{user:null,error:d.error_description||d.msg||"가입 실패"};
 }
-// Auth: 로그아웃
 async function supaSignOut(){
-  try{
-    await fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:supaHdr()});
-  }catch(e){}
-  _supaSession=null;
-  try{localStorage.removeItem("supa_session");}catch(e){}
+  try{await fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:supaHdr()});}catch(e){}
+  supaSessionClear();
 }
-// Auth: 세션 갱신
 async function supaRefresh(){
   if(!_supaSession||!_supaSession.refresh_token)return null;
   try{
     var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{
-      method:"POST",headers:supaAuthHdr(),
+      method:"POST",headers:supaAnonHdr(),
       body:JSON.stringify({refresh_token:_supaSession.refresh_token})
     });
     var d=await r.json();
-    if(d.access_token){_supaSession=d;try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}return d.user;}
+    if(d.access_token){supaSessionSave(d);return d.user;}
   }catch(e){}
   return null;
 }
-// DB: upsert
-async function supaUpsert(table,obj){
-  var r=await fetch(SUPA_URL+"/rest/v1/"+table,{
+async function supaGetUser(){
+  var r=await fetch(SUPA_URL+"/auth/v1/user",{headers:supaHdr()});
+  if(!r.ok)return null;
+  return await r.json();
+}
+
+// ── DB: dashboard_data (개별 컬럼 스키마) ──
+async function supaLoadData(userId){
+  var cols="assets,trades,loans,real_estates,dividends,savings,asset_history";
+  var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data?user_id=eq."+userId+"&select="+cols+"&limit=1",{
+    headers:supaHdr()
+  });
+  if(!r.ok)return null;
+  var d=await r.json();
+  return d&&d.length?d[0]:null;
+}
+async function supaSaveData(userId,data){
+  var body=JSON.stringify({
+    user_id:userId,
+    assets:data.assets||[],
+    trades:data.trades||[],
+    loans:data.loans||[],
+    real_estates:data.realEstates||[],
+    dividends:data.dividends||[],
+    savings:data.savings||[],
+    asset_history:(data.assetHistory||[]).slice(-200),
+    updated_at:new Date().toISOString()
+  });
+  var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data",{
     method:"POST",
     headers:Object.assign(supaHdr(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
-    body:JSON.stringify(obj)
+    body
   });
   return r.ok;
 }
-// DB: select single
-async function supaSelect(table,userId){
-  var r=await fetch(SUPA_URL+"/rest/v1/"+table+"?user_id=eq."+encodeURIComponent(userId)+"&select=payload&limit=1",{
+
+// ── DB: profiles ──
+async function supaGetProfile(userId){
+  var r=await fetch(SUPA_URL+"/rest/v1/profiles?id=eq."+userId+"&select=role,status,email,display_name&limit=1",{
     headers:supaHdr()
   });
   if(!r.ok)return null;
@@ -999,8 +1021,11 @@ function saveLS(){
     localStorage.setItem("ad13_div",JSON.stringify(dividends));
     localStorage.setItem("ad13_savings",JSON.stringify(savings));
   }catch(e){}
-  // 클라우드 동기화 (로그인 상태일 때)
-  if(authUser)authSaveToCloud();
+  // 로그인 상태면 Supabase에도 저장 (debounce 2초)
+  if(authUser){
+    clearTimeout(saveLS._t);
+    saveLS._t=setTimeout(authSaveToCloud,2000);
+  }
 }
 function loadLS(){try{var a=localStorage.getItem("ad13_assets")||localStorage.getItem("ad12_assets"),t=localStorage.getItem("ad13_trades")||localStorage.getItem("ad12_trades"),l=localStorage.getItem("ad13_loans")||localStorage.getItem("ad12_loans"),r=localStorage.getItem("ad13_real")||localStorage.getItem("ad12_real"),h=localStorage.getItem("ad13_hist")||localStorage.getItem("ad12_hist"),d=localStorage.getItem("ad13_div")||localStorage.getItem("ad12_div"),s=localStorage.getItem("ad13_savings")||localStorage.getItem("ad12_savings");if(a)assets=JSON.parse(a);if(t)trades=JSON.parse(t);if(l)loans=JSON.parse(l);if(r)realEstates=JSON.parse(r);if(h)assetHistory=JSON.parse(h);if(d)dividends=JSON.parse(d);if(s)savings=JSON.parse(s);assets=assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});return !!(a||t);}catch(e){return false;}}
 function exportData(){var blob=new Blob([JSON.stringify({v:13,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();a.href=url;a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";a.click();URL.revokeObjectURL(url);}
