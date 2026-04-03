@@ -43,7 +43,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;
 .seg-active-regular{background:#0a1a10}
 .seg-active-pre{background:#1a1500}
 .seg-active-after{background:#120718}
-@keyframes pulse-amber{0%,100%{opacity:1}50%{opacity:.6}}
+/* ── 티커바 그룹 구분 ── */
+.tgrid{display:grid;min-width:1100px}
+.tg-sep{width:1px;background:#3a3a4a;margin:0}
+.tg-label{font-size:8px;color:#444;text-align:center;padding:2px 0;letter-spacing:.5px;text-transform:uppercase}
+/* 그룹별 배경 */
+.tg-coin{background:#0a0f0a}
+.tg-kr{background:#0a0a10}
+.tg-us{background:#0a0c12}
+.tg-comm{background:#100a0a}
+/* 장 상태 강조 */
+.ms-regular{background:#0d2b1a;color:#34d399;border:1px solid #34d399;font-weight:800;letter-spacing:.3px}
+.ms-pre{background:#2a1800;color:#f59e0b;border:1px solid #f59e0b;font-weight:800;animation:pulse-amber 1.5s infinite}
+.ms-after{background:#1e0a2e;color:#c084fc;border:1px solid #c084fc;font-weight:800;animation:pulse-purple 1.5s infinite}
+.ms-closed{background:#1a1a22;color:#555;border:1px solid #2a2a38;font-weight:600}
+.ms-holiday{background:#1a1500;color:#f59e0b;border:1px solid #f59e0b44;font-weight:700}
+/* mbar 정렬 개선 */
+.mbar-row{display:grid;grid-template-columns:52px 1fr 1fr 1fr auto auto;align-items:center;min-height:30px;gap:0}
+.mbar-coin-col{display:flex;align-items:center;gap:6px;padding:4px 10px;border-left:1px solid #1a2a1a;background:#0a0f0a;border-radius:4px;margin:3px 8px}
+.mbar-coin-label{font-size:9px;color:#34d399;font-weight:700}
+.mbar-coin-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:#0a1f10;color:#34d399;border:1px solid #34d399;animation:pulse-green 2s infinite}
+.mbar-coin-poll{font-size:9px;color:#34d399;opacity:.7}
+.mbar-poll{font-size:9px;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:600}
+.poll-live{background:#0d2b1a;color:#34d399;border:1px solid #34d39944}
+.poll-slow{background:#1a1500;color:#f59e0b;border:1px solid #f59e0b44}
+.poll-off{background:#1a1a22;color:#444;border:1px solid #2a2a38}
+@keyframes pulse-green{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(52,211,153,.3)}60%{box-shadow:0 0 0 4px rgba(52,211,153,0)}}
 @keyframes pulse-purple{0%,100%{opacity:1}50%{opacity:.6}}
 .mbar-clock{margin-left:auto;padding-left:12px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
 .mbar-clock span{font-size:9px;color:#444;white-space:nowrap}
@@ -190,64 +215,126 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 </head>
 <body>
 
-<!-- 티커바 -->
+<!-- 티커바: USD/KRW | [코인] | [한국] | [미국] | [원자재] -->
 <div class="tbar-wrap">
-  <div class="tgrid" style="border-bottom:1px solid #1a1a26">
-    <div class="tcell"><span class="tlabel">USDT/KRW</span><span class="tval" id="tk-usdtkrw">--</span></div>
-    <div class="tcell"><span class="tlabel">USD/KRW</span><span class="tval" id="tk-usdkrw">--</span></div>
-    <div class="tcell"><span class="tlabel">김치P</span><span class="tval" id="tk-premium" style="color:#f59e0b">--</span></div>
-    <div class="tcell"><span class="tlabel">BTC/KRW</span><span class="tval" id="tk-btc">--</span></div>
-    <div class="tcell"><span class="tlabel">ETH/KRW</span><span class="tval" id="tk-eth">--</span></div>
-    <div class="tcell"><span class="tlabel">KOSPI <span class="ms ms-closed" id="tk-kr-ms">--</span></span><span class="tval" id="tk-kospi">--</span></div>
-    <div class="tcell"><span class="tlabel">KOSDAQ</span><span class="tval" id="tk-kosdaq">--</span></div>
-    <div class="tcell"><span class="tlabel">S&amp;P500 <span class="ms ms-closed" id="tk-us-ms">--</span></span><span class="tval" id="tk-snp">--</span><span class="tpre" id="tk-snp-ext"></span></div>
-    <div class="tcell"><span class="tlabel">NASDAQ</span><span class="tval" id="tk-nasdaq">--</span><span class="tpre" id="tk-nasdaq-ext"></span></div>
-    <div class="tcell"><span class="tlabel">NDX100</span><span class="tval" id="tk-ndx">--</span></div>
-    <div class="tcell"><span class="tlabel">RUSSELL</span><span class="tval" id="tk-russell">--</span></div>
-    <div class="tcell"><span class="tlabel">VIX</span><span class="tval" id="tk-vix">--</span></div>
-    <div class="tcell"><span class="tlabel">GOLD</span><span class="tval" id="tk-gold">--</span></div>
-    <div class="tcell"><span class="tlabel">SILVER</span><span class="tval" id="tk-silver">--</span></div>
-    <div class="tcell"><span class="tlabel">WTI</span><span class="tval" id="tk-wti">--</span></div>
-    <div class="tcell"><span class="tlabel">BRENT</span><span class="tval" id="tk-brent">--</span></div>
-    <div class="tcell"><span class="tlabel" id="tk-time" style="color:#444;font-size:9px">--</span><span class="tdot" style="margin-top:3px"></span></div>
-  </div>
-  <div class="tgrid trow2">
-    <div class="tcell"><span class="tchg" id="ch-usdtkrw">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-usdkrw">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-premium" style="color:#f59e0b">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-btc">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-eth">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-kospi">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-kosdaq">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-snp">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-nasdaq">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-ndx">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-russell">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-vix">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-gold">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-silver">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-wti">--</span></div>
-    <div class="tcell"><span class="tchg" id="ch-brent">--</span></div>
-    <div class="tcell"></div>
+  <div style="display:flex;min-width:1100px;border-bottom:1px solid #1a1a26">
+
+    <!-- FX -->
+    <div class="tcell tg-coin" style="min-width:80px">
+      <span class="tlabel" style="color:#f59e0b">USD/KRW</span>
+      <span class="tval" id="tk-usdkrw">--</span>
+      <span class="tchg" id="ch-usdkrw" style="color:#555">--</span>
+    </div>
+    <div class="tg-sep"></div>
+
+    <!-- 코인 그룹 -->
+    <div style="background:#0a0f0a;display:flex;border-right:2px solid #34d39933">
+      <div style="display:flex;flex-direction:column;justify-content:center;padding:2px 6px;border-right:1px solid #1a2a1a">
+        <span style="font-size:8px;color:#34d399;font-weight:700;writing-mode:horizontal-tb;letter-spacing:.5px">₿ COIN</span>
+        <span class="mbar-coin-poll" id="coin-poll-badge" style="font-size:8px;color:#34d399">5s</span>
+      </div>
+      <div class="tcell tg-coin"><span class="tlabel">USDT/KRW</span><span class="tval" id="tk-usdtkrw">--</span><span class="tchg" id="ch-usdtkrw">--</span></div>
+      <div class="tcell tg-coin"><span class="tlabel">김치P</span><span class="tval" id="tk-premium" style="color:#f59e0b">--</span><span class="tchg" id="ch-premium" style="color:#f59e0b">--</span></div>
+      <div class="tcell tg-coin"><span class="tlabel">BTC/KRW</span><span class="tval" id="tk-btc">--</span><span class="tchg" id="ch-btc">--</span></div>
+      <div class="tcell tg-coin"><span class="tlabel">ETH/KRW</span><span class="tval" id="tk-eth">--</span><span class="tchg" id="ch-eth">--</span></div>
+    </div>
+
+    <!-- 한국 그룹 -->
+    <div style="background:#0a0a10;display:flex;border-right:2px solid #6366f133">
+      <div style="display:flex;flex-direction:column;justify-content:center;padding:2px 6px;border-right:1px solid #1a1a28">
+        <span style="font-size:8px;color:#818cf8;font-weight:700;letter-spacing:.5px">🇰🇷 KR</span>
+        <span id="kr-poll-badge" style="font-size:8px;color:#555">--</span>
+      </div>
+      <div class="tcell tg-kr"><span class="tlabel">KOSPI <span class="ms ms-closed" id="tk-kr-ms">--</span></span><span class="tval" id="tk-kospi">--</span><span class="tchg" id="ch-kospi">--</span></div>
+      <div class="tcell tg-kr"><span class="tlabel">KOSDAQ</span><span class="tval" id="tk-kosdaq">--</span><span class="tchg" id="ch-kosdaq">--</span></div>
+    </div>
+
+    <!-- 미국 그룹 -->
+    <div style="background:#0a0c12;display:flex;border-right:2px solid #38bdf833">
+      <div style="display:flex;flex-direction:column;justify-content:center;padding:2px 6px;border-right:1px solid #1a1e28">
+        <span style="font-size:8px;color:#38bdf8;font-weight:700;letter-spacing:.5px">🇺🇸 US</span>
+        <span id="us-poll-badge" style="font-size:8px;color:#555">--</span>
+      </div>
+      <div class="tcell tg-us"><span class="tlabel">S&amp;P500 <span class="ms ms-closed" id="tk-us-ms">--</span></span><span class="tval" id="tk-snp">--</span><span class="tchg" id="ch-snp">--</span></div>
+      <div class="tcell tg-us"><span class="tlabel">NASDAQ</span><span class="tval" id="tk-nasdaq">--</span><span class="tchg" id="ch-nasdaq">--</span></div>
+      <div class="tcell tg-us"><span class="tlabel">NDX100</span><span class="tval" id="tk-ndx">--</span><span class="tchg" id="ch-ndx">--</span></div>
+      <div class="tcell tg-us"><span class="tlabel">RUSSELL</span><span class="tval" id="tk-russell">--</span><span class="tchg" id="ch-russell">--</span></div>
+    </div>
+
+    <!-- 원자재/지수 그룹 -->
+    <div style="background:#100a0a;display:flex;flex:1">
+      <div style="display:flex;flex-direction:column;justify-content:center;padding:2px 6px;border-right:1px solid #281a1a">
+        <span style="font-size:8px;color:#f59e0b;font-weight:700;letter-spacing:.5px">📊 CMDT</span>
+        <span id="cmdt-poll-badge" style="font-size:8px;color:#555">--</span>
+      </div>
+      <div class="tcell tg-comm"><span class="tlabel">VIX</span><span class="tval" id="tk-vix">--</span><span class="tchg" id="ch-vix">--</span></div>
+      <div class="tcell tg-comm"><span class="tlabel">GOLD</span><span class="tval" id="tk-gold">--</span><span class="tchg" id="ch-gold">--</span></div>
+      <div class="tcell tg-comm"><span class="tlabel">SILVER</span><span class="tval" id="tk-silver">--</span><span class="tchg" id="ch-silver">--</span></div>
+      <div class="tcell tg-comm"><span class="tlabel">WTI</span><span class="tval" id="tk-wti">--</span><span class="tchg" id="ch-wti">--</span></div>
+      <div class="tcell tg-comm"><span class="tlabel">BRENT</span><span class="tval" id="tk-brent">--</span><span class="tchg" id="ch-brent">--</span></div>
+    </div>
+
+    <!-- 시각 + 점 -->
+    <div class="tcell" style="min-width:60px;background:#0d0d12;justify-content:center">
+      <span class="tlabel" id="tk-time" style="color:#444;font-size:9px;text-align:center">--</span>
+      <span class="tdot" style="margin:2px auto 0"></span>
+    </div>
   </div>
 </div>
 
 <!-- 장 상태 배너 -->
 <div class="mbar">
-  <div class="mbar-row">
+  <!-- 한국 -->
+  <div style="display:flex;align-items:center;min-height:28px;border-bottom:1px solid #1a1a26">
     <span class="mbar-country">🇰🇷 한국</span>
-    <div class="ms-seg seg-inactive" id="kr-seg-pre"><span class="ms-seg-label">프리마켓</span><span class="ms-seg-badge">08:00~09:00</span><span class="ms-seg-time" id="kr-pre-time"></span></div>
-    <div class="ms-seg seg-inactive" id="kr-seg-regular"><span class="ms-seg-label">정규장</span><span class="ms-seg-badge">09:00~15:30</span><span class="ms-seg-time" id="kr-reg-time"></span></div>
-    <div class="ms-seg seg-inactive" id="kr-seg-after"><span class="ms-seg-label">애프터마켓</span><span class="ms-seg-badge">15:30~16:00</span><span class="ms-seg-time" id="kr-after-time"></span></div>
-    <div class="ms-seg seg-active-regular" style="border-left:1px solid #1a1a26"><span class="ms-seg-label">₿ 암호화폐</span><span class="ms-seg-badge" style="background:#0a1f10;color:#34d399;border:1px solid #1a4a2a">24시간</span></div>
-    <div class="mbar-clock"><span id="kr-clock-kst">-- KST</span></div>
+    <div class="ms-seg seg-inactive" id="kr-seg-pre">
+      <span class="ms-seg-label">프리마켓</span>
+      <span class="ms-seg-badge">08:00~09:00</span>
+      <span class="ms-seg-time" id="kr-pre-time"></span>
+    </div>
+    <div class="ms-seg seg-inactive" id="kr-seg-regular">
+      <span class="ms-seg-label">정규장</span>
+      <span class="ms-seg-badge">09:00~15:30</span>
+      <span class="ms-seg-time" id="kr-reg-time"></span>
+    </div>
+    <div class="ms-seg seg-inactive" id="kr-seg-after">
+      <span class="ms-seg-label">애프터마켓</span>
+      <span class="ms-seg-badge">15:30~16:00</span>
+      <span class="ms-seg-time" id="kr-after-time"></span>
+    </div>
+    <div style="margin-left:auto;padding:0 12px;display:flex;align-items:center;gap:8px">
+      <span id="kr-status-text" style="font-size:11px;font-weight:700;color:#555"></span>
+      <span id="kr-clock-kst" style="font-size:9px;color:#444">-- KST</span>
+    </div>
   </div>
-  <div class="mbar-row">
+  <!-- 미국 -->
+  <div style="display:flex;align-items:center;min-height:28px">
     <span class="mbar-country">🇺🇸 미국</span>
-    <div class="ms-seg seg-inactive" id="us-seg-pre"><span class="ms-seg-label">프리마켓</span><span class="ms-seg-badge">04:00~09:30 ET</span><span class="ms-seg-time" id="us-pre-time"></span></div>
-    <div class="ms-seg seg-inactive" id="us-seg-regular"><span class="ms-seg-label">정규장</span><span class="ms-seg-badge">09:30~16:00 ET</span><span class="ms-seg-time" id="us-reg-time"></span></div>
-    <div class="ms-seg seg-inactive" id="us-seg-after"><span class="ms-seg-label">애프터마켓</span><span class="ms-seg-badge">16:00~20:00 ET</span><span class="ms-seg-time" id="us-after-time"></span></div>
-    <div class="mbar-clock"><span id="us-clock-et">-- ET</span></div>
+    <div class="ms-seg seg-inactive" id="us-seg-pre">
+      <span class="ms-seg-label">프리마켓</span>
+      <span class="ms-seg-badge">04:00~09:30 ET</span>
+      <span class="ms-seg-time" id="us-pre-time"></span>
+    </div>
+    <div class="ms-seg seg-inactive" id="us-seg-regular">
+      <span class="ms-seg-label">정규장</span>
+      <span class="ms-seg-badge">09:30~16:00 ET</span>
+      <span class="ms-seg-time" id="us-reg-time"></span>
+    </div>
+    <div class="ms-seg seg-inactive" id="us-seg-after">
+      <span class="ms-seg-label">애프터마켓</span>
+      <span class="ms-seg-badge">16:00~20:00 ET</span>
+      <span class="ms-seg-time" id="us-after-time"></span>
+    </div>
+    <!-- 코인 (미국 행 오른쪽에 고정) -->
+    <div class="mbar-coin-col">
+      <span class="mbar-coin-label">₿ 암호화폐</span>
+      <span class="mbar-coin-badge">24시간 거래중</span>
+      <span class="mbar-coin-poll" id="coin-poll-status">5초 갱신</span>
+    </div>
+    <div style="margin-left:auto;padding:0 12px;display:flex;align-items:center;gap:8px">
+      <span id="us-status-text" style="font-size:11px;font-weight:700;color:#555"></span>
+      <span id="us-clock-et" style="font-size:9px;color:#444">-- ET</span>
+    </div>
   </div>
 </div>
 
@@ -932,49 +1019,100 @@ function minsLeft(target,cur){var d=target-cur;return d<0?d+1440:d;}
 function fmtLeft(m){var h=Math.floor(m/60),mn=m%60;return h>0?h+"h "+mn+"m":mn+"m 후";}
 function setSeg(segId,isActive,stateClass,badgeText,timeText){var el=g(segId);if(!el)return;el.className="ms-seg "+(isActive?stateClass:"seg-inactive");var badge=el.querySelector(".ms-seg-badge"),time=el.querySelector("[id$='-time']");if(badge)badge.textContent=badgeText;if(time)time.textContent=timeText||"";}
 function updateMarketBanner(){
-  var kst=getKST(),et=getET(),kMin=toMin(kst),eMin=toMin(et),kWd=isWeekday(kst),eWd=isWeekday(et);
+  var kst=getKST(), et=getET();
+  var kMin=toMin(kst), eMin=toMin(et);
+  var kWd=isWeekday(kst), eWd=isWeekday(et);
+  var kDate=kst.getFullYear()+"-"+pad2(kst.getMonth()+1)+"-"+pad2(kst.getDate());
+  var eDate=et.getFullYear()+"-"+pad2(et.getMonth()+1)+"-"+pad2(et.getDate());
+  var krHol=KRX_HOL.indexOf(kDate)!==-1;
+  var usHol=NYSE_HOL.indexOf(eDate)!==-1;
 
-  // ── 한국 공휴일 체크 (KST 날짜)
-  var KRX_HOLIDAYS=["2025-01-01","2025-01-28","2025-01-29","2025-01-30","2025-03-03","2025-05-01","2025-05-05","2025-05-06","2025-06-06","2025-08-15","2025-10-03","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-12-25","2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-03-02","2026-05-01","2026-05-05","2026-05-25","2026-06-06","2026-08-17","2026-12-25"];
-  var NYSE_HOLIDAYS=["2025-01-01","2025-01-20","2025-02-17","2025-04-18","2025-05-26","2025-06-19","2025-07-04","2025-09-01","2025-11-27","2025-12-25","2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25","2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25"];
-  var kstDateStr=kst.getFullYear()+"-"+pad2(kst.getMonth()+1)+"-"+pad2(kst.getDate());
-  var etDateStr=et.getFullYear()+"-"+pad2(et.getMonth()+1)+"-"+pad2(et.getDate());
-  var krHoliday=KRX_HOLIDAYS.indexOf(kstDateStr)!==-1;
-  var usHoliday=NYSE_HOLIDAYS.indexOf(etDateStr)!==-1;
+  // ── 한국 세그먼트
+  var krPre   = kWd&&!krHol&&kMin>=480&&kMin<540;
+  var krReg   = kWd&&!krHol&&kMin>=540&&kMin<930;
+  var krAfter = kWd&&!krHol&&kMin>=930&&kMin<960;
+  setSeg("kr-seg-pre",    krPre,   "seg-active-pre",     krPre?"프리마켓 진행중":"프리마켓 (08:00~09:00)",     krPre?"마감 "+fmtLeft(minsLeft(540,kMin)):"");
+  setSeg("kr-seg-regular",krReg,   "seg-active-regular", krReg?"정규장 진행중":"정규장 (09:00~15:30)",         krReg?"마감 "+fmtLeft(minsLeft(930,kMin)):"");
+  setSeg("kr-seg-after",  krAfter, "seg-active-after",   krAfter?"애프터마켓 진행중":"애프터마켓 (15:30~16:00)", krAfter?"마감 "+fmtLeft(minsLeft(960,kMin)):"");
 
-  // ── 한국 장 상태
-  var krPre=kWd&&!krHoliday&&kMin>=480&&kMin<540;
-  var krReg=kWd&&!krHoliday&&kMin>=540&&kMin<930;
-  var krAfter=kWd&&!krHoliday&&kMin>=930&&kMin<960;
-  setSeg("kr-seg-pre",krPre,"seg-active-pre",krPre?"프리마켓 진행중":"프리마켓 (08:00~09:00)",krPre?"마감 "+fmtLeft(minsLeft(540,kMin)):(kWd&&!krHoliday&&kMin<480?"시작 "+fmtLeft(minsLeft(480,kMin)):""));
-  setSeg("kr-seg-regular",krReg,"seg-active-regular",krReg?"정규장 진행중":"정규장 (09:00~15:30)",krReg?"마감 "+fmtLeft(minsLeft(930,kMin)):"");
-  setSeg("kr-seg-after",krAfter,"seg-active-after",krAfter?"애프터마켓 진행중":"애프터마켓 (15:30~16:00)",krAfter?"마감 "+fmtLeft(minsLeft(960,kMin)):"");
+  // 한국 상태 텍스트 + 티커배지 + 폴링배지
+  var krTxt="", krTxtColor="#555", krPoll="", krPollClass="poll-off";
   var tkKr=g("tk-kr-ms");
-  if(tkKr){
-    if(krHoliday){tkKr.textContent="공휴일";tkKr.className="ms ms-closed";}
-    else if(krPre){tkKr.textContent="프리마켓";tkKr.className="ms ms-pre";}
-    else if(krReg){tkKr.textContent="정규장";tkKr.className="ms ms-regular";}
-    else if(krAfter){tkKr.textContent="애프터마켓";tkKr.className="ms ms-after";}
-    else{tkKr.textContent=kWd?"마감":"휴장";tkKr.className="ms ms-closed";}
+  if(krHol){
+    krTxt="🏖 공휴일"; krTxtColor="#f59e0b";
+    if(tkKr){tkKr.textContent="공휴일";tkKr.className="ms ms-holiday";}
+    krPoll="휴장"; krPollClass="poll-off";
+  } else if(krPre){
+    krTxt="▶ 프리마켓"; krTxtColor="#f59e0b";
+    if(tkKr){tkKr.textContent="프리마켓";tkKr.className="ms ms-pre";}
+    krPoll="5초"; krPollClass="poll-live";
+  } else if(krReg){
+    krTxt="● 정규장 진행중"; krTxtColor="#34d399";
+    if(tkKr){tkKr.textContent="정규장";tkKr.className="ms ms-regular";}
+    krPoll="5초"; krPollClass="poll-live";
+  } else if(krAfter){
+    krTxt="▶ 애프터마켓"; krTxtColor="#c084fc";
+    if(tkKr){tkKr.textContent="애프터";tkKr.className="ms ms-after";}
+    krPoll="5초"; krPollClass="poll-live";
+  } else if(!kWd){
+    krTxt="주말 휴장"; krTxtColor="#444";
+    if(tkKr){tkKr.textContent="주말휴장";tkKr.className="ms ms-closed";}
+    krPoll="정지"; krPollClass="poll-off";
+  } else {
+    krTxt="■ 장마감"; krTxtColor="#555";
+    if(tkKr){tkKr.textContent="장마감";tkKr.className="ms ms-closed";}
+    krPoll="정지"; krPollClass="poll-off";
   }
+  var kst2=g("kr-status-text"); if(kst2){kst2.textContent=krTxt;kst2.style.color=krTxtColor;}
   g("kr-clock-kst").textContent=kst.getHours()+":"+pad2(kst.getMinutes())+" KST";
+  var krBadge=g("kr-poll-badge"); if(krBadge){krBadge.textContent=krPoll;krBadge.className="mbar-poll "+krPollClass;}
 
-  // ── 미국 장 상태
-  var usPre=eWd&&!usHoliday&&eMin>=240&&eMin<570;
-  var usReg=eWd&&!usHoliday&&eMin>=570&&eMin<960;
-  var usAfter=eWd&&!usHoliday&&eMin>=960&&eMin<1200;
-  setSeg("us-seg-pre",usPre,"seg-active-pre",usPre?"프리마켓 진행중":"프리마켓 (04:00~09:30 ET)",usPre?"마감 "+fmtLeft(minsLeft(570,eMin)):(eWd&&!usHoliday&&eMin<240?"시작 "+fmtLeft(minsLeft(240,eMin)):""));
-  setSeg("us-seg-regular",usReg,"seg-active-regular",usReg?"정규장 진행중":"정규장 (09:30~16:00 ET)",usReg?"마감 "+fmtLeft(minsLeft(960,eMin)):"");
-  setSeg("us-seg-after",usAfter,"seg-active-after",usAfter?"애프터마켓 진행중":"애프터마켓 (16:00~20:00 ET)",usAfter?"마감 "+fmtLeft(minsLeft(1200,eMin)):"");
+  // ── 미국 세그먼트
+  var usPre   = eWd&&!usHol&&eMin>=240&&eMin<570;
+  var usReg   = eWd&&!usHol&&eMin>=570&&eMin<960;
+  var usAfter = eWd&&!usHol&&eMin>=960&&eMin<1200;
+  setSeg("us-seg-pre",    usPre,   "seg-active-pre",     usPre?"프리마켓 진행중":"프리마켓 (04:00~09:30 ET)",   usPre?"마감 "+fmtLeft(minsLeft(570,eMin)):"");
+  setSeg("us-seg-regular",usReg,   "seg-active-regular", usReg?"정규장 진행중":"정규장 (09:30~16:00 ET)",      usReg?"마감 "+fmtLeft(minsLeft(960,eMin)):"");
+  setSeg("us-seg-after",  usAfter, "seg-active-after",   usAfter?"애프터마켓 진행중":"애프터마켓 (16:00~20:00 ET)", usAfter?"마감 "+fmtLeft(minsLeft(1200,eMin)):"");
+
+  var usTxt="", usTxtColor="#555", usPoll="", usPollClass="poll-off";
   var tkUs=g("tk-us-ms");
-  if(tkUs){
-    if(usHoliday){tkUs.textContent="🏖 공휴일";tkUs.className="ms ms-closed";}
-    else if(usPre){tkUs.textContent="프리마켓";tkUs.className="ms ms-pre";}
-    else if(usReg){tkUs.textContent="정규장";tkUs.className="ms ms-regular";}
-    else if(usAfter){tkUs.textContent="애프터마켓";tkUs.className="ms ms-after";}
-    else{tkUs.textContent=eWd?"마감":"휴장";tkUs.className="ms ms-closed";}
+  if(usHol){
+    usTxt="🏖 공휴일"; usTxtColor="#f59e0b";
+    if(tkUs){tkUs.textContent="공휴일";tkUs.className="ms ms-holiday";}
+    usPoll="휴장"; usPollClass="poll-off";
+  } else if(usPre){
+    usTxt="▶ 프리마켓"; usTxtColor="#f59e0b";
+    if(tkUs){tkUs.textContent="프리마켓";tkUs.className="ms ms-pre";}
+    usPoll="5초"; usPollClass="poll-live";
+  } else if(usReg){
+    usTxt="● 정규장 진행중"; usTxtColor="#34d399";
+    if(tkUs){tkUs.textContent="정규장";tkUs.className="ms ms-regular";}
+    usPoll="5초"; usPollClass="poll-live";
+  } else if(usAfter){
+    usTxt="▶ 애프터마켓"; usTxtColor="#c084fc";
+    if(tkUs){tkUs.textContent="애프터";tkUs.className="ms ms-after";}
+    usPoll="5초"; usPollClass="poll-live";
+  } else if(!eWd){
+    usTxt="주말 휴장"; usTxtColor="#444";
+    if(tkUs){tkUs.textContent="주말휴장";tkUs.className="ms ms-closed";}
+    usPoll="정지"; usPollClass="poll-off";
+  } else {
+    usTxt="■ 장마감"; usTxtColor="#555";
+    if(tkUs){tkUs.textContent="장마감";tkUs.className="ms ms-closed";}
+    usPoll="정지"; usPollClass="poll-off";
   }
+  var ust=g("us-status-text"); if(ust){ust.textContent=usTxt;ust.style.color=usTxtColor;}
   g("us-clock-et").textContent=et.getHours()+":"+pad2(et.getMinutes())+" ET";
+  var usBadge=g("us-poll-badge"); if(usBadge){usBadge.textContent=usPoll;usBadge.className="mbar-poll "+usPollClass;}
+
+  // 지수/원자재 폴링 배지
+  var s=getMarketState();
+  var cmdt=g("cmdt-poll-badge");
+  if(cmdt){
+    if(s.krOpen||s.usOpen){cmdt.textContent="30초";cmdt.className="mbar-poll poll-slow";}
+    else{cmdt.textContent="5분";cmdt.className="mbar-poll poll-off";}
+  }
 }
 var DEFAULT_ASSETS=[{id:1,symbol:"BTC",name:"비트코인",cat:"crypto",sector:"레이어1",qty:0.5,avgCost:55000000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:2,symbol:"ETH",name:"이더리움",cat:"crypto",sector:"레이어1",qty:3,avgCost:3200000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:3,symbol:"AAPL",name:"애플",cat:"us",sector:"IT/기술",qty:10,avgCost:180000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:4,symbol:"NVDA",name:"엔비디아",cat:"us",sector:"IT/기술",qty:5,avgCost:600000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:5,symbol:"005930",name:"삼성전자",cat:"kr",sector:"IT/기술",qty:50,avgCost:71000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:6,symbol:"SAVINGS",name:"정기예금",cat:"cash",sector:"",qty:1,avgCost:5000000,price:5000000,prePrice:null,postPrice:null,priceHistory:{}}];
 var assets=DEFAULT_ASSETS.map(function(a){return Object.assign({},a);});
