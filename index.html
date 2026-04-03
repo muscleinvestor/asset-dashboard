@@ -28,7 +28,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;
 .mbar{background:#0d0d12;border-bottom:1px solid #1a1a26;padding:0 12px;user-select:none}
 .mbar-row{display:flex;align-items:center;gap:0;min-height:28px;overflow-x:auto;scrollbar-width:none}
 .mbar-row::-webkit-scrollbar{display:none}
-.mbar-row+.mbar-row{border-top:1px solid #1a1a26}
 .mbar-country{font-size:10px;font-weight:700;color:#555;white-space:nowrap;min-width:52px;padding-right:8px;flex-shrink:0}
 .ms-seg{display:flex;align-items:center;gap:6px;padding:4px 10px;border-right:1px solid #1a1a26;flex-shrink:0;min-width:0}
 .ms-seg:last-child{border-right:none}
@@ -56,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;
 .nb.nb-fixed{color:#888;font-size:12px}
 .nb.nb-fixed.active{color:#f59e0b;border-bottom-color:#f59e0b}
 .nav-sep{width:1px;height:20px;background:#2a2a38;margin:0 6px;flex-shrink:0;align-self:center;margin-bottom:1px}
-.nav-right{margin-left:auto;display:flex;gap:6px;padding-bottom:4px;flex-shrink:0}
+.nav-right{margin-left:auto;display:flex;gap:6px;padding-bottom:4px;flex-shrink:0;align-items:center}
 .page{display:none;padding:14px}
 .page.active{display:block}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
@@ -114,27 +113,7 @@ tr:hover td{background:rgba(167,139,250,.03)}
 .search-item:hover{background:#252530}
 .search-item:last-child{border-bottom:none}
 
-/* 인증 모달 */
-.auth-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center}
-.auth-modal-bg.open{display:flex}
-.auth-modal{background:#1a1a24;border-radius:16px;border:1px solid #2a2a38;padding:28px;width:360px;max-width:95vw}
-.auth-logo{text-align:center;font-size:20px;font-weight:700;margin-bottom:4px}
-.auth-sub{text-align:center;font-size:11px;color:#555;margin-bottom:22px}
-.auth-tabs{display:flex;background:#141418;border-radius:7px;padding:3px;margin-bottom:18px;border:1px solid #2a2a38}
-.auth-tab{flex:1;padding:6px;text-align:center;border-radius:5px;cursor:pointer;font-size:12px;color:#666;transition:all .15s}
-.auth-tab.active{background:#2d1f4a;color:#a78bfa}
-.auth-field{margin-bottom:12px}
-.auth-field label{display:block;font-size:11px;color:#666;margin-bottom:4px}
-.auth-field input{width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;transition:border .15s}
-.auth-field input:focus{border-color:#7c3aed}
-.auth-btn-main{width:100%;padding:10px;background:#7c3aed;border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
-.auth-btn-main:hover{background:#6d28d9}
-.auth-btn-main:disabled{background:#2d1f4a;color:#666;cursor:not-allowed}
-.auth-msg{font-size:11px;text-align:center;margin-top:10px;min-height:16px;padding:6px 8px;border-radius:5px}
-.auth-msg.err{color:#f87171;background:#2a1010}
-.auth-msg.ok{color:#34d399;background:#0a2a1a}
-.auth-close{position:absolute;top:12px;right:14px;background:none;border:none;color:#555;font-size:18px;cursor:pointer;padding:4px}
-.auth-close:hover{color:#e8e8f0}
+/* ── 스크리너 ── */
 #screener-page{padding:0;display:none;flex-direction:column;height:calc(100vh - 130px);overflow:hidden}
 #screener-page.active{display:flex}
 .scr-top{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#0d0d12;border-bottom:1px solid #1e1e2a;flex-wrap:wrap;flex-shrink:0}
@@ -189,6 +168,30 @@ tr:hover td{background:rgba(167,139,250,.03)}
 body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .rz{position:absolute;right:0;top:0;width:5px;height:100%;cursor:col-resize;z-index:20}
 .rz:hover,.rz.dragging{background:#7c3aed44}
+
+/* ── 인증 UI ── */
+#auth-bar{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#auth-user-info{font-size:11px;color:#666;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.auth-mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center}
+.auth-mo.open{display:flex}
+.auth-box{background:#1a1a24;border-radius:14px;border:1px solid #2a2a38;padding:28px 24px;width:360px;max-width:95vw}
+.auth-box h2{font-size:16px;font-weight:600;margin-bottom:20px;color:#f0f0f8}
+.auth-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid #2a2a38}
+.auth-tab{padding:8px 20px;border:none;background:none;color:#666;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.auth-tab.active{color:#a78bfa;border-bottom-color:#a78bfa}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:11px;color:#666;margin-bottom:5px}
+.auth-field input{width:100%;background:#141418;border:1px solid #2a2a38;border-radius:8px;color:#e8e8f0;padding:9px 12px;font-size:13px;outline:none}
+.auth-field input:focus{border-color:#7c3aed}
+.auth-submit{width:100%;padding:10px;border-radius:8px;border:none;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+.auth-submit:hover{background:#6d28d9}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-msg{font-size:12px;margin-top:10px;min-height:18px;text-align:center}
+.auth-msg.ok{color:#34d399}
+.auth-msg.err{color:#f87171}
+.auth-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#555;cursor:pointer;font-size:18px;line-height:1}
+.auth-close:hover{color:#aaa}
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -267,18 +270,18 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <button class="nb nb-fixed" onclick="showPage('loanpage',this)">대출관리</button>
   <button class="nb nb-fixed" onclick="showPage('savingspage',this)">예적금</button>
   <div class="nav-right">
-    <span id="save-indicator" style="font-size:11px;color:#34d399;align-self:center;min-width:50px"></span>
     <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()">저장</button>
     <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer">불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
-    <button id="nav-login-btn" class="btn" style="font-size:11px;color:#a78bfa;border-color:#3a2060" onclick="openAuthModal('login')">로그인</button>
-    <button id="nav-signup-btn" class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="openAuthModal('signup')">회원가입</button>
-    <span id="nav-pending" style="display:none;font-size:11px;color:#f59e0b;align-self:center">⏳ 승인 대기중</span>
-    <span id="nav-username" style="display:none;font-size:11px;color:#555;align-self:center"></span>
-    <button id="nav-logout-btn" class="btn" style="display:none;font-size:11px;color:#f87171;border-color:#3a2a2a" onclick="doLogout()">로그아웃</button>
+    <!-- 인증 영역 -->
+    <div id="auth-bar">
+      <span id="auth-user-info" style="display:none"></span>
+      <button class="btn" id="auth-login-btn" onclick="authOpenModal('login')" style="font-size:11px;color:#a78bfa;border-color:#3a2060;background:#1a1028">로그인</button>
+      <button class="btn" id="auth-logout-btn" onclick="authSignOut()" style="display:none;font-size:11px;color:#f87171;border-color:#3a1a1a;background:transparent">로그아웃</button>
+    </div>
   </div>
 </nav>
 
-<!-- 기존 페이지들 (원본 유지) -->
+<!-- 기존 페이지들 -->
 <div id="dashboard" class="page active">
   <div class="cards">
     <div class="card"><div class="cl">총 자산</div><div class="cv" id="c-total">--</div></div>
@@ -421,7 +424,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <div class="cw"><div class="ct">월별 실현손익 (원)</div><div style="position:relative;height:190px"><canvas id="monthly-chart"></canvas></div></div>
 </div>
 
-<!-- ── 섹터맵 = 스크리너 ── -->
+<!-- 섹터맵 -->
 <div id="screener-page">
   <div class="scr-top">
     <span class="scr-title">📋 종목 재무 스크리너</span>
@@ -488,7 +491,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   </div>
 </div>
 
-<!-- 부동산/대출/예적금/모달 페이지들 -->
+<!-- 부동산 -->
 <div id="realpage" class="page">
   <div class="cards">
     <div class="card"><div class="cl">총 매입금액</div><div class="cv" id="re-cost">--</div></div>
@@ -548,6 +551,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   </div></div>
 </div>
 
+<!-- 대출 -->
 <div id="loanpage" class="page">
   <div class="cards">
     <div class="card"><div class="cl">총 대출원금</div><div class="cv" id="ls-principal">--</div></div>
@@ -604,6 +608,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   </div></div>
 </div>
 
+<!-- 예적금 -->
 <div id="savingspage" class="page">
   <div class="cards">
     <div class="card"><div class="cl">총 원금</div><div class="cv" id="sv-principal">--</div></div>
@@ -678,171 +683,148 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   </div>
 </div></div>
 
-<!-- ══ 로그인/회원가입 모달 ══ -->
-<div id="auth-modal-bg" onclick="if(event.target===this)closeAuthModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;align-items:center;justify-content:center">
-  <div style="background:#1a1a24;border-radius:16px;border:1px solid #2a2a38;padding:28px;width:360px;max-width:95vw;position:relative">
-    <button onclick="closeAuthModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#555;font-size:20px;cursor:pointer;line-height:1">×</button>
-    <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:4px">📊 투자 대시보드</div>
-    <div style="text-align:center;font-size:11px;color:#555;margin-bottom:20px">로그인하면 서버에 데이터가 자동 저장됩니다</div>
-
-    <!-- 탭 -->
-    <div style="display:flex;background:#141418;border-radius:7px;padding:3px;margin-bottom:18px;border:1px solid #2a2a38">
-      <div id="atab-login" onclick="document.getElementById('atab-login').style.background='#2d1f4a';document.getElementById('atab-login').style.color='#a78bfa';document.getElementById('atab-signup').style.background='transparent';document.getElementById('atab-signup').style.color='#666';document.getElementById('aform-login').style.display='block';document.getElementById('aform-signup').style.display='none';document.getElementById('auth-msg').textContent='';" style="flex:1;padding:7px;text-align:center;border-radius:5px;cursor:pointer;font-size:12px;color:#a78bfa;background:#2d1f4a">로그인</div>
-      <div id="atab-signup" onclick="document.getElementById('atab-signup').style.background='#2d1f4a';document.getElementById('atab-signup').style.color='#a78bfa';document.getElementById('atab-login').style.background='transparent';document.getElementById('atab-login').style.color='#666';document.getElementById('aform-signup').style.display='block';document.getElementById('aform-login').style.display='none';document.getElementById('auth-msg').textContent='';" style="flex:1;padding:7px;text-align:center;border-radius:5px;cursor:pointer;font-size:12px;color:#666;background:transparent">회원가입</div>
+<!-- ══ 인증 모달 ══ -->
+<div class="auth-mo" id="auth-modal">
+  <div class="auth-box" style="position:relative">
+    <button class="auth-close" onclick="authCloseModal()">✕</button>
+    <h2>투자 대시보드</h2>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="auth-tab-login" onclick="authSwitchTab('login')">로그인</button>
+      <button class="auth-tab" id="auth-tab-signup" onclick="authSwitchTab('signup')">회원가입</button>
     </div>
-
-    <!-- 로그인 폼 -->
-    <div id="aform-login">
-      <div style="margin-bottom:12px"><label style="display:block;font-size:11px;color:#666;margin-bottom:4px">이메일</label><input type="email" id="a-email" placeholder="example@email.com" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <div style="margin-bottom:12px"><label style="display:block;font-size:11px;color:#666;margin-bottom:4px">비밀번호</label><input type="password" id="a-pw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <button id="login-btn" onclick="doLogin()" style="width:100%;padding:10px;background:#7c3aed;border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">로그인</button>
+    <div id="auth-form-login">
+      <div class="auth-field"><label>이메일</label><input type="email" id="auth-email-login" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="auth-field"><label>비밀번호</label><input type="password" id="auth-pw-login" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()"></div>
+      <button class="auth-submit" id="auth-btn-login" onclick="authLogin()">로그인</button>
+      <div class="auth-msg" id="auth-msg-login"></div>
     </div>
-
-    <!-- 회원가입 폼 -->
-    <div id="aform-signup" style="display:none">
-      <div style="margin-bottom:12px"><label style="display:block;font-size:11px;color:#666;margin-bottom:4px">이름</label><input type="text" id="a-name" placeholder="홍길동" style="width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <div style="margin-bottom:12px"><label style="display:block;font-size:11px;color:#666;margin-bottom:4px">이메일</label><input type="email" id="a-email2" placeholder="example@email.com" style="width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <div style="margin-bottom:12px"><label style="display:block;font-size:11px;color:#666;margin-bottom:4px">비밀번호 (8자 이상)</label><input type="password" id="a-pw2" placeholder="비밀번호" style="width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <div style="margin-bottom:12px"><label style="display:block;font-size:11px;color:#666;margin-bottom:4px">비밀번호 확인</label><input type="password" id="a-pw3" placeholder="비밀번호 확인" onkeydown="if(event.key==='Enter')doSignup()" style="width:100%;background:#111118;border:1px solid #2a2a38;border-radius:7px;color:#e8e8f0;padding:9px 11px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <button id="signup-btn" onclick="doSignup()" style="width:100%;padding:10px;background:#7c3aed;border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">회원가입</button>
+    <div id="auth-form-signup" style="display:none">
+      <div class="auth-field"><label>이메일</label><input type="email" id="auth-email-signup" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="auth-field"><label>비밀번호 (6자 이상)</label><input type="password" id="auth-pw-signup" placeholder="비밀번호" autocomplete="new-password"></div>
+      <div class="auth-field"><label>비밀번호 확인</label><input type="password" id="auth-pw-signup2" placeholder="비밀번호 확인" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()"></div>
+      <button class="auth-submit" id="auth-btn-signup" onclick="authSignUp()">회원가입</button>
+      <div class="auth-msg" id="auth-msg-signup"></div>
     </div>
-
-    <div id="auth-msg" style="font-size:11px;text-align:center;margin-top:10px;min-height:16px;padding:6px 8px;border-radius:5px"></div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ════════════════════════════════════════════════
-// SUPABASE 초기화
+// Supabase 초기화 (원본 코드 앞에 배치)
 // ════════════════════════════════════════════════
-const SUPA_URL = "https://daizlacifrzrttdtzxwf.supabase.co";
-const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaXpsYWNpZnJ6cnR0ZHR6eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgwMjAsImV4cCI6MjA5MDc1NDAyMH0.jSy4Eu-su_mo1tiohrFvUokfDkyWrfQ2IyjdoLPU9Lw";
-const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+var SUPA_URL="https://daizlacifrzrttdtzxwf.supabase.co";
+var SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaXpsYWNpZnJ6cnR0ZHR6eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgwMjAsImV4cCI6MjA5MDc1NDAyMH0.jSy4Eu-su_mo1tiohrFvUokfDkyWrfQ2IyjdoLPU9Lw";
+var supabase=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+var authUser=null;
+var authSyncing=false;
 
-var currentUser = null;
-var currentProfile = null;
-var saveDebounceTimer = null;
+/* ── 인증 UI 함수 ── */
+function authOpenModal(tab){
+  g("auth-modal").classList.add("open");
+  authSwitchTab(tab||"login");
+  setTimeout(function(){var el=g("auth-email-login");if(el)el.focus();},100);
+}
+function authCloseModal(){g("auth-modal").classList.remove("open");}
+function authSwitchTab(t){
+  g("auth-form-login").style.display=t==="login"?"block":"none";
+  g("auth-form-signup").style.display=t==="signup"?"block":"none";
+  g("auth-tab-login").classList.toggle("active",t==="login");
+  g("auth-tab-signup").classList.toggle("active",t==="signup");
+}
+function authSetMsg(id,msg,ok){var el=g(id);el.textContent=msg;el.className="auth-msg "+(ok?"ok":"err");}
+function authSetLoading(btnId,on){var b=g(btnId);b.disabled=on;b.textContent=on?"처리중...":btnId==="auth-btn-login"?"로그인":"회원가입";}
 
-// ════════════════════════════════════════════════
-// 인증 화면 HTML
-// ════════════════════════════════════════════════
-function renderAuthScreen() {
-  document.body.innerHTML = `
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#0f0f13;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
-    .auth-wrap{width:380px;padding:32px;background:#1a1a24;border-radius:16px;border:1px solid #2a2a38}
-    .auth-logo{text-align:center;font-size:22px;font-weight:700;margin-bottom:6px}
-    .auth-sub{text-align:center;font-size:12px;color:#555;margin-bottom:28px}
-    .auth-tabs{display:flex;background:#141418;border-radius:8px;padding:3px;margin-bottom:22px;border:1px solid #2a2a38}
-    .auth-tab{flex:1;padding:7px;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;color:#666;transition:all .15s}
-    .auth-tab.active{background:#2d1f4a;color:#a78bfa}
-    .auth-field{margin-bottom:14px}
-    .auth-field label{display:block;font-size:11px;color:#666;margin-bottom:5px}
-    .auth-field input{width:100%;background:#111118;border:1px solid #2a2a38;border-radius:8px;color:#e8e8f0;padding:10px 12px;font-size:13px;outline:none;transition:border .15s}
-    .auth-field input:focus{border-color:#7c3aed}
-    .auth-btn{width:100%;padding:11px;background:#7c3aed;border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s}
-    .auth-btn:hover{background:#6d28d9}
-    .auth-btn:disabled{background:#2d1f4a;color:#666;cursor:not-allowed}
-    .auth-msg{font-size:12px;text-align:center;margin-top:12px;min-height:18px;padding:8px;border-radius:6px}
-    .auth-msg.err{color:#f87171;background:#2a1010}
-    .auth-msg.ok{color:#34d399;background:#0a2a1a}
-    .auth-divider{text-align:center;font-size:11px;color:#333;margin:16px 0;position:relative}
-    .auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#2a2a38}
-    .auth-divider::before{left:0}.auth-divider::after{right:0}
-  </style>
-  <div class="auth-wrap">
-    <div class="auth-logo">📊 투자 대시보드</div>
-    <div class="auth-sub">개인 자산 관리 플랫폼</div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">로그인</div>
-      <div class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">회원가입</div>
-    </div>
-    <div id="auth-login-form">
-      <div class="auth-field"><label>이메일</label><input type="email" id="a-email" placeholder="example@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="auth-field"><label>비밀번호</label><input type="password" id="a-pw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="auth-btn" id="login-btn" onclick="doLogin()">로그인</button>
-    </div>
-    <div id="auth-signup-form" style="display:none">
-      <div class="auth-field"><label>이름 (닉네임)</label><input type="text" id="a-name" placeholder="홍길동"></div>
-      <div class="auth-field"><label>이메일</label><input type="email" id="a-email2" placeholder="example@email.com"></div>
-      <div class="auth-field"><label>비밀번호 (8자 이상)</label><input type="password" id="a-pw2" placeholder="비밀번호"></div>
-      <div class="auth-field"><label>비밀번호 확인</label><input type="password" id="a-pw3" placeholder="비밀번호 확인" onkeydown="if(event.key==='Enter')doSignup()"></div>
-      <button class="auth-btn" id="signup-btn" onclick="doSignup()">회원가입 신청</button>
-    </div>
-    <div class="auth-msg" id="auth-msg"></div>
-  </div>`;
+async function authLogin(){
+  var email=g("auth-email-login").value.trim(),pw=g("auth-pw-login").value;
+  if(!email||!pw){authSetMsg("auth-msg-login","이메일과 비밀번호를 입력해주세요",false);return;}
+  authSetLoading("auth-btn-login",true);
+  var {data,error}=await supabase.auth.signInWithPassword({email,password:pw});
+  authSetLoading("auth-btn-login",false);
+  if(error){authSetMsg("auth-msg-login",error.message,false);}
+  else{authCloseModal();authOnLogin(data.user);}
+}
+async function authSignUp(){
+  var email=g("auth-email-signup").value.trim(),pw=g("auth-pw-signup").value,pw2=g("auth-pw-signup2").value;
+  if(!email||!pw){authSetMsg("auth-msg-signup","이메일과 비밀번호를 입력해주세요",false);return;}
+  if(pw.length<6){authSetMsg("auth-msg-signup","비밀번호는 6자 이상이어야 합니다",false);return;}
+  if(pw!==pw2){authSetMsg("auth-msg-signup","비밀번호가 일치하지 않습니다",false);return;}
+  authSetLoading("auth-btn-signup",true);
+  var {data,error}=await supabase.auth.signUp({email,password:pw});
+  authSetLoading("auth-btn-signup",false);
+  if(error){authSetMsg("auth-msg-signup",error.message,false);}
+  else if(data.user&&data.user.confirmed_at){authCloseModal();authOnLogin(data.user);}
+  else{authSetMsg("auth-msg-signup","가입 완료! 이메일 인증 후 로그인해주세요.",true);}
+}
+async function authSignOut(){
+  await supabase.auth.signOut();
+  authUser=null;
+  authUpdateUI(null);
+}
+function authUpdateUI(user){
+  var li=g("auth-login-btn"),lo=g("auth-logout-btn"),info=g("auth-user-info");
+  if(user){
+    li.style.display="none";lo.style.display="";
+    info.style.display="";
+    info.innerHTML='<span class="sync-dot"></span>'+user.email;
+  }else{
+    li.style.display="";lo.style.display="none";
+    info.style.display="none";info.textContent="";
+  }
 }
 
-function switchAuthTab(tab) {
-  document.getElementById('tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
-  document.getElementById('auth-login-form').style.display = tab==='login'?'block':'none';
-  document.getElementById('auth-signup-form').style.display = tab==='signup'?'block':'none';
-  document.getElementById('auth-msg').textContent = '';
+/* ── Supabase 데이터 동기화 ── */
+async function authLoadFromCloud(user){
+  if(!user)return false;
+  try{
+    var {data,error}=await supabase.from("dashboard_data").select("payload").eq("user_id",user.id).single();
+    if(error||!data)return false;
+    var d=data.payload;
+    if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});
+    if(d.trades)trades=d.trades;
+    if(d.loans)loans=d.loans;
+    if(d.realEstates)realEstates=d.realEstates;
+    if(d.assetHistory)assetHistory=d.assetHistory;
+    if(d.dividends)dividends=d.dividends;
+    if(d.savings)savings=d.savings;
+    return true;
+  }catch(e){return false;}
+}
+async function authSaveToCloud(){
+  if(!authUser||authSyncing)return;
+  authSyncing=true;
+  try{
+    var payload={v:13,assets:assets.map(function(a){var o=Object.assign({},a);delete o.prePrice;delete o.postPrice;return o;}),trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings};
+    await supabase.from("dashboard_data").upsert({user_id:authUser.id,payload,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  }catch(e){}
+  authSyncing=false;
+}
+async function authOnLogin(user){
+  authUser=user;
+  authUpdateUI(user);
+  var loaded=await authLoadFromCloud(user);
+  if(loaded){saveLS();renderAll();fetchAll();}
+  else{await authSaveToCloud();}
 }
 
-function setAuthMsg(msg, isErr=true) {
-  const el = document.getElementById('auth-msg');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = 'auth-msg ' + (isErr ? 'err' : 'ok');
-}
-
-async function doLogin() {
-  const email = document.getElementById('a-email').value.trim();
-  const pw = document.getElementById('a-pw').value;
-  if (!email || !pw) { setAuthMsg('이메일과 비밀번호를 입력해주세요'); return; }
-  const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = '로그인 중...';
-  const { error } = await supa.auth.signInWithPassword({ email, password: pw });
-  if (error) { setAuthMsg(error.message === 'Invalid login credentials' ? '이메일 또는 비밀번호가 틀렸습니다' : error.message); btn.disabled=false; btn.textContent='로그인'; }
-}
-
-async function doSignup() {
-  const name = document.getElementById('a-name').value.trim();
-  const email = document.getElementById('a-email2').value.trim();
-  const pw = document.getElementById('a-pw2').value;
-  const pw2 = document.getElementById('a-pw3').value;
-  if (!name||!email||!pw) { setAuthMsg('모든 항목을 입력해주세요'); return; }
-  if (pw !== pw2) { setAuthMsg('비밀번호가 일치하지 않습니다'); return; }
-  if (pw.length < 8) { setAuthMsg('비밀번호는 8자 이상이어야 합니다'); return; }
-  const btn = document.getElementById('signup-btn');
-  btn.disabled=true; btn.textContent='처리 중...';
-  const { error } = await supa.auth.signUp({ email, password: pw, options: { data: { display_name: name } } });
-  if (error) { setAuthMsg(error.message); btn.disabled=false; btn.textContent='회원가입 신청'; return; }
-  setAuthMsg('✅ 가입 완료! 관리자 승인 후 이용하실 수 있습니다.', false);
-  btn.disabled=false; btn.textContent='회원가입 신청';
-}
-
-// 승인 대기 화면
-function renderPendingScreen(email) {
-  document.body.innerHTML = `
-  <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f0f13;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}</style>
-  <div style="text-align:center;padding:40px;background:#1a1a24;border-radius:16px;border:1px solid #2a2a38;max-width:400px">
-    <div style="font-size:48px;margin-bottom:16px">⏳</div>
-    <div style="font-size:18px;font-weight:700;margin-bottom:8px">승인 대기 중</div>
-    <div style="font-size:13px;color:#666;margin-bottom:24px">${email}<br>관리자 승인 후 이용하실 수 있습니다</div>
-    <button onclick="supa.auth.signOut().then(()=>location.reload())" style="padding:9px 24px;background:#252530;border:1px solid #3a3a4a;border-radius:8px;color:#a78bfa;cursor:pointer;font-size:13px">로그아웃</button>
-  </div>`;
-}
-
-// 차단 화면
-function renderBlockedScreen() {
-  document.body.innerHTML = `
-  <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f0f13;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}</style>
-  <div style="text-align:center;padding:40px;background:#1a1a24;border-radius:16px;border:1px solid #3a1a1a;max-width:400px">
-    <div style="font-size:48px;margin-bottom:16px">🚫</div>
-    <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:#f87171">접근 차단됨</div>
-    <div style="font-size:13px;color:#666;margin-bottom:24px">관리자에 의해 접근이 차단되었습니다</div>
-    <button onclick="supa.auth.signOut().then(()=>location.reload())" style="padding:9px 24px;background:#252530;border:1px solid #3a3a4a;border-radius:8px;color:#a78bfa;cursor:pointer;font-size:13px">로그아웃</button>
-  </div>`;
-}
+/* ── Supabase 세션 복원 ── */
+(async function(){
+  var {data}=await supabase.auth.getSession();
+  if(data&&data.session&&data.session.user){
+    authUser=data.session.user;
+    authUpdateUI(authUser);
+    var loaded=await authLoadFromCloud(authUser);
+    if(loaded){saveLS();renderAll();fetchAll();}
+  }
+  supabase.auth.onAuthStateChange(function(event,session){
+    if(event==="SIGNED_OUT"){authUser=null;authUpdateUI(null);}
+    else if(event==="SIGNED_IN"&&session){authUser=session.user;authUpdateUI(authUser);}
+  });
+})();
 
 // ════════════════════════════════════════════════
-// 원본 대시보드 JS (그대로 유지)
+// 원본 대시보드 JS (그대로)
 // ════════════════════════════════════════════════
 var PROXY="https://yahoo-proxy.realromanticist777.workers.dev";
 var W="\u20a9";
@@ -858,12 +840,12 @@ var CAT_LABEL={crypto:"가상자산",us:"미국주식",kr:"한국주식",cash:"�
 var CAT_BADGE={crypto:"bc",us:"bu",kr:"bk",cash:"bca"};
 var CAT_COLOR={crypto:"#7c3aed",us:"#0ea5e9",kr:"#6366f1",cash:"#10b981"};
 var POLL_COIN_MS=15000,POLL_US_MS=60000,POLL_KR_MS=180000,POLL_TICK_MS=60000;
-function g(id){return document.getElementById(id);}
 function fmt(n){return W+Math.round(n).toLocaleString("ko-KR");}
 function fmtUSD(n){return "$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtP(n){return(n>=0?"+":"")+n.toFixed(2)+"%";}
 function cc(n){return n>=0?"pos":"neg";}
 function clr(n){return n>=0?"#34d399":"#f87171";}
+function g(id){return document.getElementById(id);}
 function cleanSym(s){return s.replace(/\.(KS|KQ|T|L|DE|PA|HK)$/i,"").toUpperCase();}
 function getKST(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Seoul"}));}
 function getET(){return new Date(new Date().toLocaleString("en-US",{timeZone:"America/New_York"}));}
@@ -876,9 +858,7 @@ function setSeg(segId,isActive,stateClass,badgeText,timeText){var el=g(segId);if
 function updateMarketBanner(){var kst=getKST(),et=getET(),kMin=toMin(kst),eMin=toMin(et),kWd=isWeekday(kst),eWd=isWeekday(et);var krPre=kWd&&kMin>=480&&kMin<540,krReg=kWd&&kMin>=540&&kMin<930,krAfter=kWd&&kMin>=930&&kMin<960;setSeg("kr-seg-pre",krPre,"seg-active-pre",krPre?"프리마켓 진행중":"프리마켓 (08:00~09:00)",krPre?"마감 "+fmtLeft(minsLeft(540,kMin)):(kWd&&kMin<480?"시작 "+fmtLeft(minsLeft(480,kMin)):""));setSeg("kr-seg-regular",krReg,"seg-active-regular",krReg?"정규장 진행중":"정규장 (09:00~15:30)",krReg?"마감 "+fmtLeft(minsLeft(930,kMin)):"");setSeg("kr-seg-after",krAfter,"seg-active-after",krAfter?"애프터마켓 진행중":"애프터마켓 (15:30~16:00)",krAfter?"마감 "+fmtLeft(minsLeft(960,kMin)):"");var tkKr=g("tk-kr-ms");if(tkKr){if(krPre){tkKr.textContent="프리마켓";tkKr.className="ms ms-pre";}else if(krReg){tkKr.textContent="정규장";tkKr.className="ms ms-regular";}else if(krAfter){tkKr.textContent="애프터마켓";tkKr.className="ms ms-after";}else{tkKr.textContent=kWd?"마감":"휴장";tkKr.className="ms ms-closed";}}g("kr-clock-kst").textContent=kst.getHours()+":"+pad2(kst.getMinutes())+" KST";var usPre=eWd&&eMin>=240&&eMin<570,usReg=eWd&&eMin>=570&&eMin<960,usAfter=eWd&&eMin>=960&&eMin<1200;setSeg("us-seg-pre",usPre,"seg-active-pre",usPre?"프리마켓 진행중":"프리마켓 (04:00~09:30 ET)",usPre?"마감 "+fmtLeft(minsLeft(570,eMin)):(eWd&&eMin<240?"시작 "+fmtLeft(minsLeft(240,eMin)):""));setSeg("us-seg-regular",usReg,"seg-active-regular",usReg?"정규장 진행중":"정규장 (09:30~16:00 ET)",usReg?"마감 "+fmtLeft(minsLeft(960,eMin)):"");setSeg("us-seg-after",usAfter,"seg-active-after",usAfter?"애프터마켓 진행중":"애프터마켓 (16:00~20:00 ET)",usAfter?"마감 "+fmtLeft(minsLeft(1200,eMin)):"");var tkUs=g("tk-us-ms");if(tkUs){if(usPre){tkUs.textContent="프리마켓";tkUs.className="ms ms-pre";}else if(usReg){tkUs.textContent="정규장";tkUs.className="ms ms-regular";}else if(usAfter){tkUs.textContent="애프터마켓";tkUs.className="ms ms-after";}else{tkUs.textContent=eWd?"마감":"휴장";tkUs.className="ms ms-closed";}}g("us-clock-et").textContent=et.getHours()+":"+pad2(et.getMinutes())+" ET";}
 var DEFAULT_ASSETS=[{id:1,symbol:"BTC",name:"비트코인",cat:"crypto",sector:"레이어1",qty:0.5,avgCost:55000000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:2,symbol:"ETH",name:"이더리움",cat:"crypto",sector:"레이어1",qty:3,avgCost:3200000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:3,symbol:"AAPL",name:"애플",cat:"us",sector:"IT/기술",qty:10,avgCost:180000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:4,symbol:"NVDA",name:"엔비디아",cat:"us",sector:"IT/기술",qty:5,avgCost:600000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:5,symbol:"005930",name:"삼성전자",cat:"kr",sector:"IT/기술",qty:50,avgCost:71000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:6,symbol:"SAVINGS",name:"정기예금",cat:"cash",sector:"",qty:1,avgCost:5000000,price:5000000,prePrice:null,postPrice:null,priceHistory:{}}];
 var assets=DEFAULT_ASSETS.map(function(a){return Object.assign({},a);});
-// ── 저장/로드 (Supabase + localStorage 동시) ──
 function saveLS(){
-  // localStorage 백업
   try{
     localStorage.setItem("ad13_assets",JSON.stringify(assets));
     localStorage.setItem("ad13_trades",JSON.stringify(trades));
@@ -888,54 +868,10 @@ function saveLS(){
     localStorage.setItem("ad13_div",JSON.stringify(dividends));
     localStorage.setItem("ad13_savings",JSON.stringify(savings));
   }catch(e){}
-  // Supabase 저장 (debounce 2초)
-  if(currentUser && currentProfile && currentProfile.status==='approved'){
-    clearTimeout(saveDebounceTimer);
-    saveDebounceTimer = setTimeout(saveToSupabase, 2000);
-  }
+  // 클라우드 동기화 (로그인 상태일 때)
+  if(authUser)authSaveToCloud();
 }
-
-async function saveToSupabase(){
-  if(!currentUser) return;
-  const data = {
-    user_id: currentUser.id,
-    assets: assets,
-    trades: trades,
-    loans: loans,
-    real_estates: realEstates,
-    dividends: dividends,
-    savings: savings,
-    asset_history: assetHistory.slice(-200)
-  };
-  const { error } = await supa.from('dashboard_data').upsert(data, { onConflict: 'user_id' });
-  if(!error){
-    const el = document.getElementById('save-indicator');
-    if(el){ el.textContent='✓ 저장됨'; el.style.color='#34d399'; setTimeout(()=>{el.textContent='';},2000); }
-  }
-}
-
-async function loadFromSupabase(){
-  if(!currentUser) return false;
-  const { data, error } = await supa.from('dashboard_data').select('*').eq('user_id', currentUser.id).single();
-  if(error || !data) return false;
-  if(data.assets) assets = data.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});
-  if(data.trades) trades = data.trades;
-  if(data.loans) loans = data.loans;
-  if(data.real_estates) realEstates = data.real_estates;
-  if(data.dividends) dividends = data.dividends;
-  if(data.savings) savings = data.savings;
-  if(data.asset_history) assetHistory = data.asset_history;
-  return true;
-}
-
-function loadLS(){
-  try{
-    var a=localStorage.getItem("ad13_assets")||localStorage.getItem("ad12_assets"),t=localStorage.getItem("ad13_trades")||localStorage.getItem("ad12_trades"),l=localStorage.getItem("ad13_loans")||localStorage.getItem("ad12_loans"),r=localStorage.getItem("ad13_real")||localStorage.getItem("ad12_real"),h=localStorage.getItem("ad13_hist")||localStorage.getItem("ad12_hist"),d=localStorage.getItem("ad13_div")||localStorage.getItem("ad12_div"),s=localStorage.getItem("ad13_savings")||localStorage.getItem("ad12_savings");
-    if(a)assets=JSON.parse(a);if(t)trades=JSON.parse(t);if(l)loans=JSON.parse(l);if(r)realEstates=JSON.parse(r);if(h)assetHistory=JSON.parse(h);if(d)dividends=JSON.parse(d);if(s)savings=JSON.parse(s);
-    assets=assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});
-    return !!(a||t);
-  }catch(e){return false;}
-}
+function loadLS(){try{var a=localStorage.getItem("ad13_assets")||localStorage.getItem("ad12_assets"),t=localStorage.getItem("ad13_trades")||localStorage.getItem("ad12_trades"),l=localStorage.getItem("ad13_loans")||localStorage.getItem("ad12_loans"),r=localStorage.getItem("ad13_real")||localStorage.getItem("ad12_real"),h=localStorage.getItem("ad13_hist")||localStorage.getItem("ad12_hist"),d=localStorage.getItem("ad13_div")||localStorage.getItem("ad12_div"),s=localStorage.getItem("ad13_savings")||localStorage.getItem("ad12_savings");if(a)assets=JSON.parse(a);if(t)trades=JSON.parse(t);if(l)loans=JSON.parse(l);if(r)realEstates=JSON.parse(r);if(h)assetHistory=JSON.parse(h);if(d)dividends=JSON.parse(d);if(s)savings=JSON.parse(s);assets=assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});return !!(a||t);}catch(e){return false;}}
 function exportData(){var blob=new Blob([JSON.stringify({v:13,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();a.href=url;a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";a.click();URL.revokeObjectURL(url);}
 function importData(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});if(d.trades)trades=d.trades;if(d.loans)loans=d.loans;if(d.realEstates)realEstates=d.realEstates;if(d.assetHistory)assetHistory=d.assetHistory;if(d.dividends)dividends=d.dividends;if(d.savings)savings=d.savings;saveLS();renderAll();fetchAll();alert("불러오기 완료!");}catch(err){alert("파일 형식이 올바르지 않습니다.");}};reader.readAsText(file);e.target.value="";}
 function updatePremium(){if(!usdtKrwVal||!usdKrwVal)return;var p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100,s=fmtP(p),c=p>=0?"#f59e0b":"#a78bfa";var tkP=g("tk-premium"),chP=g("ch-premium");if(tkP){tkP.textContent=s;tkP.style.color=c;}if(chP){chP.textContent=s;chP.style.color=c;}}
@@ -1028,140 +964,12 @@ function setSvFilter(f,btn){svFilter=f;document.querySelectorAll("#savingspage .
 function renderSavings(){var totalPrincipal=savings.reduce(function(s,sv){return s+sv.amount;},0),totalNet=savings.reduce(function(s,sv){return s+calcSvStats(sv).netInterest;},0),totalVal=savings.reduce(function(s,sv){return s+calcSvStats(sv).total;},0),avgRate=savings.length?savings.reduce(function(s,sv){return s+sv.rate;},0)/savings.length:0,today=new Date(),expiring=savings.filter(function(sv){if(!sv.endDate)return false;var d=Math.round((new Date(sv.endDate)-today)/86400000);return d>=0&&d<=30;}).length;g("sv-principal").textContent=fmt(totalPrincipal);g("sv-value").textContent=fmt(totalVal);g("sv-interest").textContent=fmt(totalNet);g("sv-avgrate").textContent=avgRate.toFixed(2)+"%";g("sv-expiring").textContent=expiring+"건";var tbody=g("sv-table"),filtered=savings.filter(function(sv){if(svFilter==="active")return sv.status==="active";if(svFilter==="expired")return sv.status==="expired";return true;});if(!filtered.length){tbody.innerHTML="<tr><td colspan='13' style='text-align:center;color:#333;padding:22px'>예적금을 추가해주세요</td></tr>";}else{tbody.innerHTML=filtered.map(function(sv){var st=calcSvStats(sv),dday=st.dday,ddayStr=dday===null?"--":dday<0?"만기완료":dday===0?"오늘만기":"D-"+dday,ddayColor=dday===null?"#555":dday<0?"#34d399":dday<=7?"#f87171":dday<=30?"#f59e0b":"#888",tc=SV_COLOR[sv.svType]||"#888",isExpired=sv.status==="expired"||(dday!==null&&dday<0);return"<tr style='"+(isExpired?"opacity:.6":"")+"'><td><strong>"+sv.name+"</strong>"+(sv.bank?"<br><span style='color:#555;font-size:10px'>"+sv.bank+"</span>":"")+"</td><td><span style='padding:2px 7px;border-radius:10px;font-size:10px;background:#1e1e28;color:"+tc+"'>"+SV_TYPE[sv.svType]+"</span></td><td style='color:#888;font-size:11px'>"+(sv.bank||"-")+"</td><td>"+fmt(sv.amount)+"</td><td style='color:#f59e0b;font-weight:600'>"+sv.rate+"%</td><td style='font-size:11px;color:#888'>"+(sv.startDate||"-")+"</td><td style='font-size:11px;color:#888'>"+(sv.endDate||"-")+"</td><td style='font-weight:700;color:"+ddayColor+"'>"+ddayStr+"</td><td style='color:#f59e0b'>"+fmt(st.grossInterest)+"</td><td class='pos'>"+fmt(st.netInterest)+"</td><td style='color:#34d399;font-weight:600'>"+fmt(st.total)+"</td><td>"+(isExpired&&sv.status!=="expired"?"<span style='color:#f87171;font-size:10px'>만기도래</span>":sv.status==="expired"?"<span style='color:#34d399;font-size:10px'>완료</span>":"<span style='color:#a78bfa;font-size:10px'>진행중</span>")+"</td><td style='white-space:nowrap'><button class='btn btns' onclick='toggleSvStatus("+sv.id+")'>"+(sv.status==="expired"?"복원":"만기처리")+"</button> <button class='btn btns btnd' onclick='delSavings("+sv.id+")'>삭제</button></td></tr>";}).join("");}var monthly={};savings.forEach(function(sv){if(!sv.endDate)return;var m=sv.endDate.substring(0,7);monthly[m]=(monthly[m]||0)+sv.amount;});var mk=Object.keys(monthly).sort(),mv=mk.map(function(k){return Math.round(monthly[k]/10000);});var svChart2=Chart.getChart("sv-chart");if(svChart2)svChart2.destroy();new Chart(g("sv-chart"),{type:"bar",data:{labels:mk.length?mk:["데이터없음"],datasets:[{data:mk.length?mv:[0],backgroundColor:"rgba(56,189,248,.6)",borderColor:"#38bdf8",borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#888"},grid:{color:"#1a1a22"}},y:{ticks:{color:"#888",callback:function(v){return v+"만";}},grid:{color:"#1a1a22"}}}}});}
 function toggleSvStatus(id){var sv=savings.find(function(x){return x.id===id;});if(sv)sv.status=sv.status==="expired"?"active":"expired";renderSavings();saveLS();}
 function delSavings(id){savings=savings.filter(function(x){return x.id!==id;});renderSavings();saveLS();}
-function showPage(id,btn){
-  document.querySelectorAll(".page, #screener-page, #admin-page").forEach(function(p){p.classList.remove("active");});
-  document.querySelectorAll(".nb").forEach(function(b){b.classList.remove("active");});
-  g(id).classList.add("active");
-  btn.classList.add("active");
-}
+function showPage(id,btn){document.querySelectorAll(".page, #screener-page").forEach(function(p){p.classList.remove("active");});document.querySelectorAll(".nb").forEach(function(b){b.classList.remove("active");});g(id).classList.add("active");btn.classList.add("active");}
 
 // ════════════════════════════════════════════════
-// 관리자 기능
-// ════════════════════════════════════════════════
-async function loadAdminPage(){
-  // 유저 목록
-  const { data: users } = await supa.from('admin_user_view').select('*');
-  renderUserList(users||[]);
-  // 공지사항
-  const { data: notices } = await supa.from('notices').select('*').order('created_at', {ascending:false});
-  renderNoticeList(notices||[]);
-  // 섹터맵 종목
-  const { data: stocks } = await supa.from('screener_stocks').select('*').order('region').order('sector').order('sort_order');
-  renderStockList(stocks||[]);
-}
-
-function renderUserList(users){
-  const tbody = g('admin-user-tbody');
-  if(!tbody) return;
-  const STATUS_LABEL = {pending:'⏳ 대기',approved:'✅ 승인',blocked:'🚫 차단'};
-  const STATUS_CLR = {pending:'#f59e0b',approved:'#34d399',blocked:'#f87171'};
-  tbody.innerHTML = users.map(u => `
-    <tr>
-      <td>${u.email}</td>
-      <td>${u.display_name||'-'}</td>
-      <td style="color:${u.role==='admin'?'#a78bfa':'#888'}">${u.role}</td>
-      <td style="color:${STATUS_CLR[u.status]}">${STATUS_LABEL[u.status]||u.status}</td>
-      <td>${u.created_at?u.created_at.slice(0,10):'-'}</td>
-      <td>${u.last_seen_at?u.last_seen_at.slice(0,16).replace('T',' '):'-'}</td>
-      <td style="white-space:nowrap">
-        ${u.status!=='approved'?`<button class="btn btns" onclick="adminSetStatus('${u.id}','approved')">승인</button> `:''}
-        ${u.status!=='blocked'?`<button class="btn btns btnd" onclick="adminSetStatus('${u.id}','blocked')">차단</button> `:''}
-        ${u.status==='blocked'?`<button class="btn btns" onclick="adminSetStatus('${u.id}','approved')">해제</button> `:''}
-        ${u.role!=='admin'?`<button class="btn btns" style="color:#a78bfa;border-color:#3a2060" onclick="adminSetRole('${u.id}','admin')">관리자↑</button>`:`<button class="btn btns" onclick="adminSetRole('${u.id}','user')">권한해제</button>`}
-      </td>
-    </tr>`).join('');
-}
-
-async function adminSetStatus(uid, status){
-  await supa.from('profiles').update({status, approved_at: status==='approved'?new Date().toISOString():null}).eq('id', uid);
-  loadAdminPage();
-}
-async function adminSetRole(uid, role){
-  await supa.from('profiles').update({role}).eq('id', uid);
-  loadAdminPage();
-}
-
-function renderNoticeList(notices){
-  const el = g('admin-notice-list');
-  if(!el) return;
-  el.innerHTML = notices.length ? notices.map(n=>`
-    <div style="background:#141418;border-radius:8px;padding:10px 14px;margin-bottom:6px;border:1px solid #2a2a38">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:600;font-size:13px">${n.is_pinned?'📌 ':''}${n.title}</span>
-        <button class="btn btns btnd" onclick="deleteNotice('${n.id}')">삭제</button>
-      </div>
-      <div style="font-size:11px;color:#666;margin-top:4px">${n.content}</div>
-      <div style="font-size:10px;color:#333;margin-top:4px">${n.created_at.slice(0,16).replace('T',' ')}</div>
-    </div>`).join('') : '<div style="color:#333;font-size:12px;padding:12px">공지사항이 없습니다</div>';
-}
-
-async function addNotice(){
-  const title = g('notice-title').value.trim();
-  const content = g('notice-content').value.trim();
-  const pinned = g('notice-pinned').checked;
-  if(!title||!content){alert('제목과 내용을 입력해주세요');return;}
-  await supa.from('notices').insert({title, content, is_pinned:pinned, author_id:currentUser.id});
-  g('notice-title').value=''; g('notice-content').value=''; g('notice-pinned').checked=false;
-  const { data } = await supa.from('notices').select('*').order('created_at',{ascending:false});
-  renderNoticeList(data||[]);
-}
-async function deleteNotice(id){
-  if(!confirm('삭제할까요?')) return;
-  await supa.from('notices').delete().eq('id', id);
-  const { data } = await supa.from('notices').select('*').order('created_at',{ascending:false});
-  renderNoticeList(data||[]);
-}
-
-function renderStockList(stocks){
-  const tbody = g('admin-stock-tbody');
-  if(!tbody) return;
-  tbody.innerHTML = stocks.map(s=>`
-    <tr>
-      <td><span style="padding:1px 6px;border-radius:8px;font-size:10px;background:${s.region==='us'?'#1a2a3a':'#1a2540'};color:${s.region==='us'?'#38bdf8':'#818cf8'}">${s.region.toUpperCase()}</span></td>
-      <td>${s.symbol}</td>
-      <td>${s.name}</td>
-      <td style="color:#888">${s.name_kr||'-'}</td>
-      <td>${s.sector}</td>
-      <td style="color:#888">${s.market||s.size_tag||'-'}</td>
-      <td><span style="color:${s.is_active?'#34d399':'#f87171'}">${s.is_active?'활성':'비활성'}</span></td>
-      <td style="white-space:nowrap">
-        <button class="btn btns" onclick="toggleStockActive('${s.id}',${s.is_active})">${s.is_active?'비활성화':'활성화'}</button>
-        <button class="btn btns btnd" onclick="deleteStock('${s.id}')">삭제</button>
-      </td>
-    </tr>`).join('');
-}
-
-async function addStock(){
-  const region = g('stock-region').value;
-  const symbol = g('stock-symbol').value.trim().toUpperCase();
-  const name = g('stock-name').value.trim();
-  const nameKr = g('stock-name-kr').value.trim();
-  const sector = g('stock-sector').value.trim();
-  const market = g('stock-market').value.trim();
-  const sizeTag = g('stock-size').value;
-  if(!symbol||!name||!sector){alert('심볼, 종목명, 섹터를 입력해주세요');return;}
-  await supa.from('screener_stocks').insert({region, symbol, name, name_kr:nameKr||null, sector, market:market||null, size_tag:sizeTag||null});
-  ['stock-symbol','stock-name','stock-name-kr','stock-sector','stock-market'].forEach(id=>g(id).value='');
-  const { data } = await supa.from('screener_stocks').select('*').order('region').order('sector').order('sort_order');
-  renderStockList(data||[]);
-}
-async function toggleStockActive(id, current){
-  await supa.from('screener_stocks').update({is_active:!current}).eq('id',id);
-  const { data } = await supa.from('screener_stocks').select('*').order('region').order('sector').order('sort_order');
-  renderStockList(data||[]);
-}
-async function deleteStock(id){
-  if(!confirm('종목을 삭제할까요?')) return;
-  await supa.from('screener_stocks').delete().eq('id',id);
-  const { data } = await supa.from('screener_stocks').select('*').order('region').order('sector').order('sort_order');
-  renderStockList(data||[]);
-}
-
-// ════════════════════════════════════════════════
-// 스크리너 JS
+// 스크리너 JS (원본 그대로)
 // ════════════════════════════════════════════════
 var scrRegion="us", scrSeg="all", scrCache={}, scrValLoading={}, scrInited=false;
-
 var US_STOCKS=[
   {sym:"AAPL",name:"Apple",kr:"애플",sec:"IT",sz:"lg"},{sym:"MSFT",name:"Microsoft",kr:"마이크로소프트",sec:"IT",sz:"lg"},
   {sym:"NVDA",name:"NVIDIA",kr:"엔비디아",sec:"IT",sz:"lg"},{sym:"AVGO",name:"Broadcom",kr:"브로드컴",sec:"IT",sz:"lg"},
@@ -1200,7 +1008,6 @@ var US_STOCKS=[
   {sym:"BWXT",name:"BWX Technologies",kr:"BWX테크",sec:"방산",sz:"md"},{sym:"LDOS",name:"Leidos",kr:"레이도스",sec:"방산",sz:"md"},
   {sym:"AVAV",name:"AeroVironment",kr:"에어로바이론먼트",sec:"방산",sz:"sm"},{sym:"KTOS",name:"Kratos Defense",kr:"크라토스",sec:"방산",sz:"sm"},
 ];
-
 var KR_STOCKS=[
   {sym:"005930.KS",name:"삼성전자",sec:"반도체",mkt:"KOSPI"},{sym:"000660.KS",name:"SK하이닉스",sec:"반도체",mkt:"KOSPI"},
   {sym:"042700.KS",name:"한미반도체",sec:"반도체",mkt:"KOSPI"},{sym:"009150.KS",name:"삼성전기",sec:"반도체",mkt:"KOSPI"},
@@ -1273,346 +1080,45 @@ var KR_STOCKS=[
   {sym:"041510.KQ",name:"에스엠",sec:"로봇·AI",mkt:"KOSDAQ"},{sym:"377300.KQ",name:"카카오페이",sec:"로봇·AI",mkt:"KOSDAQ"},
   {sym:"323410.KQ",name:"카카오뱅크",sec:"로봇·AI",mkt:"KOSDAQ"},{sym:"251270.KQ",name:"넷마블",sec:"로봇·AI",mkt:"KOSDAQ"},
 ];
-// 중복 제거
 (function(){var seen={};KR_STOCKS=KR_STOCKS.filter(function(s){var k=s.sym+"_"+s.sec;if(seen[k])return false;seen[k]=true;return true;});})();
-
-/* 포맷 */
-function scrFmtChg(v){
-  if(v==null||isNaN(v))return'<span style="color:#444">--</span>';
-  var s=v>0?"+":"",c=v>0?"#34d399":v<0?"#f87171":"#555";
-  var bg=v>2?"rgba(52,211,153,.1)":v<-2?"rgba(248,113,113,.1)":"transparent";
-  return'<span style="color:'+c+';background:'+bg+';padding:2px 5px;border-radius:3px;display:inline-block">'+s+v.toFixed(2)+'%</span>';
-}
+function scrFmtChg(v){if(v==null||isNaN(v))return'<span style="color:#444">--</span>';var s=v>0?"+":"",c=v>0?"#34d399":v<0?"#f87171":"#555";var bg=v>2?"rgba(52,211,153,.1)":v<-2?"rgba(248,113,113,.1)":"transparent";return'<span style="color:'+c+';background:'+bg+';padding:2px 5px;border-radius:3px;display:inline-block">'+s+v.toFixed(2)+'%</span>';}
 function scrFmtCap(v,isKr){if(!v)return'--';if(isKr){if(v>=1e12)return(v/1e12).toFixed(1)+'조';if(v>=1e8)return(v/1e8).toFixed(0)+'억';}else{if(v>=1e12)return(v/1e12).toFixed(2)+'T';if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';}return v.toLocaleString();}
 function scrFmtAmt(v,isKr){if(v==null)return null;if(isKr){if(Math.abs(v)>=1e12)return(v/1e12).toFixed(1)+'조';if(Math.abs(v)>=1e8)return(v/1e8).toFixed(0)+'억';}else{if(Math.abs(v)>=1e12)return(v/1e12).toFixed(2)+'T';if(Math.abs(v)>=1e9)return(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';}return v.toFixed(0);}
-
-/* API */
-function scrFetchQ(sym){
-  if(scrCache[sym]&&scrCache[sym].q)return Promise.resolve(scrCache[sym]);
-  scrCache[sym]=scrCache[sym]||{};
-  return fetch(PROXY+"?mode=quote&sym="+encodeURIComponent(sym))
-    .then(function(r){return r.json();}).then(function(d){if(d.ok&&d.data){scrCache[sym].q=1;scrCache[sym].chg1d=d.data.chgPct;scrCache[sym].cap=d.data.cap;}return scrCache[sym];}).catch(function(){return scrCache[sym];});
-}
-function scrFetchKR(sym){
-  if(scrCache[sym]&&scrCache[sym].q)return Promise.resolve(scrCache[sym]);
-  scrCache[sym]=scrCache[sym]||{};
-  var code=sym.replace(/\.(KS|KQ)$/i,"");
-  return fetch(PROXY+"?mode=kr_price&code="+encodeURIComponent(code))
-    .then(function(r){return r.json();}).then(function(d){if(d.ok&&d.data){scrCache[sym].q=1;scrCache[sym].chg1d=d.data.chg;scrCache[sym].cap=d.data.cap;}return scrCache[sym];}).catch(function(){return scrCache[sym];});
-}
-// 1주~1년 등락: Yahoo Finance chart API를 PROXY quote 모드 내 priceHistory 대신
-// batch 모드로 시도 → 없으면 world 모드로 대체 불가 → chart 모드 신규 호출
-function scrFetchHistory(sym){
-  if(scrCache[sym]&&scrCache[sym].hist)return Promise.resolve(scrCache[sym]);
-  scrCache[sym]=scrCache[sym]||{};
-  // Yahoo Finance v8 chart API 직접 (CORS 없음) → PROXY 에 chart 모드 요청
-  // Worker에 없으면 skip
-  return fetch(PROXY+"?mode=chart&sym="+encodeURIComponent(sym)+"&range=1y")
-    .then(function(r){return r.json();}).then(function(d){
-      scrCache[sym].hist=true;
-      if(d.ok&&d.data){
-        scrCache[sym].chg1w=d.data.chg1w??null;
-        scrCache[sym].chg1m=d.data.chg1m??null;
-        scrCache[sym].chg6m=d.data.chg6m??null;
-        scrCache[sym].chg1y=d.data.chg1y??null;
-      }
-      return scrCache[sym];
-    }).catch(function(){scrCache[sym].hist=true;return scrCache[sym];});
-}
-function scrFetchFin(sym){
-  if(scrCache[sym]&&scrCache[sym].fin)return Promise.resolve(scrCache[sym]);
-  scrCache[sym]=scrCache[sym]||{};
-  return fetch(PROXY+"?mode=financials&sym="+encodeURIComponent(sym))
-    .then(function(r){return r.json();}).then(function(d){
-      scrCache[sym].fin=true;
-      if(d.ok&&d.data){
-        var fd=d.data;
-        scrCache[sym].per=fd.defaultKeyStatistics?.trailingPE?.raw??null;
-        scrCache[sym].pbr=fd.defaultKeyStatistics?.priceToBook?.raw??null;
-        scrCache[sym].divYield=fd.summaryDetail?.dividendYield?.raw??null;
-        var incQ=fd.incomeStatementHistoryQuarterly?.incomeStatementHistory||fd.incomeStatementHistory?.incomeStatementHistory;
-        if(incQ&&incQ.length){scrCache[sym].quarters=incQ.slice(0,4).map(function(q){return{label:(q.endDate?.fmt||"").slice(0,7),rev:q.totalRevenue?.raw??null,oi:q.operatingIncome?.raw??null,oim:(q.totalRevenue?.raw&&q.operatingIncome?.raw)?(q.operatingIncome.raw/q.totalRevenue.raw*100):null};}).reverse();}
-        var hp=fd.priceHistory;
-        if(hp){scrCache[sym].chg1w=hp.week??null;scrCache[sym].chg1m=hp.month??null;scrCache[sym].chg6m=hp.sixMonth??null;scrCache[sym].chg1y=hp.year??null;}
-        var est=fd.earningsTrend?.trend;
-        if(est){var nx=est.find(function(t){return t.period==="+1q";})||est[0];if(nx){scrCache[sym].fwdRev=nx.revenueEstimate?.avg?.raw??null;scrCache[sym].fwdPeriod=(nx.endDate||"").slice(0,7);}}
-      }
-      return scrCache[sym];
-    }).catch(function(){scrCache[sym].fin=true;return scrCache[sym];});
-}
-
-/* 밸류에이션 패널 */
-function scrBuildVal(c,isKr){
-  var html='<div class="val-grid">';
-  html+='<div class="val-block"><div class="val-title">기본 지표</div>';
-  html+='<div class="val-kv"><span class="val-k">시가총액</span><span class="val-v">'+scrFmtCap(c.cap,isKr)+'</span></div>';
-  html+='<div class="val-kv"><span class="val-k">배당수익률</span><span class="val-v">'+(c.divYield?((c.divYield*100).toFixed(2)+'%'):'--')+'</span></div>';
-  html+='<div class="val-kv"><span class="val-k">PER</span><span class="val-v">'+(c.per&&c.per>0&&c.per<500?c.per.toFixed(1)+'x':'--')+'</span></div>';
-  html+='<div class="val-kv"><span class="val-k">PBR</span><span class="val-v">'+(c.pbr&&c.pbr>0?c.pbr.toFixed(2)+'x':'--')+'</span></div>';
-  html+='</div>';
-  var qs=c.quarters||[];
-  if(qs.length){html+=scrQChart(qs,c,'rev',isKr,'매출 (분기)');html+=scrQChart(qs,c,'oi',isKr,'영업이익 (분기)');html+=scrOimChart(qs);}
-  html+='</div>';return html;
-}
-function scrQChart(qs,c,key,isKr,title){
-  var vals=qs.map(function(q){return q[key];}).filter(function(v){return v!=null;});
-  if(key==='rev'&&c.fwdRev)vals.push(c.fwdRev);
-  var mx=vals.length?Math.max.apply(null,vals.map(Math.abs)):1;if(!mx)mx=1;
-  var html='<div class="val-block"><div class="val-title">'+title+'</div><div class="q-chart">';
-  qs.forEach(function(q){var v=q[key],h=v!=null?Math.max(2,Math.abs(v)/mx*55):2,clr2=v!=null&&v<0?"#f87171":"#818cf8";html+='<div class="q-col"><div class="q-bar-wrap"><div class="q-bar" style="height:'+h+'px;background:'+clr2+'"></div></div><div class="q-label">'+q.label+'</div><div class="q-val">'+(scrFmtAmt(v,isKr)||'--')+'</div></div>';});
-  if(key==='rev'&&c.fwdRev!=null){var fh=Math.max(2,Math.abs(c.fwdRev)/mx*55);html+='<div class="q-col q-fc-wrap"><div class="q-bar-wrap"><div class="q-bar q-fc" style="height:'+fh+'px"></div></div><div class="q-label" style="color:#7c3aed">'+(c.fwdPeriod||'예측')+'</div><div class="q-val" style="color:#7c3aed">'+(scrFmtAmt(c.fwdRev,isKr)||'--')+'</div></div>';}
-  return html+'</div></div>';
-}
+function scrFetchQ(sym){if(scrCache[sym]&&scrCache[sym].q)return Promise.resolve(scrCache[sym]);scrCache[sym]=scrCache[sym]||{};return fetch(PROXY+"?mode=quote&sym="+encodeURIComponent(sym)).then(function(r){return r.json();}).then(function(d){if(d.ok&&d.data){scrCache[sym].q=1;scrCache[sym].chg1d=d.data.chgPct;scrCache[sym].cap=d.data.cap;}return scrCache[sym];}).catch(function(){return scrCache[sym];});}
+function scrFetchKR(sym){if(scrCache[sym]&&scrCache[sym].q)return Promise.resolve(scrCache[sym]);scrCache[sym]=scrCache[sym]||{};var code=sym.replace(/\.(KS|KQ)$/i,"");return fetch(PROXY+"?mode=kr_price&code="+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){if(d.ok&&d.data){scrCache[sym].q=1;scrCache[sym].chg1d=d.data.chg;scrCache[sym].cap=d.data.cap;}return scrCache[sym];}).catch(function(){return scrCache[sym];});}
+function scrFetchHistory(sym){if(scrCache[sym]&&scrCache[sym].hist)return Promise.resolve(scrCache[sym]);scrCache[sym]=scrCache[sym]||{};return fetch(PROXY+"?mode=chart&sym="+encodeURIComponent(sym)+"&range=1y").then(function(r){return r.json();}).then(function(d){scrCache[sym].hist=true;if(d.ok&&d.data){scrCache[sym].chg1w=d.data.chg1w??null;scrCache[sym].chg1m=d.data.chg1m??null;scrCache[sym].chg6m=d.data.chg6m??null;scrCache[sym].chg1y=d.data.chg1y??null;}return scrCache[sym];}).catch(function(){scrCache[sym].hist=true;return scrCache[sym];});}
+function scrFetchFin(sym){if(scrCache[sym]&&scrCache[sym].fin)return Promise.resolve(scrCache[sym]);scrCache[sym]=scrCache[sym]||{};return fetch(PROXY+"?mode=financials&sym="+encodeURIComponent(sym)).then(function(r){return r.json();}).then(function(d){scrCache[sym].fin=true;if(d.ok&&d.data){var fd=d.data;scrCache[sym].per=fd.defaultKeyStatistics?.trailingPE?.raw??null;scrCache[sym].pbr=fd.defaultKeyStatistics?.priceToBook?.raw??null;scrCache[sym].divYield=fd.summaryDetail?.dividendYield?.raw??null;var incQ=fd.incomeStatementHistoryQuarterly?.incomeStatementHistory||fd.incomeStatementHistory?.incomeStatementHistory;if(incQ&&incQ.length){scrCache[sym].quarters=incQ.slice(0,4).map(function(q){return{label:(q.endDate?.fmt||"").slice(0,7),rev:q.totalRevenue?.raw??null,oi:q.operatingIncome?.raw??null,oim:(q.totalRevenue?.raw&&q.operatingIncome?.raw)?(q.operatingIncome.raw/q.totalRevenue.raw*100):null};}).reverse();}var hp=fd.priceHistory;if(hp){scrCache[sym].chg1w=hp.week??null;scrCache[sym].chg1m=hp.month??null;scrCache[sym].chg6m=hp.sixMonth??null;scrCache[sym].chg1y=hp.year??null;}var est=fd.earningsTrend?.trend;if(est){var nx=est.find(function(t){return t.period==="+1q";})||est[0];if(nx){scrCache[sym].fwdRev=nx.revenueEstimate?.avg?.raw??null;scrCache[sym].fwdPeriod=(nx.endDate||"").slice(0,7);}}}return scrCache[sym];}).catch(function(){scrCache[sym].fin=true;return scrCache[sym];});}
+function scrBuildVal(c,isKr){var html='<div class="val-grid">';html+='<div class="val-block"><div class="val-title">기본 지표</div>';html+='<div class="val-kv"><span class="val-k">시가총액</span><span class="val-v">'+scrFmtCap(c.cap,isKr)+'</span></div>';html+='<div class="val-kv"><span class="val-k">배당수익률</span><span class="val-v">'+(c.divYield?((c.divYield*100).toFixed(2)+'%'):'--')+'</span></div>';html+='<div class="val-kv"><span class="val-k">PER</span><span class="val-v">'+(c.per&&c.per>0&&c.per<500?c.per.toFixed(1)+'x':'--')+'</span></div>';html+='<div class="val-kv"><span class="val-k">PBR</span><span class="val-v">'+(c.pbr&&c.pbr>0?c.pbr.toFixed(2)+'x':'--')+'</span></div>';html+='</div>';var qs=c.quarters||[];if(qs.length){html+=scrQChart(qs,c,'rev',isKr,'매출 (분기)');html+=scrQChart(qs,c,'oi',isKr,'영업이익 (분기)');html+=scrOimChart(qs);}html+='</div>';return html;}
+function scrQChart(qs,c,key,isKr,title){var vals=qs.map(function(q){return q[key];}).filter(function(v){return v!=null;});if(key==='rev'&&c.fwdRev)vals.push(c.fwdRev);var mx=vals.length?Math.max.apply(null,vals.map(Math.abs)):1;if(!mx)mx=1;var html='<div class="val-block"><div class="val-title">'+title+'</div><div class="q-chart">';qs.forEach(function(q){var v=q[key],h=v!=null?Math.max(2,Math.abs(v)/mx*55):2,clr2=v!=null&&v<0?"#f87171":"#818cf8";html+='<div class="q-col"><div class="q-bar-wrap"><div class="q-bar" style="height:'+h+'px;background:'+clr2+'"></div></div><div class="q-label">'+q.label+'</div><div class="q-val">'+(scrFmtAmt(v,isKr)||'--')+'</div></div>';});if(key==='rev'&&c.fwdRev!=null){var fh=Math.max(2,Math.abs(c.fwdRev)/mx*55);html+='<div class="q-col q-fc-wrap"><div class="q-bar-wrap"><div class="q-bar q-fc" style="height:'+fh+'px"></div></div><div class="q-label" style="color:#7c3aed">'+(c.fwdPeriod||'예측')+'</div><div class="q-val" style="color:#7c3aed">'+(scrFmtAmt(c.fwdRev,isKr)||'--')+'</div></div>';}return html+'</div></div>';}
 function scrOimChart(qs){var vals=qs.map(function(q){return q.oim;}).filter(function(v){return v!=null;});if(!vals.length)return'';var mx=Math.max.apply(null,vals.map(Math.abs).concat([1]));var html='<div class="val-block"><div class="val-title">영업이익률 (분기)</div><div class="q-chart">';qs.forEach(function(q){var v=q.oim,h=v!=null?Math.max(2,Math.abs(v)/mx*55):2,clr2=v==null?"#333":v<0?"#f87171":v>15?"#34d399":"#a78bfa";html+='<div class="q-col"><div class="q-bar-wrap"><div class="q-bar" style="height:'+h+'px;background:'+clr2+'"></div></div><div class="q-label">'+q.label+'</div><div class="q-val">'+(v!=null?v.toFixed(1)+'%':'--')+'</div></div>';});return html+'</div></div>';}
-
-/* 행 렌더 */
-function scrRow(s,c,isKr){
-  var id='sv_'+s.sym.replace(/[^a-zA-Z0-9]/g,'_')+'_'+s.sec.replace(/[^a-zA-Z0-9]/g,'_');
-  var badge=isKr?('<span class="scr-badge '+(s.mkt==='KOSPI'?'sb-kospi':'sb-kosdaq')+'">'+s.mkt+'</span>'):({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[s.sz]||'');
-  var nm=isKr?('<strong>'+s.name+'</strong><br><span style="font-size:10px;color:#3a3a4a">'+s.sym.replace(/\.(KS|KQ)$/,'')+'</span>'):('<strong>'+s.name+'</strong> <span style="font-size:10px;color:#555">'+s.kr+'</span><br><span style="font-size:10px;color:#333">'+s.sym+'</span>');
-  return '<tr data-sec="'+s.sec+'" data-sz="'+(s.sz||'')+'" data-mkt="'+(s.mkt||'')+'" data-id="'+id+'">'
-    +'<td class="sl sc0">'+badge+'</td>'
-    +'<td class="sl sc1" style="font-size:10px;color:#555">'+s.sec+'</td>'
-    +'<td class="sl sc2">'+nm+'</td>'
-    +'<td>'+scrFmtChg(c.chg1d)+'</td>'
-    +'<td>'+scrFmtChg(c.chg1w)+'</td>'
-    +'<td>'+scrFmtChg(c.chg1m)+'</td>'
-    +'<td>'+scrFmtChg(c.chg6m)+'</td>'
-    +'<td>'+scrFmtChg(c.chg1y)+'</td>'
-    +'<td><button class="val-toggle" onclick="scrToggleVal(\''+id+'\',\''+s.sym+'\','+isKr+',this)">▶ 상세</button></td>'
-    +'</tr>'
-    +'<tr class="val-row" id="'+id+'"><td class="val-cell" colspan="9"><div id="'+id+'-c"><span style="color:#555;font-size:11px"><span class="loading"></span> 로딩중...</span></div></td></tr>';
-}
-
-function scrToggleVal(id,sym,isKr,btn){
-  var row=document.getElementById(id);if(!row)return;
-  var open=row.classList.toggle('open');btn.textContent=open?'▼ 닫기':'▶ 상세';
-  if(open&&!scrValLoading[sym]){
-    scrValLoading[sym]=true;
-    scrFetchFin(sym).then(function(c){
-      var el=document.getElementById(id+'-c');if(el)el.innerHTML=scrBuildVal(c,isKr);
-      // 등락률도 업데이트
-      var tr=document.querySelector('tr[data-id="'+id+'"]');
-      if(tr){var tds=tr.querySelectorAll('td');if(tds.length>=8){tds[3].innerHTML=scrFmtChg(c.chg1d);tds[4].innerHTML=scrFmtChg(c.chg1w);tds[5].innerHTML=scrFmtChg(c.chg1m);tds[6].innerHTML=scrFmtChg(c.chg6m);tds[7].innerHTML=scrFmtChg(c.chg1y);}}
-    });
-  }
-}
-
-/* 테이블 빌드 */
-function scrBuild(region){
-  var stocks=region==='us'?US_STOCKS:KR_STOCKS,isKr=region==='kr';
-  var bodyId=region==='us'?'scr-us-body':'scr-kr-body';
-  var tbody=g(bodyId);
-  tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#555"><span class="loading"></span> 로딩중...</td></tr>';
-  var chunks=[];for(var i=0;i<stocks.length;i+=8)chunks.push(stocks.slice(i,i+8));
-  var secs=[...new Set(stocks.map(function(s){return s.sec;}))];
-
-  function render(){
-    var html="";
-    secs.forEach(function(sec){
-      var grp=stocks.filter(function(s){return s.sec===sec;});
-      html+='<tr class="sec-sep"><td colspan="9">◆ '+sec+' ('+grp.length+')</td></tr>';
-      grp.forEach(function(s){html+=scrRow(s,scrCache[s.sym]||{},isKr);});
-    });
-    tbody.innerHTML=html;
-    scrApplyStickyLeft(region);
-    scrUpdateSum();
-  }
-
-  // 1단계: 가격 로드
-  function loadP(ci){
-    if(ci>=chunks.length){render();loadH(0);return;}
-    Promise.all(chunks[ci].map(function(s){return isKr?scrFetchKR(s.sym):scrFetchQ(s.sym);}))
-      .then(function(){render();loadP(ci+1);});
-  }
-  // 2단계: 재무(1주~1년 포함) 로드 — financials 모드에서 priceHistory가 있으면 거기서, 없으면 chart 모드 시도
-  var finChunks=[];for(var j=0;j<stocks.length;j+=3)finChunks.push(stocks.slice(j,j+3));
-  function loadH(ci){
-    if(ci>=finChunks.length){render();g("scr-status").textContent='완료 '+scrHhmm();return;}
-    Promise.all(finChunks[ci].map(function(s){return scrFetchFin(s.sym);}))
-      .then(function(){render();loadH(ci+1);});
-  }
-  loadP(0);
-}
-
-function scrApplyStickyLeft(region){
-  var tblId=region==='us'?'scr-us-tbl':'scr-kr-tbl';
-  var tbl=g(tblId);if(!tbl)return;
-  var ths=tbl.querySelectorAll('thead th');
-  var w0=ths[0]?ths[0].offsetWidth:58;
-  var w1=ths[1]?ths[1].offsetWidth:76;
-  tbl.querySelectorAll('.sc0').forEach(function(el){el.style.left='0px';});
-  tbl.querySelectorAll('.sc1').forEach(function(el){el.style.left=w0+'px';});
-  tbl.querySelectorAll('.sc2').forEach(function(el){el.style.left=(w0+w1)+'px';});
-}
-
-function scrUpdateSum(){
-  var stocks=scrRegion==='us'?US_STOCKS:KR_STOCKS;
-  var chgs=stocks.map(function(s){return(scrCache[s.sym]||{}).chg1d;}).filter(function(v){return v!=null;});
-  if(!chgs.length){g("scr-sum").innerHTML='';return;}
-  var avg=chgs.reduce(function(a,b){return a+b;},0)/chgs.length,up=chgs.filter(function(v){return v>0;}).length,dn=chgs.filter(function(v){return v<0;}).length;
-  g("scr-sum").innerHTML='<div class="scr-si">종목수<span>'+stocks.length+'</span></div>'
-    +'<div class="scr-si">조회<span>'+chgs.length+'</span></div>'
-    +'<div class="scr-si">평균1일<span style="color:'+(avg>=0?'#34d399':'#f87171')+'">'+(avg>=0?'+':'')+avg.toFixed(2)+'%</span></div>'
-    +'<div class="scr-si">상승<span style="color:#34d399">'+up+'▲</span></div>'
-    +'<div class="scr-si">하락<span style="color:#f87171">'+dn+'▼</span></div>';
-}
-
-function scrInitFilters(){
-  var btns=g("scr-seg-btns"),secs;
-  if(scrRegion==='us'){
-    btns.innerHTML='<button class="scr-seg" data-seg="lg" onclick="scrSetSeg(\'lg\',this)">S&P500</button>'
-      +'<button class="scr-seg" data-seg="md" onclick="scrSetSeg(\'md\',this)">MidCap</button>'
-      +'<button class="scr-seg" data-seg="sm" onclick="scrSetSeg(\'sm\',this)">Russell</button>';
-    secs=[...new Set(US_STOCKS.map(function(s){return s.sec;}))];
-  }else{
-    btns.innerHTML='<button class="scr-seg" data-seg="KOSPI" onclick="scrSetSeg(\'KOSPI\',this)">KOSPI</button>'
-      +'<button class="scr-seg" data-seg="KOSDAQ" onclick="scrSetSeg(\'KOSDAQ\',this)">KOSDAQ</button>';
-    secs=[...new Set(KR_STOCKS.map(function(s){return s.sec;}))];
-  }
-  g("scr-sec-filter").innerHTML='<option value="">전체</option>'+secs.map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');
-}
-
-function scrSetSeg(val,btn){
-  scrSeg=val;
-  document.querySelectorAll('#screener-page .scr-seg').forEach(function(b){b.classList.remove('active');});
-  if(btn)btn.classList.add('active');
-  if(val==='all')document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');
-  scrApplyFilters();
-}
-
-function scrApplyFilters(){
-  var secVal=g("scr-sec-filter").value,sortVal=g("scr-sort").value;
-  var stocks=scrRegion==='us'?US_STOCKS:KR_STOCKS,isKr=scrRegion==='kr';
-  var bodyId=scrRegion==='us'?'scr-us-body':'scr-kr-body';
-  var tbody=g(bodyId);
-  if(sortVal){
-    var fn={chg1d:function(c){return-(c.chg1d||0);},chg1w:function(c){return-(c.chg1w||0);},chg1m:function(c){return-(c.chg1m||0);},chg6m:function(c){return-(c.chg6m||0);},chg1y:function(c){return-(c.chg1y||0);},mktcap:function(c){return-(c.cap||0);}}[sortVal];
-    if(fn){var html='';stocks.slice().sort(function(a,b){return fn(scrCache[a.sym]||{})-fn(scrCache[b.sym]||{});}).forEach(function(s){var segOk=scrSeg==='all'||(isKr?s.mkt===scrSeg:s.sz===scrSeg),secOk=!secVal||s.sec===secVal;if(segOk&&secOk)html+=scrRow(s,scrCache[s.sym]||{},isKr);});tbody.innerHTML=html;scrApplyStickyLeft(scrRegion);return;}
-  }
-  tbody.querySelectorAll('tr:not(.sec-sep)').forEach(function(r){
-    var segOk=scrSeg==='all'||(isKr?r.dataset.mkt===scrSeg:r.dataset.sz===scrSeg),secOk=!secVal||r.dataset.sec===secVal;
-    r.style.display=(segOk&&secOk)?'':'none';
-    var vid=r.dataset.id;if(vid){var vr=document.getElementById(vid);if(vr)vr.style.display=(segOk&&secOk&&vr.classList.contains('open'))?'table-row':'none';}
-  });
-  tbody.querySelectorAll('tr.sec-sep').forEach(function(r){
-    var sec=r.querySelector('td').textContent.replace(/^◆ /,'').replace(/ \(\d+\)$/,'');
-    r.style.display=(!secVal||sec===secVal)?'':'none';
-  });
-}
-
-function scrSwitchRegion(region,btn){
-  scrRegion=region;
-  document.querySelectorAll('.scr-rtab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
-  g("scr-us-wrap").style.display=region==='us'?'block':'none';
-  g("scr-kr-wrap").style.display=region==='kr'?'block':'none';
-  g("scr-sec-filter").value='';scrSeg='all';
-  scrInitFilters();document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');
-  if(region==='kr'&&!KR_STOCKS.some(function(s){return scrCache[s.sym]?.q;}))scrBuild('kr');
-  scrUpdateSum();
-}
-
+function scrRow(s,c,isKr){var id='sv_'+s.sym.replace(/[^a-zA-Z0-9]/g,'_')+'_'+s.sec.replace(/[^a-zA-Z0-9]/g,'_');var badge=isKr?('<span class="scr-badge '+(s.mkt==='KOSPI'?'sb-kospi':'sb-kosdaq')+'">'+s.mkt+'</span>'):({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[s.sz]||'');var nm=isKr?('<strong>'+s.name+'</strong><br><span style="font-size:10px;color:#3a3a4a">'+s.sym.replace(/\.(KS|KQ)$/,'')+'</span>'):('<strong>'+s.name+'</strong> <span style="font-size:10px;color:#555">'+s.kr+'</span><br><span style="font-size:10px;color:#333">'+s.sym+'</span>');return'<tr data-sec="'+s.sec+'" data-sz="'+(s.sz||'')+'" data-mkt="'+(s.mkt||'')+'" data-id="'+id+'"><td class="sl sc0">'+badge+'</td><td class="sl sc1" style="font-size:10px;color:#555">'+s.sec+'</td><td class="sl sc2">'+nm+'</td><td>'+scrFmtChg(c.chg1d)+'</td><td>'+scrFmtChg(c.chg1w)+'</td><td>'+scrFmtChg(c.chg1m)+'</td><td>'+scrFmtChg(c.chg6m)+'</td><td>'+scrFmtChg(c.chg1y)+'</td><td><button class="val-toggle" onclick="scrToggleVal(\''+id+'\',\''+s.sym+'\','+isKr+',this)">▶ 상세</button></td></tr><tr class="val-row" id="'+id+'"><td class="val-cell" colspan="9"><div id="'+id+'-c"><span style="color:#555;font-size:11px"><span class="loading"></span> 로딩중...</span></div></td></tr>';}
+function scrToggleVal(id,sym,isKr,btn){var row=document.getElementById(id);if(!row)return;var open=row.classList.toggle('open');btn.textContent=open?'▼ 닫기':'▶ 상세';if(open&&!scrValLoading[sym]){scrValLoading[sym]=true;scrFetchFin(sym).then(function(c){var el=document.getElementById(id+'-c');if(el)el.innerHTML=scrBuildVal(c,isKr);var tr=document.querySelector('tr[data-id="'+id+'"]');if(tr){var tds=tr.querySelectorAll('td');if(tds.length>=8){tds[3].innerHTML=scrFmtChg(c.chg1d);tds[4].innerHTML=scrFmtChg(c.chg1w);tds[5].innerHTML=scrFmtChg(c.chg1m);tds[6].innerHTML=scrFmtChg(c.chg6m);tds[7].innerHTML=scrFmtChg(c.chg1y);}}});}}
+function scrBuild(region){var stocks=region==='us'?US_STOCKS:KR_STOCKS,isKr=region==='kr';var bodyId=region==='us'?'scr-us-body':'scr-kr-body';var tbody=g(bodyId);tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#555"><span class="loading"></span> 로딩중...</td></tr>';var chunks=[];for(var i=0;i<stocks.length;i+=8)chunks.push(stocks.slice(i,i+8));var secs=[...new Set(stocks.map(function(s){return s.sec;}))];function render(){var html="";secs.forEach(function(sec){var grp=stocks.filter(function(s){return s.sec===sec;});html+='<tr class="sec-sep"><td colspan="9">◆ '+sec+' ('+grp.length+')</td></tr>';grp.forEach(function(s){html+=scrRow(s,scrCache[s.sym]||{},isKr);});});tbody.innerHTML=html;scrApplyStickyLeft(region);scrUpdateSum();}function loadP(ci){if(ci>=chunks.length){render();loadH(0);return;}Promise.all(chunks[ci].map(function(s){return isKr?scrFetchKR(s.sym):scrFetchQ(s.sym);})).then(function(){render();loadP(ci+1);});}var finChunks=[];for(var j=0;j<stocks.length;j+=3)finChunks.push(stocks.slice(j,j+3));function loadH(ci){if(ci>=finChunks.length){render();g("scr-status").textContent='완료 '+scrHhmm();return;}Promise.all(finChunks[ci].map(function(s){return scrFetchFin(s.sym);})).then(function(){render();loadH(ci+1);});}loadP(0);}
+function scrApplyStickyLeft(region){var tblId=region==='us'?'scr-us-tbl':'scr-kr-tbl';var tbl=g(tblId);if(!tbl)return;var ths=tbl.querySelectorAll('thead th');var w0=ths[0]?ths[0].offsetWidth:58;var w1=ths[1]?ths[1].offsetWidth:76;tbl.querySelectorAll('.sc0').forEach(function(el){el.style.left='0px';});tbl.querySelectorAll('.sc1').forEach(function(el){el.style.left=w0+'px';});tbl.querySelectorAll('.sc2').forEach(function(el){el.style.left=(w0+w1)+'px';});}
+function scrUpdateSum(){var stocks=scrRegion==='us'?US_STOCKS:KR_STOCKS;var chgs=stocks.map(function(s){return(scrCache[s.sym]||{}).chg1d;}).filter(function(v){return v!=null;});if(!chgs.length){g("scr-sum").innerHTML='';return;}var avg=chgs.reduce(function(a,b){return a+b;},0)/chgs.length,up=chgs.filter(function(v){return v>0;}).length,dn=chgs.filter(function(v){return v<0;}).length;g("scr-sum").innerHTML='<div class="scr-si">종목수<span>'+stocks.length+'</span></div><div class="scr-si">조회<span>'+chgs.length+'</span></div><div class="scr-si">평균1일<span style="color:'+(avg>=0?'#34d399':'#f87171')+'">'+(avg>=0?'+':'')+avg.toFixed(2)+'%</span></div><div class="scr-si">상승<span style="color:#34d399">'+up+'▲</span></div><div class="scr-si">하락<span style="color:#f87171">'+dn+'▼</span></div>';}
+function scrInitFilters(){var btns=g("scr-seg-btns"),secs;if(scrRegion==='us'){btns.innerHTML='<button class="scr-seg" data-seg="lg" onclick="scrSetSeg(\'lg\',this)">S&P500</button><button class="scr-seg" data-seg="md" onclick="scrSetSeg(\'md\',this)">MidCap</button><button class="scr-seg" data-seg="sm" onclick="scrSetSeg(\'sm\',this)">Russell</button>';secs=[...new Set(US_STOCKS.map(function(s){return s.sec;}))];}else{btns.innerHTML='<button class="scr-seg" data-seg="KOSPI" onclick="scrSetSeg(\'KOSPI\',this)">KOSPI</button><button class="scr-seg" data-seg="KOSDAQ" onclick="scrSetSeg(\'KOSDAQ\',this)">KOSDAQ</button>';secs=[...new Set(KR_STOCKS.map(function(s){return s.sec;}))];}g("scr-sec-filter").innerHTML='<option value="">전체</option>'+secs.map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');}
+function scrSetSeg(val,btn){scrSeg=val;document.querySelectorAll('#screener-page .scr-seg').forEach(function(b){b.classList.remove('active');});if(btn)btn.classList.add('active');if(val==='all')document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');scrApplyFilters();}
+function scrApplyFilters(){var secVal=g("scr-sec-filter").value,sortVal=g("scr-sort").value;var stocks=scrRegion==='us'?US_STOCKS:KR_STOCKS,isKr=scrRegion==='kr';var bodyId=scrRegion==='us'?'scr-us-body':'scr-kr-body';var tbody=g(bodyId);if(sortVal){var fn={chg1d:function(c){return-(c.chg1d||0);},chg1w:function(c){return-(c.chg1w||0);},chg1m:function(c){return-(c.chg1m||0);},chg6m:function(c){return-(c.chg6m||0);},chg1y:function(c){return-(c.chg1y||0);},mktcap:function(c){return-(c.cap||0);}}[sortVal];if(fn){var html='';stocks.slice().sort(function(a,b){return fn(scrCache[a.sym]||{})-fn(scrCache[b.sym]||{});}).forEach(function(s){var segOk=scrSeg==='all'||(isKr?s.mkt===scrSeg:s.sz===scrSeg),secOk=!secVal||s.sec===secVal;if(segOk&&secOk)html+=scrRow(s,scrCache[s.sym]||{},isKr);});tbody.innerHTML=html;scrApplyStickyLeft(scrRegion);return;}}tbody.querySelectorAll('tr:not(.sec-sep)').forEach(function(r){var segOk=scrSeg==='all'||(isKr?r.dataset.mkt===scrSeg:r.dataset.sz===scrSeg),secOk=!secVal||r.dataset.sec===secVal;r.style.display=(segOk&&secOk)?'':'none';var vid=r.dataset.id;if(vid){var vr=document.getElementById(vid);if(vr)vr.style.display=(segOk&&secOk&&vr.classList.contains('open'))?'table-row':'none';}});tbody.querySelectorAll('tr.sec-sep').forEach(function(r){var sec=r.querySelector('td').textContent.replace(/^◆ /,'').replace(/ \(\d+\)$/,'');r.style.display=(!secVal||sec===secVal)?'':'none';});}
+function scrSwitchRegion(region,btn){scrRegion=region;document.querySelectorAll('.scr-rtab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');g("scr-us-wrap").style.display=region==='us'?'block':'none';g("scr-kr-wrap").style.display=region==='kr'?'block':'none';g("scr-sec-filter").value='';scrSeg='all';scrInitFilters();document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');if(region==='kr'&&!KR_STOCKS.some(function(s){return scrCache[s.sym]?.q;}))scrBuild('kr');scrUpdateSum();}
 function scrReload(){scrCache={};scrValLoading={};g("scr-status").textContent='새로고침중...';scrBuild(scrRegion);}
 function scrHhmm(){var d=new Date();return d.getHours()+':'+(('0'+d.getMinutes()).slice(-2));}
-
-/* 컬럼 리사이즈 */
-function scrInitResize(region){
-  var tblId=region==='us'?'scr-us-tbl':'scr-kr-tbl';
-  var tbl=g(tblId);if(!tbl)return;
-  tbl.querySelectorAll('thead th .rz').forEach(function(h){
-    var th=h.parentElement,col=parseInt(th.dataset.col||0),startX,startW;
-    h.addEventListener('mousedown',function(e){
-      e.preventDefault();startX=e.clientX;startW=th.offsetWidth;h.classList.add('dragging');
-      document.body.classList.add('col-resizing');
-      function mv(e){th.style.width=Math.max(30,startW+e.clientX-startX)+'px';scrApplyStickyLeft(region);}
-      function up(){h.classList.remove('dragging');document.body.classList.remove('col-resizing');document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}
-      document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
-    });
-  });
-}
-
-/* 초기화 */
-function scrInit(){
-  if(scrInited)return;scrInited=true;
-  scrInitFilters();
-  document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');
-  scrBuild('us');
-  setTimeout(function(){scrInitResize('us');scrInitResize('kr');},500);
-}
+function scrInitResize(region){var tblId=region==='us'?'scr-us-tbl':'scr-kr-tbl';var tbl=g(tblId);if(!tbl)return;tbl.querySelectorAll('thead th .rz').forEach(function(h){var th=h.parentElement,startX,startW;h.addEventListener('mousedown',function(e){e.preventDefault();startX=e.clientX;startW=th.offsetWidth;h.classList.add('dragging');document.body.classList.add('col-resizing');function mv(e){th.style.width=Math.max(30,startW+e.clientX-startX)+'px';scrApplyStickyLeft(region);}function up(){h.classList.remove('dragging');document.body.classList.remove('col-resizing');document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});});}
+function scrInit(){if(scrInited)return;scrInited=true;scrInitFilters();document.querySelector('#screener-page .scr-seg[data-seg="all"]')?.classList.add('active');scrBuild('us');setTimeout(function(){scrInitResize('us');scrInitResize('kr');},500);}
 
 // ════════════════════════════════════════════════
-// 초기 실행 — 게스트도 바로 사용 가능
+// 초기 실행
 // ════════════════════════════════════════════════
-async function initApp(){
-  // 세션 확인 (있으면 자동 로그인 처리)
-  const { data:{ session } } = await supa.auth.getSession();
-  if(session){
-    await handleSession(session);
-  } else {
-    // 비로그인: 그냥 사용 가능, localStorage만 로드
-    loadLS();
-    renderAll();
-  }
-  renderNavAuth();
-  fetchAll();
-  setInterval(fetchCoinPrices, POLL_COIN_MS);
-  setInterval(fetchUSPrices, POLL_US_MS);
-  setInterval(fetchKRPrices, POLL_KR_MS);
-  setInterval(fetchTickers, POLL_TICK_MS);
-  setInterval(updateMarketBanner, 60000);
-  setInterval(fetchAllDividends, 300000);
-}
-
-async function handleSession(session){
-  currentUser = session.user;
-  const { data: profile } = await supa.from('profiles').select('*').eq('id', currentUser.id).single();
-  currentProfile = profile;
-
-  // last_seen 업데이트
-  supa.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUser.id);
-
-  if(profile && profile.status === 'approved'){
-    // 서버 데이터 로드
-    const loaded = await loadFromSupabase();
-    if(!loaded) loadLS();
-
-    // 관리자 탭 추가
-    if(profile.role === 'admin'){
-      const existingAdmin = document.querySelector('.nb[data-admin]');
-      if(!existingAdmin){
-        const adminBtn = document.createElement('button');
-        adminBtn.className = 'nb nb-fixed';
-        adminBtn.setAttribute('data-admin','1');
-        adminBtn.textContent = '⚙ 관리자';
-        adminBtn.onclick = function(){ showPage('admin-page', this); loadAdminPage(); };
-        const navSep = document.querySelector('.nav .nav-sep');
-        if(navSep) navSep.parentNode.insertBefore(adminBtn, navSep);
-      }
-    }
-  } else {
-    // pending/blocked 이어도 대시보드는 볼 수 있음 — localStorage만 사용
-    loadLS();
-  }
-  renderAll();
-  // 모달이 열려있으면 닫기
-  closeAuthModal();
-}
-
-// 로그인 성공 시 자동 처리
-supa.auth.onAuthStateChange(async (event, session) => {
-  if(event === 'SIGNED_IN' && session){
-    await handleSession(session);
-    renderNavAuth();
-  }
-  if(event === 'SIGNED_OUT'){
-    currentUser = null; currentProfile = null;
-    renderNavAuth();
-  }
-});
-
-g("t-date").value = new Date().toISOString().split("T")[0];
+g("t-date").value=new Date().toISOString().split("T")[0];
 updateMarketBanner();
-initApp();
+var hasSaved=loadLS();
+if(hasSaved)renderAll();
+fetchAll();
+setInterval(fetchCoinPrices,POLL_COIN_MS);
+setInterval(fetchUSPrices,POLL_US_MS);
+setInterval(fetchKRPrices,POLL_KR_MS);
+setInterval(fetchTickers,POLL_TICK_MS);
+setInterval(updateMarketBanner,60000);
+setInterval(fetchAllDividends,300000);
 </script>
 </body>
 </html>
