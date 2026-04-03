@@ -1399,16 +1399,17 @@ function scrBuild(region){
   var stocks=region==='us'?US_STOCKS:KR_STOCKS,isKr=region==='kr';
   var bodyId=region==='us'?'scr-us-body':'scr-kr-body';
   var tbody=g(bodyId);
-  tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#555"><span class="loading"></span> 로딩중...</td></tr>';
+  tbody.innerHTML='<tr><td colspan="15" style="text-align:center;padding:24px;color:#555"><span class="loading"></span> 로딩중...</td></tr>';
 
   var secs=[...new Set(stocks.map(function(s){return s.sec;}))];
   var total=stocks.length;
+  var loaded=0;
 
   function render(){
     var html="";
     secs.forEach(function(sec){
       var grp=stocks.filter(function(s){return s.sec===sec;});
-      html+='<tr class="sec-sep"><td colspan="9">◆ '+sec+' ('+grp.length+')</td></tr>';
+      html+='<tr class="sec-sep"><td colspan="15">◆ '+sec+' ('+grp.length+')</td></tr>';
       grp.forEach(function(s){html+=scrRow(s,scrCache[s.sym]||{},isKr);});
     });
     tbody.innerHTML=html;
@@ -1416,51 +1417,32 @@ function scrBuild(region){
     scrUpdateSum();
   }
 
-  // 1단계: 1일 등락 (8개씩)
+  // chart 모드 단일 호출 — 4개씩 병렬
   var chunks=[];
-  for(var i=0;i<stocks.length;i+=8)chunks.push(stocks.slice(i,i+8));
-  var priceLoaded=0;
+  for(var i=0;i<stocks.length;i+=4)chunks.push(stocks.slice(i,i+4));
 
-  scrProgShow(0,'가격 데이터 로딩중...');
+  scrProgShow(0,'데이터 로딩중...');
 
-  function loadPrice(ci){
-    if(ci>=chunks.length){render();loadHistory(0);return;}
-    Promise.all(chunks[ci].map(function(s){
-      return isKr?scrFetchKR(s.sym):scrFetchQ(s.sym);
-    })).then(function(){
-      priceLoaded+=chunks[ci].length;
-      var pct=priceLoaded/total*40; // 가격 = 0~40%
-      scrProgShow(pct,'가격 로딩 '+priceLoaded+'/'+total+' 종목');
-      render();
-      loadPrice(ci+1);
-    });
-  }
-
-  // 2단계: chart 모드 (RSI + 등락률, 4개씩)
-  var histChunks=[];
-  for(var j=0;j<stocks.length;j+=4)histChunks.push(stocks.slice(j,j+4));
-  var histLoaded=0;
-
-  function loadHistory(ci){
-    if(ci>=histChunks.length){
+  function loadChunk(ci){
+    if(ci>=chunks.length){
       render();
       scrProgHide();
       g("scr-status").textContent='완료 '+scrHhmm();
       return;
     }
-    var pct=40+histLoaded/total*60; // RSI/등락률 = 40~100%
-    scrProgShow(pct,'RSI·등락률 로딩 '+histLoaded+'/'+total+' 종목');
-    g("scr-status").textContent='로딩중 '+Math.round(pct)+'%';
-    Promise.all(histChunks[ci].map(function(s){
+    Promise.all(chunks[ci].map(function(s){
       return scrFetchHistory(s.sym);
     })).then(function(){
-      histLoaded+=histChunks[ci].length;
+      loaded+=chunks[ci].length;
+      var pct=loaded/total*100;
+      scrProgShow(pct,'RSI·등락률 '+loaded+'/'+total+' 종목');
+      g("scr-status").textContent='로딩 '+Math.round(pct)+'%';
       render();
-      setTimeout(function(){loadHistory(ci+1);},150);
+      setTimeout(function(){loadChunk(ci+1);},120);
     });
   }
 
-  loadPrice(0);
+  loadChunk(0);
 }
 function scrApplyStickyLeft(region){var tblId=region==='us'?'scr-us-tbl':'scr-kr-tbl';var tbl=g(tblId);if(!tbl)return;var ths=tbl.querySelectorAll('thead th');var w0=ths[0]?ths[0].offsetWidth:58;var w1=ths[1]?ths[1].offsetWidth:76;tbl.querySelectorAll('.sc0').forEach(function(el){el.style.left='0px';});tbl.querySelectorAll('.sc1').forEach(function(el){el.style.left=w0+'px';});tbl.querySelectorAll('.sc2').forEach(function(el){el.style.left=(w0+w1)+'px';});}
 function scrUpdateSum(){var stocks=scrRegion==='us'?US_STOCKS:KR_STOCKS;var chgs=stocks.map(function(s){return(scrCache[s.sym]||{}).chg1d;}).filter(function(v){return v!=null;});if(!chgs.length){g("scr-sum").innerHTML='';return;}var avg=chgs.reduce(function(a,b){return a+b;},0)/chgs.length,up=chgs.filter(function(v){return v>0;}).length,dn=chgs.filter(function(v){return v<0;}).length;g("scr-sum").innerHTML='<div class="scr-si">종목수<span>'+stocks.length+'</span></div><div class="scr-si">조회<span>'+chgs.length+'</span></div><div class="scr-si">평균1일<span style="color:'+(avg>=0?'#34d399':'#f87171')+'">'+(avg>=0?'+':'')+avg.toFixed(2)+'%</span></div><div class="scr-si">상승<span style="color:#34d399">'+up+'▲</span></div><div class="scr-si">하락<span style="color:#f87171">'+dn+'▼</span></div>';}
