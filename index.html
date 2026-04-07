@@ -81,7 +81,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;
 .nb.nb-fixed.active{color:#f59e0b;border-bottom-color:#f59e0b}
 .nav-sep{width:1px;height:20px;background:#2a2a38;margin:0 6px;flex-shrink:0;align-self:center;margin-bottom:1px}
 .nav-right{margin-left:auto;display:flex;gap:6px;padding-bottom:4px;flex-shrink:0;align-items:center}
-.save-group{display:flex;flex-direction:column;align-items:center;gap:4px;background:#1a1a24;border:1px solid #2a2a38;border-radius:6px;padding:6px 8px}
 .page{display:none;padding:14px}
 .page.active{display:block}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
@@ -189,32 +188,15 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .rsi-ob{color:#f87171;font-weight:700}
 .rsi-os{color:#60a5fa;font-weight:700}
 .rsi-neu{color:#666}
-/* 인증 UI */
-#auth-bar{display:flex;align-items:center;gap:8px;flex-shrink:0}
-#auth-user-info{font-size:11px;color:#666;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
-.auth-mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center}
-.auth-mo.open{display:flex}
-.auth-box{background:#1a1a24;border-radius:14px;border:1px solid #2a2a38;padding:28px 24px;width:360px;max-width:95vw}
-.auth-box h2{font-size:16px;font-weight:600;margin-bottom:20px;color:#f0f0f8}
-.auth-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid #2a2a38}
-.auth-tab{padding:8px 20px;border:none;background:none;color:#666;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px}
-.auth-tab.active{color:#a78bfa;border-bottom-color:#a78bfa}
-.auth-field{margin-bottom:14px}
-.auth-field label{display:block;font-size:11px;color:#666;margin-bottom:5px}
-.auth-field input{width:100%;background:#141418;border:1px solid #2a2a38;border-radius:8px;color:#e8e8f0;padding:9px 12px;font-size:13px;outline:none}
-.auth-field input:focus{border-color:#7c3aed}
-.auth-submit{width:100%;padding:10px;border-radius:8px;border:none;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
-.auth-submit:hover{background:#6d28d9}
-.auth-submit:disabled{opacity:.5;cursor:not-allowed}
-.auth-msg{font-size:12px;margin-top:10px;min-height:18px;text-align:center}
-.auth-msg.ok{color:#34d399}
-.auth-msg.err{color:#f87171}
-.auth-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#555;cursor:pointer;font-size:18px;line-height:1}
-.auth-close:hover{color:#aaa}
-.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px;vertical-align:middle}
-.save-status{font-size:9px;color:#666;padding:2px 8px;border-radius:4px;background:#1a1a24;border:1px solid #2a2a38;white-space:nowrap}
-.save-status.manual{color:#f59e0b;border-color:#3d3200;background:#2a2200}
-.save-status.cloud{color:#34d399;border-color:#1a4a2a;background:#0d2b1a}
+/* 즐겨찾기 */
+#fav-page{padding:0;display:none;flex-direction:column;height:calc(100vh - 130px);overflow:hidden}
+#fav-page.active{display:flex}
+.fav-top{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#0d0d12;border-bottom:1px solid #1e1e2a;flex-wrap:wrap;flex-shrink:0}
+.fav-add-wrap{display:flex;gap:6px;align-items:center;flex:1;flex-wrap:wrap}
+.fav-input{background:#141418;border:1px solid #2a2a38;border-radius:6px;color:#e8e8f0;padding:5px 9px;font-size:12px;width:130px;outline:none}
+.fav-input:focus{border-color:#7c3aed}
+.fav-type-sel{background:#141418;border:1px solid #2a2a38;border-radius:6px;color:#888;padding:5px 8px;font-size:12px}
+.fav-empty{padding:40px;text-align:center;color:#444;font-size:13px}
 </style>
 </head>
 <body>
@@ -350,23 +332,14 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <button class="nb" onclick="showPage('dividend',this)">배당</button>
   <button class="nb" onclick="showPage('chartpage',this)">수익차트</button>
   <button class="nb" onclick="showPage('screener-page',this);scrInit()">섹터맵</button>
+  <button class="nb" onclick="showPage('fav-page',this);favInit()" style="color:#f59e0b">⭐ 즐겨찾기</button>
   <div class="nav-sep"></div>
   <button class="nb nb-fixed" onclick="showPage('realpage',this)">부동산</button>
   <button class="nb nb-fixed" onclick="showPage('loanpage',this)">대출관리</button>
   <button class="nb nb-fixed" onclick="showPage('savingspage',this)">예적금</button>
   <div class="nav-right">
-    <div class="save-group">
-      <span id="save-status-indicator" class="save-status manual">📝 수동 저장</span>
-      <div style="display:flex;gap:6px">
-        <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()" title="JSON 파일로 다운로드">💾 저장</button>
-        <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer" title="JSON 파일에서 불러오기">📂 불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
-      </div>
-    </div>
-    <div id="auth-bar">
-      <span id="auth-user-info" style="display:none"></span>
-      <button class="btn" id="auth-login-btn" onclick="authOpenModal('login')" style="font-size:11px;color:#a78bfa;border-color:#3a2060;background:#1a1028">로그인</button>
-      <button class="btn" id="auth-logout-btn" onclick="authSignOut()" style="display:none;font-size:11px;color:#f87171;border-color:#3a1a1a;background:transparent">로그아웃</button>
-    </div>
+    <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()">저장</button>
+    <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer">불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
   </div>
 </nav>
 
@@ -379,7 +352,6 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
     <div class="card"><div class="cl">총 부채</div><div class="cv neg" id="c-debt">--</div></div>
     <div class="card"><div class="cl">순자산</div><div class="cv" id="c-net">--</div></div>
     <div class="card"><div class="cl">갱신시각</div><div class="cv" style="font-size:12px;padding-top:3px" id="c-time"><span class="loading"></span>로딩중</div></div>
-    <div class="card" id="c-save-status-card"><div class="cl">데이터 저장</div><div class="cv" style="font-size:11px;padding-top:3px;line-height:1.4" id="c-save-status"><span style="color:#f59e0b">📝 수동 저장</span><br><span style="font-size:9px;color:#666">JSON 파일 필요</span></div></div>
   </div>
   <div class="cw"><div class="ct"><span>기간별 수익 현황</span></div>
     <div class="period-tabs" id="period-tabs">
@@ -800,7 +772,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
     <div><label>심볼/코드</label><input type="text" id="m-sym" placeholder="자동입력 또는 직접입력"></div>
     <div><label>종목명</label><input type="text" id="m-name" placeholder="자동입력 또는 직접입력"></div>
     <div><label>구분</label><select id="m-cat"><option value="crypto">가상자산</option><option value="us">미국주식</option><option value="kr">한국주식</option><option value="cash">현금/예적금</option></select></div>
-    <div id="modal-sector-row"><label>섹터 <span style="font-size:9px;color:#888">(관리자 전용)</span></label><select id="m-sector"><option value="">-</option><option>IT/기술</option><option>금융</option><option>헬스케어</option><option>에너지</option><option>소비재</option><option>산업재</option><option>통신</option><option>유틸리티</option><option>부동산</option><option>소재</option><option>레이어1</option><option>DeFi</option><option>NFT/게임</option><option>스테이블코인</option><option>기타</option></select></div>
+    <div><label>섹터</label><select id="m-sector"><option value="">-</option><option>IT/기술</option><option>금융</option><option>헬스케어</option><option>에너지</option><option>소비재</option><option>산업재</option><option>통신</option><option>유틸리티</option><option>부동산</option><option>소재</option><option>레이어1</option><option>DeFi</option><option>NFT/게임</option><option>스테이블코인</option><option>기타</option></select></div>
     <div><label>수량</label><input type="number" id="m-qty" placeholder="0" step="any"></div>
     <div><label>평균매입가 (원)</label><input type="number" id="m-cost" placeholder="0"></div>
   </div>
@@ -810,400 +782,71 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   </div>
 </div></div>
 
-<!-- 인증 모달 -->
-<div class="auth-mo" id="auth-modal">
-  <div class="auth-box" style="position:relative">
-    <button class="auth-close" onclick="authCloseModal()">✕</button>
-    <h2>투자 대시보드</h2>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="auth-tab-login" onclick="authSwitchTab('login')">로그인</button>
-      <button class="auth-tab" id="auth-tab-signup" onclick="authSwitchTab('signup')">회원가입</button>
+<!-- 즐겨찾기 -->
+<div id="fav-page">
+  <div class="fav-top">
+    <span class="scr-title">⭐ 즐겨찾기 종목</span>
+    <div class="fav-add-wrap">
+      <select class="fav-type-sel" id="fav-type">
+        <option value="us">🇺🇸 미국</option>
+        <option value="kr">🇰🇷 국내</option>
+      </select>
+      <input class="fav-input" id="fav-sym-input" placeholder="TSLA, 005930.KS ..." onkeydown="if(event.key==='Enter')favAdd()">
+      <button class="btn" onclick="favAdd()" style="color:#f59e0b;border-color:#3a2a00;background:#1a1500">+ 추가</button>
+      <span style="font-size:10px;color:#444" id="fav-status">대기중</span>
     </div>
-    <div id="auth-form-login">
-      <div class="auth-field"><label>이메일</label><input type="email" id="auth-email-login" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="auth-field"><label>비밀번호</label><input type="password" id="auth-pw-login" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()"></div>
-      <button class="auth-submit" id="auth-btn-login" onclick="authLogin()">로그인</button>
-      <button class="btn" onclick="testSupabaseConnection()" style="margin-top:8px;width:100%;font-size:11px;background:#1a1a24;border-color:#3a3a4a">🔧 연결 테스트</button>
-      <div class="auth-msg" id="auth-msg-login"></div>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+      <button class="btn" style="font-size:11px" onclick="favReload()">⟳ 새로고침</button>
+      <button class="btn" style="font-size:11px;color:#f87171;border-color:#3a1a1a" onclick="favClearAll()">전체 삭제</button>
     </div>
-    <div id="auth-form-signup" style="display:none">
-      <div class="auth-field"><label>이메일</label><input type="email" id="auth-email-signup" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="auth-field"><label>비밀번호 (6자 이상)</label><input type="password" id="auth-pw-signup" placeholder="비밀번호" autocomplete="new-password"></div>
-      <div class="auth-field"><label>비밀번호 확인</label><input type="password" id="auth-pw-signup2" placeholder="비밀번호 확인" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()"></div>
-      <button class="auth-submit" id="auth-btn-signup" onclick="authSignUp()">회원가입</button>
-      <div class="auth-msg" id="auth-msg-signup"></div>
+  </div>
+  <div class="scr-prog-bar-wrap" id="fav-prog-bar-wrap"><div class="scr-prog-bar" id="fav-prog-bar"></div></div>
+  <div class="scr-prog-label" id="fav-prog-label"></div>
+  <div class="scr-sum" id="fav-sum"></div>
+  <div class="scr-body">
+    <div id="fav-tbl-wrap">
+      <table class="scr-tbl" id="fav-tbl">
+        <colgroup>
+          <col style="width:60px">
+          <col style="width:65px">
+          <col style="width:175px">
+          <col style="width:105px">
+          <col style="width:72px">
+          <col style="width:58px">
+          <col style="width:72px">
+          <col style="width:58px">
+          <col style="width:72px">
+          <col style="width:58px">
+          <col style="width:72px">
+          <col style="width:58px">
+          <col style="width:72px">
+          <col style="width:58px">
+          <col style="width:44px">
+          <col style="width:40px">
+        </colgroup>
+        <thead><tr>
+          <th class="sl sc0">구분</th>
+          <th class="sl sc1">섹터</th>
+          <th class="sl sc2">종목</th>
+          <th>현재가</th>
+          <th>1일%</th><th>일RSI</th>
+          <th>1주%</th><th>주RSI</th>
+          <th>1달%</th><th>월RSI</th>
+          <th>6개월%</th><th>6mRSI</th>
+          <th>1년%</th><th>년RSI</th>
+          <th>상세</th>
+          <th>삭제</th>
+        </tr></thead>
+        <tbody id="fav-body">
+          <tr><td colspan="16" class="fav-empty">⭐ 아직 즐겨찾기 종목이 없습니다.<br><span style="font-size:11px;color:#333">위에서 종목 코드를 입력해 추가하세요.</span></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ══════════════════════════════════════════════
-// Supabase REST API
-// ══════════════════════════════════════════════
-var SUPA_URL="https://daizlacifrzrttdtzxwf.supabase.co";
-var SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaXpsYWNpZnJ6cnR0ZHR6eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgwMjAsImV4cCI6MjA5MDc1NDAyMH0.jSy4Eu-su_mo1tiohrFvUokfDkyWrfQ2IyjdoLPU9Lw";
-var SITE_URL="https://muscleinvestor.github.io/asset-dashboard/";
-var _supaSession=null;
-try{var _ss=localStorage.getItem("supa_session");if(_ss)_supaSession=JSON.parse(_ss);}catch(e){}
-function supaHdr(x){var h={"Content-Type":"application/json","apikey":SUPA_KEY};if(_supaSession&&_supaSession.access_token)h["Authorization"]="Bearer "+_supaSession.access_token;return Object.assign(h,x||{});}
-function supaAnonHdr(){return{"Content-Type":"application/json","apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY};}
-function supaSessionSave(d){_supaSession=d;try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}}
-function supaSessionClear(){_supaSession=null;try{localStorage.removeItem("supa_session");}catch(e){}}
-async function supaSignIn(email,pw){
-  console.log('[Supabase] 로그인 API 호출:', SUPA_URL + "/auth/v1/token?grant_type=password");
-  console.log('[Supabase] 이메일:', email);
-  
-  try {
-    var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{
-      method:"POST",
-      headers:supaAnonHdr(),
-      body:JSON.stringify({email,password:pw})
-    });
-    
-    console.log('[Supabase] 응답 상태:', r.status, r.statusText);
-    
-    var d=await r.json();
-    console.log('[Supabase] 응답 데이터:', d);
-    
-    if(d.access_token){
-      console.log('[Supabase] 로그인 성공!');
-      supaSessionSave(d);
-      return{user:d.user,error:null};
-    }
-    
-    console.error('[Supabase] 로그인 실패:', d);
-    return{user:null,error:d.error_description||d.msg||d.message||"로그인 실패"};
-  } catch(err) {
-    console.error('[Supabase] 네트워크 오류:', err);
-    return{user:null,error:"네트워크 오류: " + err.message};
-  }
-}
-async function supaSignUp(email,pw){var r=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:supaAnonHdr(),body:JSON.stringify({email,password:pw,options:{emailRedirectTo:SITE_URL}})});var d=await r.json();if(d.id||d.user){return{user:d.user||d,error:null};}return{user:null,error:d.error_description||d.msg||"가입 실패"};}
-async function supaSignOut(){try{await fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:supaHdr()});}catch(e){}supaSessionClear();}
-async function supaRefresh(){if(!_supaSession||!_supaSession.refresh_token)return null;try{var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:supaAnonHdr(),body:JSON.stringify({refresh_token:_supaSession.refresh_token})});var d=await r.json();if(d.access_token){supaSessionSave(d);return d.user;}}catch(e){}return null;}
-async function supaGetUser(){var r=await fetch(SUPA_URL+"/auth/v1/user",{headers:supaHdr()});if(!r.ok)return null;return await r.json();}
-async function supaLoadData(userId){var cols="assets,trades,loans,real_estates,dividends,savings,asset_history";var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data?user_id=eq."+userId+"&select="+cols+"&limit=1",{headers:supaHdr()});if(!r.ok)return null;var d=await r.json();return d&&d.length?d[0]:null;}
-async function supaSaveData(userId,data){
-  console.log('[supaSaveData] 저장 시작, userId:', userId);
-  
-  var body=JSON.stringify({
-    user_id:userId,
-    assets:data.assets||[],
-    trades:data.trades||[],
-    loans:data.loans||[],
-    real_estates:data.realEstates||[],
-    dividends:data.dividends||[],
-    savings:data.savings||[],
-    asset_history:(data.assetHistory||[]).slice(-200),
-    updated_at:new Date().toISOString()
-  });
-  
-  try {
-    var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data",{
-      method:"POST",
-      headers:Object.assign(supaHdr(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
-      body
-    });
-    
-    console.log('[supaSaveData] 응답 상태:', r.status, r.statusText);
-    
-    if(!r.ok) {
-      var errText = await r.text();
-      console.error('[supaSaveData] 오류 응답:', errText);
-      throw new Error('Save failed: ' + r.status + ' ' + errText);
-    }
-    
-    console.log('[supaSaveData] ✅ 성공');
-    return true;
-  } catch(err) {
-    console.error('[supaSaveData] ❌ 예외:', err);
-    throw err;
-  }
-}
-async function supaGetProfile(userId){
-  console.log('[supaGetProfile] 시작, userId:', userId);
-  var url = SUPA_URL+"/rest/v1/profiles?id=eq."+userId+"&select=*&limit=1";
-  console.log('[supaGetProfile] URL:', url);
-  
-  try {
-    var r = await fetch(url, {headers:supaHdr()});
-    console.log('[supaGetProfile] 응답 상태:', r.status, r.statusText);
-    
-    if(!r.ok) {
-      var errText = await r.text();
-      console.error('[supaGetProfile] 오류 응답:', errText);
-      return null;
-    }
-    
-    var d = await r.json();
-    console.log('[supaGetProfile] 데이터:', d);
-    
-    if(d && d.length) {
-      console.log('[supaGetProfile] ✅ 프로필 찾음:', d[0]);
-      return d[0];
-    } else {
-      console.warn('[supaGetProfile] ⚠️ 프로필 없음');
-      return null;
-    }
-  } catch(err) {
-    console.error('[supaGetProfile] 예외:', err);
-    return null;
-  }
-}
-
-// ── 인증 UI
-var authUser=null,authProfile=null,authSyncing=false;
-function authOpenModal(tab){var m=g("auth-modal");if(!m)return;m.classList.add("open");authSwitchTab(tab||"login");setTimeout(function(){var el=g("auth-email-login");if(el)el.focus();},120);}
-function authCloseModal(){var m=g("auth-modal");if(m)m.classList.remove("open");}
-function authSwitchTab(t){g("auth-form-login").style.display=t==="login"?"block":"none";g("auth-form-signup").style.display=t==="signup"?"block":"none";g("auth-tab-login").classList.toggle("active",t==="login");g("auth-tab-signup").classList.toggle("active",t==="signup");}
-function authSetMsg(id,msg,ok){var el=g(id);if(!el)return;el.textContent=msg;el.className="auth-msg "+(ok?"ok":"err");}
-function authSetLoading(btnId,on){var b=g(btnId);if(!b)return;b.disabled=on;b.textContent=on?"처리중...":btnId==="auth-btn-login"?"로그인":"회원가입";}
-async function authLogin(){
-  console.log('[로그인] 시작');
-  var email=g("auth-email-login").value.trim(),pw=g("auth-pw-login").value;
-  console.log('[로그인] 이메일:', email);
-  
-  if(!email||!pw){
-    authSetMsg("auth-msg-login","이메일과 비밀번호를 입력해주세요",false);
-    return;
-  }
-  
-  authSetLoading("auth-btn-login",true);
-  console.log('[로그인] Supabase 로그인 시도...');
-  
-  try {
-    var res=await supaSignIn(email,pw);
-    console.log('[로그인] Supabase 응답:', res);
-    
-    authSetLoading("auth-btn-login",false);
-    
-    if(res.error){
-      console.error('[로그인] 오류:', res.error);
-      authSetMsg("auth-msg-login",res.error,false);
-    }else{
-      console.log('[로그인] 성공! 사용자:', res.user);
-      authCloseModal();
-      await authOnLogin(res.user);
-    }
-  } catch(err) {
-    console.error('[로그인] 예외 발생:', err);
-    authSetLoading("auth-btn-login",false);
-    authSetMsg("auth-msg-login","로그인 중 오류 발생: " + err.message,false);
-  }
-}
-async function testSupabaseConnection(){
-  var msg=g("auth-msg-login");
-  msg.className="auth-msg";
-  msg.innerHTML='<span class="loading"></span> 연결 테스트 중...';
-  
-  console.log('=== Supabase 연결 테스트 시작 ===');
-  console.log('URL:', SUPA_URL);
-  console.log('KEY:', SUPA_KEY.substring(0,20) + '...');
-  
-  var results = [];
-  
-  // 1. 기본 연결 테스트
-  try {
-    console.log('1️⃣ 기본 연결 테스트...');
-    var healthRes = await fetch(SUPA_URL + '/rest/v1/', {
-      headers: supaAnonHdr()
-    });
-    console.log('기본 연결 응답:', healthRes.status);
-    results.push('✅ Supabase 연결 성공 (' + healthRes.status + ')');
-  } catch(err) {
-    console.error('기본 연결 실패:', err);
-    results.push('❌ Supabase 연결 실패: ' + err.message);
-    msg.innerHTML = results.join('<br>');
-    msg.className = "auth-msg err";
-    return;
-  }
-  
-  // 2. Auth API 테스트
-  try {
-    console.log('2️⃣ Auth API 테스트...');
-    var authRes = await fetch(SUPA_URL + '/auth/v1/health', {
-      headers: supaAnonHdr()
-    });
-    console.log('Auth API 응답:', authRes.status);
-    if(authRes.ok) {
-      results.push('✅ Auth API 정상');
-    } else {
-      results.push('⚠️ Auth API 응답: ' + authRes.status);
-    }
-  } catch(err) {
-    console.error('Auth API 테스트 실패:', err);
-    results.push('❌ Auth API 오류: ' + err.message);
-  }
-  
-  // 3. profiles 테이블 존재 확인
-  try {
-    console.log('3️⃣ profiles 테이블 확인...');
-    var profilesRes = await fetch(SUPA_URL + '/rest/v1/profiles?limit=0', {
-      headers: supaAnonHdr()
-    });
-    console.log('profiles 테이블 응답:', profilesRes.status);
-    if(profilesRes.ok) {
-      results.push('✅ profiles 테이블 존재');
-    } else if(profilesRes.status === 401) {
-      results.push('⚠️ profiles RLS 정책 필요 (401)');
-    } else {
-      var errData = await profilesRes.json();
-      results.push('❌ profiles 테이블 없음: ' + (errData.message || profilesRes.status));
-    }
-  } catch(err) {
-    console.error('profiles 확인 실패:', err);
-    results.push('❌ profiles 확인 오류: ' + err.message);
-  }
-  
-  // 4. dashboard_data 테이블 확인
-  try {
-    console.log('4️⃣ dashboard_data 테이블 확인...');
-    var dashRes = await fetch(SUPA_URL + '/rest/v1/dashboard_data?limit=0', {
-      headers: supaAnonHdr()
-    });
-    console.log('dashboard_data 응답:', dashRes.status);
-    if(dashRes.ok) {
-      results.push('✅ dashboard_data 테이블 존재');
-    } else {
-      var dashErr = await dashRes.json();
-      results.push('❌ dashboard_data: ' + (dashErr.message || dashRes.status));
-    }
-  } catch(err) {
-    console.error('dashboard_data 확인 실패:', err);
-    results.push('❌ dashboard_data 오류: ' + err.message);
-  }
-  
-  console.log('=== 테스트 완료 ===');
-  console.log('결과:', results);
-  
-  msg.innerHTML = '<div style="text-align:left;font-size:11px;line-height:1.6">' + results.join('<br>') + '</div>';
-  msg.className = "auth-msg ok";
-}
-
-async function authSignUp(){var email=g("auth-email-signup").value.trim(),pw=g("auth-pw-signup").value,pw2=g("auth-pw-signup2").value;if(!email||!pw){authSetMsg("auth-msg-signup","이메일과 비밀번호를 입력해주세요",false);return;}if(pw.length<6){authSetMsg("auth-msg-signup","비밀번호는 6자 이상이어야 합니다",false);return;}if(pw!==pw2){authSetMsg("auth-msg-signup","비밀번호가 일치하지 않습니다",false);return;}authSetLoading("auth-btn-signup",true);var res=await supaSignUp(email,pw);authSetLoading("auth-btn-signup",false);if(res.error){authSetMsg("auth-msg-signup",res.error,false);}else{authSetMsg("auth-msg-signup","✅ 가입 완료! 이메일의 인증 링크를 클릭해주세요.",true);}}
-async function authSignOut(){await supaSignOut();authUser=null;authProfile=null;authUpdateUI(null);}
-function authUpdateUI(user){
-  var li=g("auth-login-btn"),lo=g("auth-logout-btn"),info=g("auth-user-info"),statusInd=g("save-status-indicator"),cardStatus=g("c-save-status");
-  if(!li||!lo||!info)return;
-  
-  if(user){
-    // 로그인 상태
-    li.style.display="none";
-    lo.style.display="";
-    info.style.display="";
-    var roleTag=authProfile&&authProfile.role==="admin"?'<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:#2d1f4a;color:#a78bfa;margin-left:4px">관리자</span>':'';
-    info.innerHTML='<span class="sync-dot"></span>'+(user.email||"로그인됨")+roleTag;
-    
-    // 네비게이션 저장 상태: 클라우드 자동 동기화
-    if(statusInd){
-      statusInd.className="save-status cloud";
-      statusInd.innerHTML='☁️ 클라우드 동기화';
-      statusInd.title="변경사항이 자동으로 클라우드에 저장됩니다";
-    }
-    
-    // 대시보드 카드 저장 상태
-    if(cardStatus){
-      cardStatus.innerHTML='<span style="color:#34d399">☁️ 자동 동기화</span><br><span style="font-size:9px;color:#666">클라우드 저장됨</span>';
-    }
-  }else{
-    // 로그아웃 상태
-    li.style.display="";
-    lo.style.display="none";
-    info.style.display="none";
-    info.textContent="";
-    
-    // 네비게이션 저장 상태: 수동 저장
-    if(statusInd){
-      statusInd.className="save-status manual";
-      statusInd.innerHTML='📝 수동 저장';
-      statusInd.title="'저장' 버튼을 눌러 JSON 파일로 다운로드해야 합니다";
-    }
-    
-    // 대시보드 카드 저장 상태
-    if(cardStatus){
-      cardStatus.innerHTML='<span style="color:#f59e0b">📝 수동 저장</span><br><span style="font-size:9px;color:#666">JSON 파일 필요</span>';
-    }
-  }
-}
-async function authLoadFromCloud(userId){try{var row=await supaLoadData(userId);if(!row)return false;if(row.assets&&row.assets.length)assets=row.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});if(row.trades&&row.trades.length)trades=row.trades;if(row.loans&&row.loans.length)loans=row.loans;if(row.real_estates&&row.real_estates.length)realEstates=row.real_estates;if(row.dividends&&row.dividends.length)dividends=row.dividends;if(row.savings&&row.savings.length)savings=row.savings;if(row.asset_history&&row.asset_history.length)assetHistory=row.asset_history;return true;}catch(e){return false;}}
-async function authSaveToCloud(){
-  if(!authUser||authSyncing){
-    console.log('[authSaveToCloud] 건너뜀 (authUser:', !!authUser, 'authSyncing:', authSyncing, ')');
-    return;
-  }
-  
-  authSyncing=true;
-  console.log('[authSaveToCloud] 저장 시작...');
-  
-  try{
-    await supaSaveData(authUser.id,{assets,trades,loans,realEstates,dividends,savings,assetHistory});
-    console.log('[authSaveToCloud] ✅ 저장 완료');
-  }catch(e){
-    console.error('[authSaveToCloud] ❌ 저장 실패:', e);
-  }
-  
-  authSyncing=false;
-}
-async function authOnLogin(user){
-  console.log('[authOnLogin] 시작, 사용자:', user);
-  authUser=user;
-  
-  try{
-    console.log('[authOnLogin] 프로필 조회 중...');
-    authProfile=await supaGetProfile(user.id);
-    console.log('[authOnLogin] 프로필:', authProfile);
-    
-    if(!authProfile){
-      console.log('[authOnLogin] 프로필 없음, 생성 시도...');
-      try{
-        var createRes = await fetch(SUPA_URL+"/rest/v1/profiles",{
-          method:"POST",
-          headers:supaHdr(),
-          body:JSON.stringify({id:user.id,email:user.email,role:'user'})
-        });
-        console.log('[authOnLogin] 프로필 생성 응답:', createRes.status);
-        
-        if(createRes.ok) {
-          authProfile={id:user.id,email:user.email,role:'user'};
-          console.log('[authOnLogin] 프로필 생성 성공');
-        } else {
-          var errData = await createRes.json();
-          console.error('[authOnLogin] 프로필 생성 실패:', errData);
-          authProfile=null;
-        }
-      }catch(e){
-        console.error('[authOnLogin] 프로필 생성 예외:', e);
-        authProfile=null;
-      }
-    }
-  }catch(e){
-    console.error('[authOnLogin] 프로필 조회 예외:', e);
-    authProfile=null;
-  }
-  
-  console.log('[authOnLogin] UI 업데이트');
-  authUpdateUI(user);
-  
-  console.log('[authOnLogin] 클라우드 데이터 로드 중...');
-  var loaded=await authLoadFromCloud(user.id);
-  console.log('[authOnLogin] 클라우드 데이터 로드됨:', loaded);
-  
-  if(loaded){
-    saveLS();
-    renderAll();
-    fetchAll();
-  }else{
-    await authSaveToCloud();
-  }
-  
-  console.log('[authOnLogin] 완료!');
-}
-// 이메일 인증 링크 처리
-(async function(){var hash=window.location.hash;if(hash&&hash.includes("access_token")){var params={};hash.replace("#","").split("&").forEach(function(p){var kv=p.split("=");params[kv[0]]=decodeURIComponent(kv[1]||"");});if(params.access_token){_supaSession={access_token:params.access_token,refresh_token:params.refresh_token||"",expires_at:Math.floor(Date.now()/1000)+(parseInt(params.expires_in)||3600),user:null};try{localStorage.setItem("supa_session",JSON.stringify(_supaSession));}catch(e){}history.replaceState(null,"",window.location.pathname);var u=await supaGetUser();if(u&&u.id){_supaSession.user=u;try{localStorage.setItem("supa_session",JSON.stringify(_supaSession));}catch(e){}await authOnLogin(u);}}}})();
-// 세션 자동 복원
-(async function(){if(!_supaSession||!_supaSession.access_token)return;var exp=_supaSession.expires_at||0,user=null;if(Date.now()/1000<exp-60){user=_supaSession.user||await supaGetUser();}else{user=await supaRefresh();}if(user&&user.id){await authOnLogin(user);}else{supaSessionClear();}})();
-
 // ══════════════════════════════════════════════
 // 대시보드 JS
 // ══════════════════════════════════════════════
@@ -1453,82 +1096,10 @@ function updateMarketBanner(){
 }
 var DEFAULT_ASSETS=[{id:1,symbol:"BTC",name:"비트코인",cat:"crypto",sector:"레이어1",qty:0.5,avgCost:55000000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:2,symbol:"ETH",name:"이더리움",cat:"crypto",sector:"레이어1",qty:3,avgCost:3200000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:3,symbol:"AAPL",name:"애플",cat:"us",sector:"IT/기술",qty:10,avgCost:180000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:4,symbol:"NVDA",name:"엔비디아",cat:"us",sector:"IT/기술",qty:5,avgCost:600000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:5,symbol:"005930",name:"삼성전자",cat:"kr",sector:"IT/기술",qty:50,avgCost:71000,price:0,prePrice:null,postPrice:null,priceHistory:{}},{id:6,symbol:"SAVINGS",name:"정기예금",cat:"cash",sector:"",qty:1,avgCost:5000000,price:5000000,prePrice:null,postPrice:null,priceHistory:{}}];
 var assets=DEFAULT_ASSETS.map(function(a){return Object.assign({},a);});
-function saveLS(){try{localStorage.setItem("ad13_assets",JSON.stringify(assets));localStorage.setItem("ad13_trades",JSON.stringify(trades));localStorage.setItem("ad13_loans",JSON.stringify(loans));localStorage.setItem("ad13_real",JSON.stringify(realEstates));localStorage.setItem("ad13_hist",JSON.stringify(assetHistory.slice(-200)));localStorage.setItem("ad13_div",JSON.stringify(dividends));localStorage.setItem("ad13_savings",JSON.stringify(savings));}catch(e){}if(authUser){clearTimeout(saveLS._t);saveLS._t=setTimeout(authSaveToCloud,2000);}}
+function saveLS(){try{localStorage.setItem("ad13_assets",JSON.stringify(assets));localStorage.setItem("ad13_trades",JSON.stringify(trades));localStorage.setItem("ad13_loans",JSON.stringify(loans));localStorage.setItem("ad13_real",JSON.stringify(realEstates));localStorage.setItem("ad13_hist",JSON.stringify(assetHistory.slice(-200)));localStorage.setItem("ad13_div",JSON.stringify(dividends));localStorage.setItem("ad13_savings",JSON.stringify(savings));}catch(e){}}
 function loadLS(){try{var a=localStorage.getItem("ad13_assets")||localStorage.getItem("ad12_assets"),t=localStorage.getItem("ad13_trades")||localStorage.getItem("ad12_trades"),l=localStorage.getItem("ad13_loans")||localStorage.getItem("ad12_loans"),r=localStorage.getItem("ad13_real")||localStorage.getItem("ad12_real"),h=localStorage.getItem("ad13_hist")||localStorage.getItem("ad12_hist"),d=localStorage.getItem("ad13_div")||localStorage.getItem("ad12_div"),s=localStorage.getItem("ad13_savings")||localStorage.getItem("ad12_savings");if(a)assets=JSON.parse(a);if(t)trades=JSON.parse(t);if(l)loans=JSON.parse(l);if(r)realEstates=JSON.parse(r);if(h)assetHistory=JSON.parse(h);if(d)dividends=JSON.parse(d);if(s)savings=JSON.parse(s);assets=assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});return !!(a||t);}catch(e){return false;}}
-function exportData(){
-  // 로그인 상태 확인
-  if(!authUser){
-    var confirmMsg="📝 수동 저장 모드\n\n";
-    confirmMsg+="로그인하지 않으면 데이터가 클라우드에 저장되지 않습니다.\n";
-    confirmMsg+="JSON 파일로 다운로드하여 수동으로 백업해주세요.\n\n";
-    confirmMsg+="💡 로그인하면 자동으로 클라우드에 동기화됩니다.\n\n";
-    confirmMsg+="지금 JSON 파일로 저장하시겠습니까?";
-    
-    if(!confirm(confirmMsg)){
-      return;
-    }
-  }
-  
-  var blob=new Blob([JSON.stringify({v:13,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});
-  var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();
-  a.href=url;
-  a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";
-  a.click();
-  URL.revokeObjectURL(url);
-  
-  // 성공 메시지
-  if(!authUser){
-    setTimeout(function(){
-      alert("✅ JSON 파일이 다운로드되었습니다!\n\n이 파일을 안전한 곳에 보관하세요.");
-    }, 100);
-  }
-}
-function importData(e){
-  var file=e.target.files[0];
-  if(!file)return;
-  
-  // 로그인 상태 확인
-  if(!authUser){
-    var confirmMsg="📂 수동 불러오기 모드\n\n";
-    confirmMsg+="로그인하지 않으면 불러온 데이터가 클라우드에 저장되지 않습니다.\n";
-    confirmMsg+="데이터를 수정한 후 다시 '저장' 버튼으로 백업해주세요.\n\n";
-    confirmMsg+="💡 로그인하면 자동으로 클라우드에 동기화됩니다.\n\n";
-    confirmMsg+="지금 파일을 불러오시겠습니까?";
-    
-    if(!confirm(confirmMsg)){
-      e.target.value="";
-      return;
-    }
-  }
-  
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      var d=JSON.parse(ev.target.result);
-      if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});
-      if(d.trades)trades=d.trades;
-      if(d.loans)loans=d.loans;
-      if(d.realEstates)realEstates=d.realEstates;
-      if(d.assetHistory)assetHistory=d.assetHistory;
-      if(d.dividends)dividends=d.dividends;
-      if(d.savings)savings=d.savings;
-      saveLS();
-      renderAll();
-      fetchAll();
-      
-      // 성공 메시지
-      var successMsg="✅ 불러오기 완료!";
-      if(!authUser){
-        successMsg+="\n\n⚠️ 로그인하지 않은 상태입니다.\n데이터 수정 후 '저장' 버튼으로 백업하세요.";
-      }
-      alert(successMsg);
-    }catch(err){
-      alert("❌ 파일 형식이 올바르지 않습니다.");
-    }
-  };
-  reader.readAsText(file);
-  e.target.value="";
-}
+function exportData(){var blob=new Blob([JSON.stringify({v:13,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();a.href=url;a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";a.click();URL.revokeObjectURL(url);}
+function importData(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});if(d.trades)trades=d.trades;if(d.loans)loans=d.loans;if(d.realEstates)realEstates=d.realEstates;if(d.assetHistory)assetHistory=d.assetHistory;if(d.dividends)dividends=d.dividends;if(d.savings)savings=d.savings;saveLS();renderAll();fetchAll();alert("불러오기 완료!");}catch(err){alert("파일 형식이 올바르지 않습니다.");}};reader.readAsText(file);e.target.value="";}
 function updatePremium(){if(!usdtKrwVal||!usdKrwVal)return;var p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100,s=fmtP(p),c=p>=0?"#f59e0b":"#a78bfa";var tkP=g("tk-premium"),chP=g("ch-premium");if(tkP){tkP.textContent=s;tkP.style.color=c;}if(chP){chP.textContent=s;chP.style.color=c;}}
 function fetchTickers(){updateMarketBanner();fetch(PROXY+"?mode=world").then(function(r){return r.json();}).then(function(resp){if(!resp.ok||!resp.data)return;var d=resp.data;if(d.usdkrw&&d.usdkrw.price){var fxPrice=d.usdkrw.price;usdKrwVal=fxPrice;usdKrw=fxPrice;g("tk-usdkrw").textContent=W+fxPrice.toFixed(2);var fxChg=d.usdkrw.chg||0;g("ch-usdkrw").textContent=fmtP(fxChg);g("ch-usdkrw").style.color=clr(fxChg);updatePremium();}var map=[{k:"snp",tv:"tk-snp",ch:"ch-snp",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"nasdaq",tv:"tk-nasdaq",ch:"ch-nasdaq",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"ndx",tv:"tk-ndx",ch:"ch-ndx",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"russell",tv:"tk-russell",ch:"ch-russell",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"vix",tv:"tk-vix",ch:"ch-vix",fn:function(v){return v.toFixed(2);}},{k:"gold",tv:"tk-gold",ch:"ch-gold",fn:function(v){return "$"+v.toFixed(2);}},{k:"silver",tv:"tk-silver",ch:"ch-silver",fn:function(v){return "$"+v.toFixed(2);}},{k:"wti",tv:"tk-wti",ch:"ch-wti",fn:function(v){return "$"+v.toFixed(2);}},{k:"brent",tv:"tk-brent",ch:"ch-brent",fn:function(v){return "$"+v.toFixed(2);}},{k:"kospi",tv:"tk-kospi",ch:"ch-kospi",fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},{k:"kosdaq",tv:"tk-kosdaq",ch:"ch-kosdaq",fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}}];map.forEach(function(m){var item=d[m.k];if(!item||item.price==null||item.price===0)return;var el=g(m.tv);if(el)el.textContent=m.fn(item.price);var chg=item.chg;if(chg==null&&item.price&&item.pc&&item.pc!==0)chg=(item.price-item.pc)/item.pc*100;var chEl=g(m.ch);if(chEl&&chg!=null){chEl.textContent=fmtP(chg);chEl.style.color=clr(chg);}});var t=new Date();g("tk-time").textContent=t.getHours()+":"+pad2(t.getMinutes())+" 갱신";}).catch(function(){});}
 function fetchCoinPrices(){var coinAssets=assets.filter(function(a){return a.cat==="crypto";});var markets=["KRW-USDT","KRW-BTC","KRW-ETH"];coinAssets.forEach(function(a){var m="KRW-"+a.symbol.toUpperCase();if(!markets.includes(m))markets.push(m);});fetch(PROXY+"?mode=coin&markets="+encodeURIComponent(markets.join(","))).then(function(r){return r.json();}).then(function(d){if(!d.ok||!d.data)return;d.data.forEach(function(t){var sym=t.market.replace("KRW-",""),chg=(t.trade_price-t.prev_closing_price)/t.prev_closing_price*100;if(t.market==="KRW-USDT"){usdtKrwVal=t.trade_price;usdKrw=t.trade_price;g("tk-usdtkrw").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-usdtkrw").textContent=fmtP(chg);g("ch-usdtkrw").style.color=clr(chg);updatePremium();}if(t.market==="KRW-BTC"){g("tk-btc").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-btc").textContent=fmtP(chg);g("ch-btc").style.color=clr(chg);}if(t.market==="KRW-ETH"){g("tk-eth").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-eth").textContent=fmtP(chg);g("ch-eth").style.color=clr(chg);}var a=assets.find(function(x){return x.cat==="crypto"&&x.symbol.toUpperCase()===sym;});if(a){a.price=t.trade_price;a.prePrice=null;a.postPrice=null;}});recordHistory();renderPortfolio();renderSummary();saveLS();}).catch(function(){});}
@@ -1572,8 +1143,8 @@ function setAcRange(r,btn){acRange=r;document.querySelectorAll("#chartpage .pb")
 function renderChartPage(){var msMap={week:7*86400000,month:30*86400000},cutoff=acRange==="all"?0:Date.now()-msMap[acRange],hist=assetHistory.filter(function(h){return h.ts>=cutoff;}),labels=hist.map(function(h){var d=new Date(h.ts);return(d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+pad2(d.getMinutes());});if(assetChart)assetChart.destroy();assetChart=new Chart(g("asset-chart"),{type:"line",data:{labels,datasets:[{data:hist.map(function(h){return Math.round(h.totalVal);}),borderColor:"#a78bfa",backgroundColor:"rgba(124,58,237,.08)",fill:true,tension:.3,pointRadius:hist.length>30?0:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#888",maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:"#1a1a22"}},y:{ticks:{color:"#888",callback:function(v){var m=v/100000000;return m>=1?m.toFixed(1)+"억":Math.round(v/10000)+"만";}},grid:{color:"#1a1a22"}}}}});if(retChart)retChart.destroy();retChart=new Chart(g("ret-chart"),{type:"line",data:{labels,datasets:[{data:hist.map(function(h){return h.pct;}),borderColor:"#38bdf8",backgroundColor:"rgba(56,189,248,.06)",fill:true,tension:.3,pointRadius:hist.length>30?0:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#888",maxRotation:45,font:{size:10},maxTicksLimit:8},grid:{color:"#1a1a22"}},y:{ticks:{color:"#888",callback:function(v){return v+"%";}},grid:{color:"#1a1a22"}}}}});var monthly={};trades.filter(function(t){return t.side==="sell";}).forEach(function(t){var m=t.date.substring(0,7);monthly[m]=(monthly[m]||0)+(t.realizedPnlKrw||0);});var mk=Object.keys(monthly).sort(),mv=mk.map(function(k){return Math.round(monthly[k]);});if(monthlyChart)monthlyChart.destroy();monthlyChart=new Chart(g("monthly-chart"),{type:"bar",data:{labels:mk.length?mk:["데이터없음"],datasets:[{data:mk.length?mv:[0],backgroundColor:mv.map(function(v){return v>=0?"#10b981":"#f87171";}),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#888"},grid:{color:"#1a1a22"}},y:{ticks:{color:"#888",callback:function(v){return(v>=0?"+":"")+Math.round(v/10000)+"만";}},grid:{color:"#1a1a22"}}}}});}
 function renderAll(){renderSummary();renderPortfolio();renderDashCharts();renderPeriodChart();renderPeriodSummary(periodTab,"period-summary");renderTradeSummary();renderTradeTable();renderTradePeriodSummary(tradePeriodTab);renderChartPage();renderRealEstates();renderReSummary();renderLoans();renderLoanSummary();renderSavings();updateTradeSym();updateDivSymOptions();saveLS();}
 function renderSummary(){var tv=assets.reduce(function(s,a){return s+a.price*a.qty;},0),tc=assets.reduce(function(s,a){return s+a.avgCost*a.qty;},0),pnl=tv-tc,pct=tc?pnl/tc*100:0;g("c-total").textContent=fmt(tv);g("c-cost").textContent=fmt(tc);g("c-pnl").innerHTML="<span class='"+cc(pnl)+"'>"+fmt(pnl)+"</span>";g("c-pnlpct").innerHTML="<span class='"+cc(pct)+"'>"+fmtP(pct)+"</span>";var totalDebt=loans.reduce(function(s,l){return s+(l.principal||0);},0),reVal=realEstates.filter(function(re){return re.status!=="sold";}).reduce(function(s,re){return s+re.curPrice;},0),net=tv+reVal-totalDebt;g("c-debt").textContent=fmt(totalDebt);g("c-net").innerHTML="<span class='"+cc(net)+"'>"+fmt(net)+"</span>";var rows=["crypto","us","kr","cash"].map(function(c){var ca=assets.filter(function(a){return a.cat===c;}),v2=ca.reduce(function(s,a){return s+a.price*a.qty;},0),co2=ca.reduce(function(s,a){return s+a.avgCost*a.qty;},0),p2=co2?(v2-co2)/co2*100:0,share2=tv?v2/tv*100:0;return"<div class='cat-row'><div style='display:flex;align-items:center;gap:8px'><span style='width:7px;height:7px;border-radius:50%;background:"+CAT_COLOR[c]+";display:inline-block'></span><span style='font-size:13px'>"+CAT_LABEL[c]+"</span><span style='font-size:10px;color:#555'>"+share2.toFixed(1)+"%</span></div><div style='text-align:right'><div style='font-size:13px;font-weight:600'>"+fmt(v2)+"</div><div style='font-size:11px' class='"+cc(p2)+"'>"+fmtP(p2)+"</div></div></div>";}).join("");g("cat-summary").innerHTML=rows;}
-function renderPortfolio(){var tbody=g("port-table");if(!assets.length){tbody.innerHTML="<tr><td colspan='11' style='text-align:center;color:#333;padding:22px'>자산을 추가해주세요</td></tr>";return;}var isAdmin=authProfile&&authProfile.role==='admin';var et=getET(),eMin=toMin(et),eWd=isWeekday(et),usPre=eWd&&eMin>=240&&eMin<570,usAfter=eWd&&eMin>=960&&eMin<1200,rows="";["crypto","us","kr","cash"].forEach(function(c){var group=assets.filter(function(a){return a.cat===c;});if(!group.length)return;var gv=group.reduce(function(s,a){return s+a.price*a.qty;},0),gc=group.reduce(function(s,a){return s+a.avgCost*a.qty;},0),gp=gc?(gv-gc)/gc*100:0;rows+="<tr style='background:#111116'><td colspan='8' style='padding:5px 9px;font-size:10px;color:#555'>"+CAT_LABEL[c]+"</td><td colspan='3' style='padding:5px 9px;text-align:right;font-size:10px' class='"+cc(gp)+"'>"+fmt(gv)+"&nbsp;"+fmtP(gp)+"</td></tr>";group.forEach(function(a){var val=a.price*a.qty,pnl=val-a.avgCost*a.qty,pct=getPeriodPct(a),priceCell="<div class='pkrw'>"+fmt(a.price)+"</div>";if(a.cat==="crypto")priceCell+="<div class='pusd'>"+fmtUSD(a.price/usdKrw)+"</div>";var extCell="-";if(a.cat==="us"){if(usPre&&a.prePrice){var pp=a.prePct||0;extCell="<div style='font-size:10px;color:#f59e0b;font-weight:600'>프리 "+fmt(a.prePrice)+"</div><div style='font-size:9px;color:"+(pp>=0?"#f59e0b":"#c084fc")+"'>"+fmtP(pp)+"</div>";}else if(usAfter&&a.postPrice){var ap=a.postPct||0;extCell="<div style='font-size:10px;color:#c084fc;font-weight:600'>애프터 "+fmt(a.postPrice)+"</div><div style='font-size:9px;color:"+(ap>=0?"#c084fc":"#f87171")+"'>"+fmtP(ap)+"</div>";}else{extCell="<span style='color:#333;font-size:10px'>--</span>";}}var sectorCell=isAdmin?"<input class='ei eiw' id='e-sec-"+a.id+"' value='"+(a.sector||"")+"'>":(a.sector?"<span class='badge bs'>"+a.sector+"</span>":"<span style='color:#555;font-size:10px'>관리자 전용</span>");if(editingId===a.id){rows+="<tr><td><strong>"+a.name+"</strong><br><span style='color:#555;font-size:10px'>"+a.symbol+"</span></td><td><span class='badge "+CAT_BADGE[a.cat]+"'>"+CAT_LABEL[a.cat]+"</span></td><td>"+sectorCell+"</td><td><input class='ei' id='e-qty-"+a.id+"' value='"+a.qty+"' type='number' step='any'></td><td>"+fmt(a.avgCost)+"</td><td>"+priceCell+"</td><td>-</td><td>"+fmt(val)+"</td><td class='"+cc(pnl)+"'>"+fmt(pnl)+"</td><td class='"+cc(pct)+"'>"+fmtP(pct)+"</td><td style='white-space:nowrap'><button class='btn btns' onclick='saveEdit("+a.id+")'>저장</button> <button class='btn btns btnd' onclick='editingId=null;renderPortfolio()'>취소</button></td></tr>";}else{rows+="<tr><td><strong>"+a.name+"</strong><br><span style='color:#555;font-size:10px'>"+a.symbol+"</span></td><td><span class='badge "+CAT_BADGE[a.cat]+"'>"+CAT_LABEL[a.cat]+"</span></td><td>"+(a.sector?"<span class='badge bs'>"+a.sector+"</span>":"-")+"</td><td>"+a.qty+"</td><td>"+fmt(a.avgCost)+"</td><td>"+priceCell+"</td><td>"+extCell+"</td><td>"+fmt(val)+"</td><td class='"+cc(pnl)+"'>"+fmt(pnl)+"</td><td class='"+cc(pct)+"'>"+fmtP(pct)+"</td><td style='white-space:nowrap'><button class='btn btns' onclick='editingId="+a.id+";renderPortfolio()'>수정</button> <button class='btn btns btnd' onclick='delAsset("+a.id+")'>삭제</button></td></tr>";}});});tbody.innerHTML=rows;}
-function saveEdit(id){var a=assets.find(function(x){return x.id===id;});if(authProfile&&authProfile.role==='admin'){var secInput=g("e-sec-"+id);if(secInput)a.sector=secInput.value.trim();}a.qty=parseFloat(g("e-qty-"+id).value)||a.qty;editingId=null;renderAll();}
+function renderPortfolio(){var tbody=g("port-table");if(!assets.length){tbody.innerHTML="<tr><td colspan='11' style='text-align:center;color:#333;padding:22px'>자산을 추가해주세요</td></tr>";return;}var et=getET(),eMin=toMin(et),eWd=isWeekday(et),usPre=eWd&&eMin>=240&&eMin<570,usAfter=eWd&&eMin>=960&&eMin<1200,rows="";["crypto","us","kr","cash"].forEach(function(c){var group=assets.filter(function(a){return a.cat===c;});if(!group.length)return;var gv=group.reduce(function(s,a){return s+a.price*a.qty;},0),gc=group.reduce(function(s,a){return s+a.avgCost*a.qty;},0),gp=gc?(gv-gc)/gc*100:0;rows+="<tr style='background:#111116'><td colspan='8' style='padding:5px 9px;font-size:10px;color:#555'>"+CAT_LABEL[c]+"</td><td colspan='3' style='padding:5px 9px;text-align:right;font-size:10px' class='"+cc(gp)+"'>"+fmt(gv)+"&nbsp;"+fmtP(gp)+"</td></tr>";group.forEach(function(a){var val=a.price*a.qty,pnl=val-a.avgCost*a.qty,pct=getPeriodPct(a),priceCell="<div class='pkrw'>"+fmt(a.price)+"</div>";if(a.cat==="crypto")priceCell+="<div class='pusd'>"+fmtUSD(a.price/usdKrw)+"</div>";var extCell="-";if(a.cat==="us"){if(usPre&&a.prePrice){var pp=a.prePct||0;extCell="<div style='font-size:10px;color:#f59e0b;font-weight:600'>프리 "+fmt(a.prePrice)+"</div><div style='font-size:9px;color:"+(pp>=0?"#f59e0b":"#c084fc")+"'>"+fmtP(pp)+"</div>";}else if(usAfter&&a.postPrice){var ap=a.postPct||0;extCell="<div style='font-size:10px;color:#c084fc;font-weight:600'>애프터 "+fmt(a.postPrice)+"</div><div style='font-size:9px;color:"+(ap>=0?"#c084fc":"#f87171")+"'>"+fmtP(ap)+"</div>";}else{extCell="<span style='color:#333;font-size:10px'>--</span>";}}if(editingId===a.id){rows+="<tr><td><strong>"+a.name+"</strong><br><span style='color:#555;font-size:10px'>"+a.symbol+"</span></td><td><span class='badge "+CAT_BADGE[a.cat]+"'>"+CAT_LABEL[a.cat]+"</span></td><td><input class='ei eiw' id='e-sec-"+a.id+"' value='"+(a.sector||"")+"'></td><td><input class='ei' id='e-qty-"+a.id+"' value='"+a.qty+"' type='number' step='any'></td><td>"+fmt(a.avgCost)+"</td><td>"+priceCell+"</td><td>-</td><td>"+fmt(val)+"</td><td class='"+cc(pnl)+"'>"+fmt(pnl)+"</td><td class='"+cc(pct)+"'>"+fmtP(pct)+"</td><td style='white-space:nowrap'><button class='btn btns' onclick='saveEdit("+a.id+")'>저장</button> <button class='btn btns btnd' onclick='editingId=null;renderPortfolio()'>취소</button></td></tr>";}else{rows+="<tr><td><strong>"+a.name+"</strong><br><span style='color:#555;font-size:10px'>"+a.symbol+"</span></td><td><span class='badge "+CAT_BADGE[a.cat]+"'>"+CAT_LABEL[a.cat]+"</span></td><td>"+(a.sector?"<span class='badge bs'>"+a.sector+"</span>":"-")+"</td><td>"+a.qty+"</td><td>"+fmt(a.avgCost)+"</td><td>"+priceCell+"</td><td>"+extCell+"</td><td>"+fmt(val)+"</td><td class='"+cc(pnl)+"'>"+fmt(pnl)+"</td><td class='"+cc(pct)+"'>"+fmtP(pct)+"</td><td style='white-space:nowrap'><button class='btn btns' onclick='editingId="+a.id+";renderPortfolio()'>수정</button> <button class='btn btns btnd' onclick='delAsset("+a.id+")'>삭제</button></td></tr>";}});});tbody.innerHTML=rows;}
+function saveEdit(id){var a=assets.find(function(x){return x.id===id;});a.sector=g("e-sec-"+id).value.trim();a.qty=parseFloat(g("e-qty-"+id).value)||a.qty;editingId=null;renderAll();}
 function delAsset(id){assets=assets.filter(function(a){return a.id!==id;});renderAll();}
 function updateTradeSym(){var sel=g("t-sym"),cur=sel.value,opts="<option value=''>-- 선택 --</option>";assets.forEach(function(a){opts+="<option value='"+a.symbol+"'"+(a.symbol===cur?" selected":"")+">["+CAT_LABEL[a.cat]+"] "+a.name+" ("+a.symbol+") 보유:"+a.qty+"</option>";});sel.innerHTML=opts;}
 function updateDivSymOptions(){var sel=g("div-sym"),cur=sel.value,opts="<option value=''>선택</option>";assets.forEach(function(a){opts+="<option value='"+a.symbol+"'"+(a.symbol===cur?" selected":"")+">"+a.name+" ("+a.symbol+")</option>";});sel.innerHTML=opts;}
@@ -1599,9 +1170,9 @@ function delDiv(id){dividends=dividends.filter(function(d){return String(d.id)!=
 function onSearchInput(){clearTimeout(searchTimer);var q=g("m-search").value.trim();if(q.length<1){g("search-results").style.display="none";return;}searchTimer=setTimeout(doSearch,600);}
 function doSearch(){var rawQ=g("m-search").value.trim();if(!rawQ)return;var btn=g("search-btn"),res=g("search-results");btn.textContent="검색중...";btn.disabled=true;res.style.display="block";res.innerHTML="<div style='padding:12px;color:#555;font-size:12px'>검색중...</div>";fetchSearch(rawQ,function(quotes){if(!quotes.length)res.innerHTML="<div style='padding:12px;color:#555;font-size:12px'>결과 없음</div>";else res.innerHTML=buildSearchResults(quotes,"selectTicker");btn.textContent="검색";btn.disabled=false;});}
 function selectTicker(idx){var items=document.querySelectorAll("#search-results .search-item"),item=items[idx];if(!item)return;var sym=item.getAttribute("data-sym"),name=item.getAttribute("data-name"),type=item.getAttribute("data-type"),cat="us";if(type==="CRYPTOCURRENCY"||type==="crypto")cat="crypto";g("m-sym").value=cleanSym(sym);g("m-name").value=name;g("m-cat").value=cat;g("m-sel-name").textContent=name;g("m-sel-sym").textContent=cleanSym(sym);g("m-sel-type").textContent=cat==="crypto"?"가상자산":"미국주식";g("m-selected").style.display="block";g("search-results").style.display="none";g("m-search").value=name;}
-function openAddModal(){g("add-modal").classList.add("open");["m-search","m-sym","m-name","m-qty","m-cost"].forEach(function(id){g(id).value="";});g("m-selected").style.display="none";g("search-results").style.display="none";var sectorRow=g("modal-sector-row");if(sectorRow)sectorRow.style.display=(authProfile&&authProfile.role==='admin')?"block":"none";}
+function openAddModal(){g("add-modal").classList.add("open");["m-search","m-sym","m-name","m-qty","m-cost"].forEach(function(id){g(id).value="";});g("m-selected").style.display="none";g("search-results").style.display="none";}
 function closeModal(){g("add-modal").classList.remove("open");}
-function addAsset(){var sym=cleanSym(g("m-sym").value.trim()),name=g("m-name").value.trim(),cat=g("m-cat").value,sector=(authProfile&&authProfile.role==='admin')?g("m-sector").value:"",qty=parseFloat(g("m-qty").value),cost=parseFloat(g("m-cost").value);if(!sym||!name||!qty||!cost){alert("심볼, 종목명, 수량, 매입가를 입력해주세요");return;}var exists=assets.find(function(a){return cleanSym(a.symbol)===sym;});if(exists){alert("["+exists.name+"] 은 이미 포트폴리오에 있어요.");closeModal();return;}assets.push({id:Date.now(),symbol:sym,name,cat,sector,qty,avgCost:cost,price:cost,prePrice:null,postPrice:null,priceHistory:{}});closeModal();renderAll();fetchAll();}
+function addAsset(){var sym=cleanSym(g("m-sym").value.trim()),name=g("m-name").value.trim(),cat=g("m-cat").value,sector=g("m-sector").value,qty=parseFloat(g("m-qty").value),cost=parseFloat(g("m-cost").value);if(!sym||!name||!qty||!cost){alert("심볼, 종목명, 수량, 매입가를 입력해주세요");return;}var exists=assets.find(function(a){return cleanSym(a.symbol)===sym;});if(exists){alert("["+exists.name+"] 은 이미 포트폴리오에 있어요.");closeModal();return;}assets.push({id:Date.now(),symbol:sym,name,cat,sector,qty,avgCost:cost,price:cost,prePrice:null,postPrice:null,priceHistory:{}});closeModal();renderAll();fetchAll();}
 var RE_STATUS={hold:"보유중",sold:"매도완료",rent_out:"임대중",rent_in:"임차중"};
 var RE_COLOR={hold:"#818cf8",sold:"#34d399",rent_out:"#f59e0b",rent_in:"#38bdf8"};
 var RE_TYPE_L={apt:"아파트",villa:"빌라/다세대",officetel:"오피스텔",commercial:"상가/사무실",land:"토지",house:"단독주택",other:"기타"};
@@ -1901,6 +1472,188 @@ function scrInit(){
   scrBuild("us");
 }
 
+// ══════════════════════════════════════════════
+// 즐겨찾기 (Favorites)
+// ══════════════════════════════════════════════
+var favList=[]; // [{sym, name, isKr}]
+var favCache={};
+var favValLoading={};
+var favInited=false;
+
+function favLoadLS(){
+  try{var s=localStorage.getItem("fav_list");if(s)favList=JSON.parse(s);}catch(e){favList=[];}
+}
+function favSaveLS(){
+  try{localStorage.setItem("fav_list",JSON.stringify(favList));}catch(e){}
+}
+
+function favInit(){
+  if(!favInited){favInited=true;favLoadLS();}
+  favRender();
+  if(favList.length>0)favFetchAll();
+}
+
+function favAdd(){
+  var sym=(g("fav-sym-input").value||"").trim().toUpperCase();
+  var isKr=g("fav-type").value==="kr";
+  if(!sym){g("fav-status").textContent="종목 코드를 입력해주세요";return;}
+  // KR 자동 접미사
+  if(isKr&&!sym.includes(".")){
+    if(/^\d{6}$/.test(sym)){
+      var n=parseInt(sym);
+      sym+=(n>=300000?"KQ":"KS").replace(/^/,".");
+    }
+  }
+  if(favList.some(function(f){return f.sym===sym;})){g("fav-status").textContent="이미 추가된 종목입니다";return;}
+  // 이름 찾기 (기존 데이터에서)
+  var known=null;
+  if(isKr){known=KR_STOCKS.find(function(s){return s.sym===sym;});}
+  else{known=US_STOCKS.find(function(s){return s.sym===sym;});}
+  var name=known?known.name:sym;
+  var sec=known?(known.sec||"--"):"--";
+  favList.push({sym:sym,name:name,sec:sec,isKr:isKr});
+  favSaveLS();
+  g("fav-sym-input").value="";
+  g("fav-status").textContent="추가됨: "+sym;
+  favRender();
+  favFetchOne(sym,isKr);
+}
+
+function favRemove(sym){
+  favList=favList.filter(function(f){return f.sym!==sym;});
+  favSaveLS();
+  delete favCache[sym];
+  favRender();
+  favUpdateSum();
+}
+
+function favClearAll(){
+  if(!favList.length)return;
+  if(!confirm("즐겨찾기 종목을 모두 삭제할까요?"))return;
+  favList=[];favCache={};favValLoading={};
+  favSaveLS();favRender();favUpdateSum();
+}
+
+function favReload(){
+  favCache={};favValLoading={};
+  g("fav-status").textContent="새로고침중...";
+  favRender();
+  favFetchAll();
+}
+
+function favFetchAll(){
+  if(!favList.length)return;
+  var total=favList.length,loaded=0;
+  var bw=g("fav-prog-bar-wrap"),bar=g("fav-prog-bar"),lbl=g("fav-prog-label");
+  if(bw)bw.classList.add("show");
+  if(lbl){lbl.classList.add("show");lbl.textContent="로딩중... 0/"+total;}
+
+  var chunks=[];
+  for(var i=0;i<favList.length;i+=3)chunks.push(favList.slice(i,i+3));
+
+  function doChunk(ci){
+    if(ci>=chunks.length){
+      favRender();
+      if(bw)bw.classList.remove("show");
+      if(lbl)lbl.classList.remove("show");
+      g("fav-status").textContent="완료 "+scrHhmm();
+      favUpdateSum();
+      return;
+    }
+    Promise.all(chunks[ci].map(function(f){return scrFetchHistory(f.sym);}))
+      .then(function(){
+        loaded+=chunks[ci].length;
+        if(bar)bar.style.width=Math.round(loaded/total*100)+"%";
+        if(lbl)lbl.textContent="로딩중... "+loaded+"/"+total;
+        favRender();
+        setTimeout(function(){doChunk(ci+1);},120);
+      });
+  }
+  doChunk(0);
+}
+
+function favFetchOne(sym,isKr){
+  scrFetchHistory(sym).then(function(){favRender();favUpdateSum();});
+}
+
+function favRender(){
+  var tbody=g("fav-body");
+  if(!favList.length){
+    tbody.innerHTML="<tr><td colspan='16' class='fav-empty'>⭐ 아직 즐겨찾기 종목이 없습니다.<br><span style='font-size:11px;color:#333'>위에서 종목 코드를 입력해 추가하세요.</span></td></tr>";
+    return;
+  }
+  var html="";
+  favList.forEach(function(f){
+    var c=scrCache[f.sym]||{};
+    var isKr=f.isKr;
+    var known=isKr?KR_STOCKS.find(function(s){return s.sym===f.sym;}):US_STOCKS.find(function(s){return s.sym===f.sym;});
+    var badge=isKr
+      ?(known?('<span class="scr-badge '+(known.mkt==="KOSPI"?"sb-kospi":"sb-kosdaq")+'">'+known.mkt+"</span>"):'<span class="scr-badge sb-kospi">KR</span>')
+      :(known?({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[known.sz]||'<span class="scr-badge sb-md">US</span>'):'<span class="scr-badge sb-md">US</span>');
+    var nm=isKr
+      ?("<strong>"+f.name+"</strong><br><span style='font-size:10px;color:#3a3a4a'>"+f.sym.replace(/\.(KS|KQ)$/,"")+"</span>")
+      :("<strong>"+f.name+"</strong><br><span style='font-size:10px;color:#333'>"+f.sym+"</span>");
+    var id="fv_"+f.sym.replace(/[^a-zA-Z0-9]/g,"_");
+    html+="<tr data-sym='"+f.sym+"'>"
+      +"<td class='sl sc0'>"+badge+"</td>"
+      +"<td class='sl sc1' style='font-size:10px;color:#555'>"+f.sec+"</td>"
+      +"<td class='sl sc2'>"+nm+"</td>"
+      +"<td style='text-align:right'>"+scrPriceBadge(c,isKr)+"</td>"
+      +"<td>"+scrFmtChg(c.chg1d)+"</td>"
+      +"<td>"+scrFmtRsi(c.rsi14d)+"</td>"
+      +"<td>"+scrFmtChg(c.chg1w)+"</td>"
+      +"<td>"+scrFmtRsi(c.rsi14w)+"</td>"
+      +"<td>"+scrFmtChg(c.chg1m)+"</td>"
+      +"<td>"+scrFmtRsi(c.rsi14m)+"</td>"
+      +"<td>"+scrFmtChg(c.chg6m)+"</td>"
+      +"<td>"+scrFmtRsi(c.rsi14_6m)+"</td>"
+      +"<td>"+scrFmtChg(c.chg1y)+"</td>"
+      +"<td>"+scrFmtRsi(c.rsi14y)+"</td>"
+      +"<td><button class='val-toggle' onclick=\"favToggleVal('"+id+"','"+f.sym+"',"+isKr+",this)\">▶</button></td>"
+      +"<td><button class='btn btns btnd' onclick=\"favRemove('"+f.sym+"')\">✕</button></td>"
+      +"</tr>"
+      +"<tr class='val-row' id='"+id+"'><td class='val-cell' colspan='16'>"
+      +"<div id='"+id+"-c'><span style='color:#555;font-size:11px'><span class='loading'></span> 로딩중...</span></div>"
+      +"</td></tr>";
+  });
+  tbody.innerHTML=html;
+}
+
+function favToggleVal(id,sym,isKr,btn){
+  var row=document.getElementById(id);if(!row)return;
+  var open=row.classList.toggle("open");
+  btn.textContent=open?"▼":"▶";
+  if(open&&!favValLoading[sym]){
+    favValLoading[sym]=true;
+    scrFetchFin(sym).then(function(c){
+      var el=document.getElementById(id+"-c");
+      if(el){
+        var cap=c.price?(isKr?"₩"+Math.round(c.price).toLocaleString("ko-KR"):"$"+c.price.toFixed(2)):"--";
+        el.innerHTML="<div style='display:flex;gap:16px;flex-wrap:wrap;font-size:11px'>"
+          +"<div><span style='color:#555'>현재가</span> <strong>"+cap+"</strong></div>"
+          +"<div><span style='color:#555'>일RSI</span> "+scrFmtRsi(c.rsi14d)+"</div>"
+          +"<div><span style='color:#555'>주RSI</span> "+scrFmtRsi(c.rsi14w)+"</div>"
+          +"<div><span style='color:#555'>월RSI</span> "+scrFmtRsi(c.rsi14m)+"</div>"
+          +"<div><span style='color:#555'>6mRSI</span> "+scrFmtRsi(c.rsi14_6m)+"</div>"
+          +"<div><span style='color:#555'>년RSI</span> "+scrFmtRsi(c.rsi14y)+"</div>"
+          +"</div>";
+      }
+    });
+  }
+}
+
+function favUpdateSum(){
+  var chgs=favList.map(function(f){return(scrCache[f.sym]||{}).chg1d;}).filter(function(v){return v!=null;});
+  if(!chgs.length){g("fav-sum").innerHTML="";return;}
+  var avg=chgs.reduce(function(a,b){return a+b;},0)/chgs.length;
+  var up=chgs.filter(function(v){return v>0;}).length,dn=chgs.filter(function(v){return v<0;}).length;
+  g("fav-sum").innerHTML="<div class='scr-si'>종목수<span>"+favList.length+"</span></div>"
+    +"<div class='scr-si'>조회<span>"+chgs.length+"</span></div>"
+    +"<div class='scr-si'>평균1일<span style='color:"+(avg>=0?"#34d399":"#f87171")+"'>"+(avg>=0?"+":"")+avg.toFixed(2)+"%</span></div>"
+    +"<div class='scr-si'>상승<span style='color:#34d399'>"+up+"▲</span></div>"
+    +"<div class='scr-si'>하락<span style='color:#f87171'>"+dn+"▼</span></div>";
+}
+
 // ── 종목 데이터
 var US_STOCKS=[
   {sym:"AAPL",name:"Apple",kr:"애플",sec:"IT",sz:"lg"},{sym:"MSFT",name:"Microsoft",kr:"마이크로소프트",sec:"IT",sz:"lg"},
@@ -1968,7 +1721,6 @@ var KR_STOCKS=[
 // 초기 실행
 g("t-date").value=new Date().toISOString().split("T")[0];
 updateMarketBanner();
-authUpdateUI(null); // 저장 상태 표시 초기화
 var hasSaved=loadLS();
 if(hasSaved)renderAll();
 
