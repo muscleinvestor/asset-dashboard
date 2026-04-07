@@ -1297,12 +1297,11 @@ function scrFetchHistory(sym){
         scrCache[sym].rsi14m      =x.rsi14m       !=null?x.rsi14m:null;
         scrCache[sym].rsi14_6m    =x.rsi14_6m     !=null?x.rsi14_6m:null;
         scrCache[sym].rsi14y      =x.rsi14y       !=null?x.rsi14y:null;
-        // 시총·거래량 → fundCache 즉시 반영 (실시간)
+        // 시총·거래량 → fundCache 저장 (render() 시점에 자동 반영)
         if(x.marketCap||x.volume){
           if(!fundCache[sym])fundCache[sym]={};
           if(x.marketCap)fundCache[sym].marketCap=x.marketCap;
           if(x.volume)   fundCache[sym].avgVolume=x.volume;
-          updateFundCells(sym);
         }
       }
       return scrCache[sym];
@@ -1590,20 +1589,19 @@ function updateFundCells(sym){
   document.querySelectorAll('[data-fund="vol"][data-sym="'+sym+'"]').forEach(function(el){el.innerHTML=fmtVol(fd);});
 }
 
-// ── 배경 로딩: chart 완료 후 시총·거래량은 이미 실시간 반영됨
-// fundCache에 이미 있으므로 scrStartFundamentals는 deep-detail용으로만 사용
+// 상세보기 클릭 시 빠른 응답을 위해 LS 캐시 없는 종목 미리 로딩
 function scrStartFundamentals(stocks){
-  // 시총·거래량은 scrFetchHistory에서 이미 실시간으로 채워짐
-  // LS 캐시에 없는 종목만 순차 로딩 (상세보기 준비)
-  var pending=stocks.filter(function(s){return!fundLoadLS(s.sym)&&(!fundCache[s.sym]||!fundCache[s.sym]._done);});
+  var pending=stocks.filter(function(s){
+    return !fundCache[s.sym]||!fundCache[s.sym]._done;
+  });
   if(!pending.length)return;
   var i=0;
   function next(){
     if(i>=pending.length)return;
     var s=pending[i++];
-    scrFetchFundamental(s.sym).then(function(){setTimeout(next,600);});
+    scrFetchFundamental(s.sym).then(function(){setTimeout(next,700);});
   }
-  setTimeout(next,3000); // chart 로딩 안정 후 시작
+  setTimeout(next,3000);
 }
 
 // ── 상세 패널 HTML 생성 + Chart.js 차트 초기화
