@@ -81,6 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f13;
 .nb.nb-fixed.active{color:#f59e0b;border-bottom-color:#f59e0b}
 .nav-sep{width:1px;height:20px;background:#2a2a38;margin:0 6px;flex-shrink:0;align-self:center;margin-bottom:1px}
 .nav-right{margin-left:auto;display:flex;gap:6px;padding-bottom:4px;flex-shrink:0;align-items:center}
+.save-group{display:flex;flex-direction:column;align-items:center;gap:4px;background:#1a1a24;border:1px solid #2a2a38;border-radius:6px;padding:6px 8px}
 .page{display:none;padding:14px}
 .page.active{display:block}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
@@ -211,7 +212,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .auth-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#555;cursor:pointer;font-size:18px;line-height:1}
 .auth-close:hover{color:#aaa}
 .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px;vertical-align:middle}
-.save-status{font-size:9px;color:#666;margin-left:8px;padding:2px 6px;border-radius:4px;background:#1a1a24;border:1px solid #2a2a38;white-space:nowrap}
+.save-status{font-size:9px;color:#666;padding:2px 8px;border-radius:4px;background:#1a1a24;border:1px solid #2a2a38;white-space:nowrap}
 .save-status.manual{color:#f59e0b;border-color:#3d3200;background:#2a2200}
 .save-status.cloud{color:#34d399;border-color:#1a4a2a;background:#0d2b1a}
 </style>
@@ -354,9 +355,13 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <button class="nb nb-fixed" onclick="showPage('loanpage',this)">대출관리</button>
   <button class="nb nb-fixed" onclick="showPage('savingspage',this)">예적금</button>
   <div class="nav-right">
-    <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()" title="JSON 파일로 다운로드">💾 저장</button>
-    <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer" title="JSON 파일에서 불러오기">📂 불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
-    <span id="save-status-indicator" class="save-status manual">📝 수동 저장</span>
+    <div class="save-group">
+      <span id="save-status-indicator" class="save-status manual">📝 수동 저장</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()" title="JSON 파일로 다운로드">💾 저장</button>
+        <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer" title="JSON 파일에서 불러오기">📂 불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
+      </div>
+    </div>
     <div id="auth-bar">
       <span id="auth-user-info" style="display:none"></span>
       <button class="btn" id="auth-login-btn" onclick="authOpenModal('login')" style="font-size:11px;color:#a78bfa;border-color:#3a2060;background:#1a1028">로그인</button>
