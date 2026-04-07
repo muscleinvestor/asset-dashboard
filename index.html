@@ -188,6 +188,20 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .rsi-ob{color:#f87171;font-weight:700}
 .rsi-os{color:#60a5fa;font-weight:700}
 .rsi-neu{color:#666}
+/* 펀더멘털 패널 */
+.fund-panel{padding:6px 0}
+.fund-kpi-grid{display:flex;gap:10px;flex-wrap:wrap;padding:7px 10px;background:#0a0a12;border-radius:6px;margin-bottom:8px;border:1px solid #1a1a26}
+.fund-kpi-item{display:flex;flex-direction:column;gap:2px;min-width:56px}
+.fund-kpi-label{font-size:9px;color:#555;letter-spacing:.3px;text-transform:uppercase}
+.fund-kpi-val{font-size:12px;font-weight:700;color:#e8e8f0}
+.fund-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fund-chart-box{background:#0a0a12;border-radius:6px;padding:8px;border:1px solid #1a1a26}
+.fund-chart-title{font-size:10px;color:#666;margin-bottom:5px;font-weight:600}
+.fund-est-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.fund-est-card{background:#0a0a12;border-radius:6px;padding:8px 10px;border:1px solid #1a1a26;flex:1;min-width:120px}
+.fund-est-year{font-size:10px;color:#555;margin-bottom:4px}
+.fund-est-rev{font-size:12px;font-weight:700;color:#14b8a6}
+.fund-est-eps{font-size:11px;color:#a78bfa;margin-top:2px}
 /* 즐겨찾기 */
 #fav-page{padding:0;display:none;flex-direction:column;height:calc(100vh - 130px);overflow:hidden}
 #fav-page.active{display:flex}
@@ -525,6 +539,8 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <col id="us-col0" style="width:60px">
           <col id="us-col1" style="width:65px">
           <col id="us-col2" style="width:175px">
+          <col style="width:88px">
+          <col style="width:76px">
           <col style="width:105px">
           <col style="width:72px">
           <col style="width:58px">
@@ -542,6 +558,8 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <th class="sl sc0">구분</th>
           <th class="sl sc1">섹터</th>
           <th class="sl sc2">종목</th>
+          <th style="color:#14b8a6">시총</th>
+          <th style="color:#818cf8">거래량</th>
           <th>현재가</th>
           <th>1일%</th><th>일RSI</th>
           <th>1주%</th><th>주RSI</th>
@@ -559,6 +577,8 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <col id="kr-col0" style="width:60px">
           <col id="kr-col1" style="width:65px">
           <col id="kr-col2" style="width:175px">
+          <col style="width:88px">
+          <col style="width:76px">
           <col style="width:105px">
           <col style="width:72px">
           <col style="width:58px">
@@ -576,6 +596,8 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <th class="sl sc0">구분</th>
           <th class="sl sc1">섹터</th>
           <th class="sl sc2">종목</th>
+          <th style="color:#14b8a6">시총</th>
+          <th style="color:#818cf8">거래량</th>
           <th>현재가</th>
           <th>1일%</th><th>일RSI</th>
           <th>1주%</th><th>주RSI</th>
@@ -810,6 +832,8 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <col style="width:60px">
           <col style="width:65px">
           <col style="width:175px">
+          <col style="width:88px">
+          <col style="width:76px">
           <col style="width:105px">
           <col style="width:72px">
           <col style="width:58px">
@@ -828,6 +852,8 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <th class="sl sc0">구분</th>
           <th class="sl sc1">섹터</th>
           <th class="sl sc2">종목</th>
+          <th style="color:#14b8a6">시총</th>
+          <th style="color:#818cf8">거래량</th>
           <th>현재가</th>
           <th>1일%</th><th>일RSI</th>
           <th>1주%</th><th>주RSI</th>
@@ -838,7 +864,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
           <th>삭제</th>
         </tr></thead>
         <tbody id="fav-body">
-          <tr><td colspan="16" class="fav-empty">⭐ 아직 즐겨찾기 종목이 없습니다.<br><span style="font-size:11px;color:#333">위에서 종목 코드를 입력해 추가하세요.</span></td></tr>
+          <tr><td colspan="18" class="fav-empty">⭐ 아직 즐겨찾기 종목이 없습니다.<br><span style="font-size:11px;color:#333">위에서 종목 코드를 입력해 추가하세요.</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -1279,7 +1305,7 @@ function scrFetchFin(sym){
   return scrFetchHistory(sym).then(function(c){c.fin=true;return c;});
 }
 
-// ── 테이블 행 생성 (td 15개 고정)
+// ── 테이블 행 생성 (td 17개: +시총·거래량)
 function scrRow(s,c,isKr){
   var id="sv_"+s.sym.replace(/[^a-zA-Z0-9]/g,"_")+"_"+s.sec.replace(/[^a-zA-Z0-9]/g,"_");
   var badge=isKr
@@ -1288,25 +1314,27 @@ function scrRow(s,c,isKr){
   var nm=isKr
     ?("<strong>"+s.name+"</strong><br><span style='font-size:10px;color:#3a3a4a'>"+s.sym.replace(/\.(KS|KQ)$/,"")+"</span>")
     :("<strong>"+s.name+"</strong> <span style='font-size:10px;color:#555'>"+s.kr+"</span><br><span style='font-size:10px;color:#333'>"+s.sym+"</span>");
-  // 정확히 15개 td
+  var fd=fundCache[s.sym]||{};
   return "<tr data-sec='"+s.sec+"' data-sz='"+(s.sz||"")+"' data-mkt='"+(s.mkt||"")+"' data-id='"+id+"'>"
-    +"<td class='sl sc0'>"+badge+"</td>"                                  // 1
-    +"<td class='sl sc1' style='font-size:10px;color:#555'>"+s.sec+"</td>" // 2
-    +"<td class='sl sc2'>"+nm+"</td>"                                      // 3
-    +"<td style='text-align:right'>"+scrPriceBadge(c,isKr)+"</td>"        // 4
-    +"<td>"+scrFmtChg(c.chg1d)+"</td>"                                    // 5
-    +"<td>"+scrFmtRsi(c.rsi14d)+"</td>"                                   // 6
-    +"<td>"+scrFmtChg(c.chg1w)+"</td>"                                    // 7
-    +"<td>"+scrFmtRsi(c.rsi14w)+"</td>"                                   // 8
-    +"<td>"+scrFmtChg(c.chg1m)+"</td>"                                    // 9
-    +"<td>"+scrFmtRsi(c.rsi14m)+"</td>"                                   // 10
-    +"<td>"+scrFmtChg(c.chg6m)+"</td>"                                    // 11
-    +"<td>"+scrFmtRsi(c.rsi14_6m)+"</td>"                                 // 12
-    +"<td>"+scrFmtChg(c.chg1y)+"</td>"                                    // 13
-    +"<td>"+scrFmtRsi(c.rsi14y)+"</td>"                                   // 14
-    +"<td><button class='val-toggle' onclick=\"scrToggleVal('"+id+"','"+s.sym+"',"+isKr+",this)\">▶</button></td>" // 15
+    +"<td class='sl sc0'>"+badge+"</td>"
+    +"<td class='sl sc1' style='font-size:10px;color:#555'>"+s.sec+"</td>"
+    +"<td class='sl sc2'>"+nm+"</td>"
+    +"<td data-fund='cap' data-sym='"+s.sym+"' style='text-align:right;font-size:11px;color:#14b8a6'>"+fmtCap(fd)+"</td>"
+    +"<td data-fund='vol' data-sym='"+s.sym+"' style='text-align:right;font-size:11px;color:#818cf8'>"+fmtVol(fd)+"</td>"
+    +"<td style='text-align:right'>"+scrPriceBadge(c,isKr)+"</td>"
+    +"<td>"+scrFmtChg(c.chg1d)+"</td>"
+    +"<td>"+scrFmtRsi(c.rsi14d)+"</td>"
+    +"<td>"+scrFmtChg(c.chg1w)+"</td>"
+    +"<td>"+scrFmtRsi(c.rsi14w)+"</td>"
+    +"<td>"+scrFmtChg(c.chg1m)+"</td>"
+    +"<td>"+scrFmtRsi(c.rsi14m)+"</td>"
+    +"<td>"+scrFmtChg(c.chg6m)+"</td>"
+    +"<td>"+scrFmtRsi(c.rsi14_6m)+"</td>"
+    +"<td>"+scrFmtChg(c.chg1y)+"</td>"
+    +"<td>"+scrFmtRsi(c.rsi14y)+"</td>"
+    +"<td><button class='val-toggle' onclick=\"scrToggleVal('"+id+"','"+s.sym+"',"+isKr+",this)\">▶</button></td>"
     +"</tr>"
-    +"<tr class='val-row' id='"+id+"'><td class='val-cell' colspan='15'>"
+    +"<tr class='val-row' id='"+id+"'><td class='val-cell' colspan='17'>"
     +"<div id='"+id+"-c'><span style='color:#555;font-size:11px'><span class='loading'></span> 로딩중...</span></div>"
     +"</td></tr>";
 }
@@ -1317,19 +1345,10 @@ function scrToggleVal(id,sym,isKr,btn){
   btn.textContent=open?"▼":"▶";
   if(open&&!scrValLoading[sym]){
     scrValLoading[sym]=true;
-    scrFetchFin(sym).then(function(c){
+    Promise.all([scrFetchFin(sym),scrFetchFundamental(sym)]).then(function(res){
+      var c=res[0],fd=res[1];
       var el=document.getElementById(id+"-c");
-      if(el){
-        var cap=c.price?(isKr?"₩"+Math.round(c.price).toLocaleString("ko-KR"):"$"+c.price.toFixed(2)):"--";
-        el.innerHTML="<div style='display:flex;gap:16px;flex-wrap:wrap;font-size:11px'>"
-          +"<div><span style='color:#555'>현재가</span> <strong>"+cap+"</strong></div>"
-          +"<div><span style='color:#555'>일RSI</span> "+scrFmtRsi(c.rsi14d)+"</div>"
-          +"<div><span style='color:#555'>주RSI</span> "+scrFmtRsi(c.rsi14w)+"</div>"
-          +"<div><span style='color:#555'>월RSI</span> "+scrFmtRsi(c.rsi14m)+"</div>"
-          +"<div><span style='color:#555'>6mRSI</span> "+scrFmtRsi(c.rsi14_6m)+"</div>"
-          +"<div><span style='color:#555'>년RSI</span> "+scrFmtRsi(c.rsi14y)+"</div>"
-          +"</div>";
-      }
+      if(el)el.innerHTML=renderFundPanel(c,fd,sym,isKr,id);
     });
   }
 }
@@ -1346,14 +1365,14 @@ function scrBuild(region){
     var html="";
     secs.forEach(function(sec){
       var grp=stocks.filter(function(s){return s.sec===sec;});
-      html+="<tr class='sec-sep'><td colspan='15'>◆ "+sec+" ("+grp.length+")</td></tr>";
+      html+="<tr class='sec-sep'><td colspan='17'>◆ "+sec+" ("+grp.length+")</td></tr>";
       grp.forEach(function(s){html+=scrRow(s,scrCache[s.sym]||{},isKr);});
     });
     tbody.innerHTML=html;
     scrUpdateSum();
   }
 
-  tbody.innerHTML="<tr><td colspan='15' style='text-align:center;padding:24px;color:#555'><span class='loading'></span> 로딩중...</td></tr>";
+  tbody.innerHTML="<tr><td colspan='17' style='text-align:center;padding:24px;color:#555'><span class='loading'></span> 로딩중...</td></tr>";
 
   var chunks=[];
   for(var i=0;i<stocks.length;i+=4)chunks.push(stocks.slice(i,i+4));
@@ -1373,7 +1392,7 @@ function scrBuild(region){
   scrProgShow(0,"데이터 로딩중...");
 
   function loadChunk(ci){
-    if(ci>=chunks.length){render();scrProgHide();g("scr-status").textContent="완료 "+scrHhmm();return;}
+    if(ci>=chunks.length){render();scrProgHide();g("scr-status").textContent="완료 "+scrHhmm();scrStartFundamentals(stocks);return;}
     Promise.all(chunks[ci].map(function(s){return scrFetchHistory(s.sym);}))
       .then(function(){
         loaded+=chunks[ci].length;
@@ -1470,6 +1489,294 @@ function scrInit(){
   scrInitFilters();
   document.querySelector("#screener-page .scr-seg[data-seg='all']").classList.add("active");
   scrBuild("us");
+}
+
+// ══════════════════════════════════════════════
+// 펀더멘털 (Fundamental) — Yahoo quoteSummary
+// ══════════════════════════════════════════════
+var fundCache={};
+
+// ── 포맷 헬퍼
+function fmtCap(fd){
+  if(!fd||fd._error||!fd.marketCap)return'<span style="color:#333">--</span>';
+  var v=fd.marketCap;
+  if(v>=1e12)return'<span style="color:#14b8a6">'+(v/1e12).toFixed(2)+'T</span>';
+  if(v>=1e9) return'<span style="color:#14b8a6">'+(v/1e9).toFixed(1)+'B</span>';
+  if(v>=1e8) return'<span style="color:#14b8a6">'+Math.round(v/1e8)+'억</span>';
+  return'<span style="color:#14b8a6">'+Math.round(v/1e4)+'만</span>';
+}
+function fmtVol(fd){
+  if(!fd||fd._error||(!fd.avgVolume&&!fd.volume))return'<span style="color:#333">--</span>';
+  var v=fd.avgVolume||fd.volume;
+  if(v>=1e6)return'<span style="color:#818cf8">'+(v/1e6).toFixed(1)+'M</span>';
+  if(v>=1e3)return'<span style="color:#818cf8">'+(v/1e3).toFixed(0)+'K</span>';
+  return'<span style="color:#818cf8">'+v+'</span>';
+}
+function fmtNum(v,dec,unit){
+  if(v==null)return'--';
+  dec=dec||1;unit=unit||'';
+  return(v>=0?'':'')+v.toFixed(dec)+unit;
+}
+function fmtMoney(v,isKr){
+  if(v==null)return'--';
+  if(isKr)return'₩'+Math.round(v).toLocaleString('ko-KR');
+  if(v>=1e12)return'$'+(v/1e12).toFixed(2)+'T';
+  if(v>=1e9) return'$'+(v/1e9).toFixed(2)+'B';
+  if(v>=1e6) return'$'+(v/1e6).toFixed(1)+'M';
+  return'$'+v.toFixed(2);
+}
+
+// ── fetch
+function scrFetchFundamental(sym){
+  if(fundCache[sym]&&fundCache[sym]._done)return Promise.resolve(fundCache[sym]);
+  return fetch(PROXY+'?mode=fundamental&sym='+encodeURIComponent(sym))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok&&d.data){fundCache[sym]=Object.assign({_done:true},d.data);}
+      else{fundCache[sym]={_done:true,_error:true};}
+      return fundCache[sym];
+    }).catch(function(){
+      fundCache[sym]={_done:true,_error:true};
+      return fundCache[sym];
+    });
+}
+
+// ── DOM 셀 직접 업데이트 (테이블 재렌더 없이)
+function updateFundCells(sym){
+  var fd=fundCache[sym]||{};
+  document.querySelectorAll('[data-fund="cap"][data-sym="'+sym+'"]').forEach(function(el){el.innerHTML=fmtCap(fd);});
+  document.querySelectorAll('[data-fund="vol"][data-sym="'+sym+'"]').forEach(function(el){el.innerHTML=fmtVol(fd);});
+}
+
+// ── 배경 로딩 (scrBuild 완료 후 호출, 2개씩 500ms 간격)
+function scrStartFundamentals(stocks){
+  var pending=stocks.filter(function(s){return!fundCache[s.sym]||!fundCache[s.sym]._done;});
+  if(!pending.length)return;
+  var i=0;
+  function next(){
+    if(i>=pending.length)return;
+    var batch=pending.slice(i,i+2);i+=2;
+    Promise.all(batch.map(function(s){
+      return scrFetchFundamental(s.sym).then(function(){updateFundCells(s.sym);});
+    })).then(function(){setTimeout(next,500);});
+  }
+  setTimeout(next,1500);
+}
+
+// ── 상세 패널 HTML 생성 + Chart.js 차트 초기화
+function renderFundPanel(c,fd,sym,isKr,rowId){
+  var base='fc_'+sym.replace(/[^a-zA-Z0-9]/g,'_');
+  var cRev=base+'_rev', cOp=base+'_op', cMar=base+'_mar', cEps=base+'_eps';
+  var hasFd=fd&&!fd._error;
+  var cap=c&&c.price?(isKr?'₩'+Math.round(c.price).toLocaleString('ko-KR'):'$'+c.price.toFixed(2)):'--';
+
+  var kpis=[
+    {label:'현재가',    val:cap,                                                                   color:'#f0f0f8'},
+    {label:'PER',       val:hasFd&&fd.trailingPE   ?fd.trailingPE.toFixed(1)+'x':'--',            color:'#a78bfa'},
+    {label:'F.PER',     val:hasFd&&fd.forwardPE    ?fd.forwardPE.toFixed(1)+'x':'--',             color:'#818cf8'},
+    {label:'PBR',       val:hasFd&&fd.pbr          ?fd.pbr.toFixed(2)+'x':'--',                   color:'#38bdf8'},
+    {label:'EPS',       val:hasFd&&fd.eps          ?(isKr?'₩'+Math.round(fd.eps).toLocaleString('ko-KR'):'$'+fd.eps.toFixed(2)):'--', color:'#34d399'},
+    {label:'배당수익률', val:hasFd&&fd.divYield     ?(fd.divYield*100).toFixed(2)+'%':'--',        color:'#f59e0b'},
+    {label:'영업이익률', val:hasFd&&fd.operatingMargin?(fd.operatingMargin*100).toFixed(1)+'%':'--',color:'#14b8a6'},
+    {label:'순이익률',   val:hasFd&&fd.profitMargin ?(fd.profitMargin*100).toFixed(1)+'%':'--',    color:'#6ee7b7'},
+    {label:'ROE',       val:hasFd&&fd.roe          ?(fd.roe*100).toFixed(1)+'%':'--',              color:'#f97316'},
+    {label:'일RSI',     val:scrFmtRsi(c&&c.rsi14d), color:''},
+    {label:'주RSI',     val:scrFmtRsi(c&&c.rsi14w), color:''},
+    {label:'월RSI',     val:scrFmtRsi(c&&c.rsi14m), color:''},
+  ];
+  var kpiHtml=kpis.map(function(k){
+    return "<div class='fund-kpi-item'>"
+      +"<span class='fund-kpi-label'>"+k.label+"</span>"
+      +"<span class='fund-kpi-val'"+(k.color?" style='color:"+k.color+"'":"")+">"+(k.val||'--')+"</span>"
+      +"</div>";
+  }).join('');
+
+  var hasHistory=hasFd&&fd.history&&fd.history.length>0;
+  var hasEst=hasFd&&(fd.estCY||fd.estNY);
+
+  var html="<div class='fund-panel'><div class='fund-kpi-grid'>"+kpiHtml+"</div>";
+
+  if(hasHistory||hasEst){
+    // 추정치 카드
+    if(hasEst){
+      html+="<div class='fund-est-row'>";
+      if(fd.estCY&&(fd.estCY.revenueAvg||fd.estCY.epsAvg)){
+        html+="<div class='fund-est-card'>"
+          +"<div class='fund-est-year'>"+fd.estCYYear+"E (당해)</div>"
+          +(fd.estCY.revenueAvg?"<div class='fund-est-rev'>매출 "+fmtMoney(fd.estCY.revenueAvg,isKr)+"</div>":"")
+          +(fd.estCY.epsAvg?"<div class='fund-est-eps'>EPS "+(isKr?'₩'+Math.round(fd.estCY.epsAvg).toLocaleString('ko-KR'):'$'+fd.estCY.epsAvg.toFixed(2))+"</div>":"")
+          +"</div>";
+      }
+      if(fd.estNY&&(fd.estNY.revenueAvg||fd.estNY.epsAvg)){
+        html+="<div class='fund-est-card'>"
+          +"<div class='fund-est-year'>"+fd.estNYYear+"E (내년)</div>"
+          +(fd.estNY.revenueAvg?"<div class='fund-est-rev'>매출 "+fmtMoney(fd.estNY.revenueAvg,isKr)+"</div>":"")
+          +(fd.estNY.epsAvg?"<div class='fund-est-eps'>EPS "+(isKr?'₩'+Math.round(fd.estNY.epsAvg).toLocaleString('ko-KR'):'$'+fd.estNY.epsAvg.toFixed(2))+"</div>":"")
+          +"</div>";
+      }
+      html+="</div>";
+    }
+    // 2×2 차트 그리드 — 각 지표 독립 스케일
+    html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px'>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 추이</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 추이</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률 추이</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS 추정</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
+      +"</div>";
+
+    setTimeout(function(){
+      var d=document;
+      if(hasFd){
+        var cv=d.getElementById(cRev);  if(cv)renderRevChart(cv,fd,isKr);
+        var co=d.getElementById(cOp);   if(co)renderOpChart(co,fd,isKr);
+        var cm=d.getElementById(cMar);  if(cm)renderMarChart(cm,fd,isKr);
+        var ce=d.getElementById(cEps);  if(ce)renderEstChart(ce,fd,isKr);
+      }
+    },60);
+  } else {
+    html+="<div style='padding:12px;color:#444;font-size:11px;text-align:center'>📭 재무 데이터를 불러올 수 없습니다</div>";
+  }
+  html+="</div>";
+  return html;
+}
+
+// ── 공통: 레이블·isEst 배열 생성
+function buildFundLabels(fd){
+  var labels=[],isEst=[];
+  (fd.history||[]).forEach(function(h){labels.push(String(h.year));isEst.push(false);});
+  if(fd.estCY&&fd.estCY.revenueAvg){labels.push(fd.estCYYear+'E');isEst.push(true);}
+  if(fd.estNY&&fd.estNY.revenueAvg){labels.push(fd.estNYYear+'E');isEst.push(true);}
+  return{labels:labels,isEst:isEst};
+}
+// ── 공통: 스케일 자동 계산
+function fundScale(values){
+  var max=Math.max.apply(null,values.filter(Boolean).concat([1]));
+  if(max>=1e12)return{s:1e12,u:'T'};
+  if(max>=1e9) return{s:1e9, u:'B'};
+  if(max>=1e8) return{s:1e8, u:'억'};
+  return{s:1e6,u:'M'};
+}
+// ── 공통: Chart 공통 옵션
+function fundBaseOpts(color,yFmt,ttFmt){
+  return{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ttFmt}}},
+    scales:{
+      x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#1a1a22'}},
+      y:{ticks:{color:color||'#888',font:{size:9},callback:yFmt},grid:{color:'#1a1a22'}}
+    }
+  };
+}
+
+// ── 매출 차트 (독립 스케일)
+function renderRevChart(canvas,fd,isKr){
+  var lb=buildFundLabels(fd);
+  var vals=(fd.history||[]).map(function(h){return h.revenue;});
+  if(fd.estCY&&fd.estCY.revenueAvg)vals.push(fd.estCY.revenueAvg);
+  if(fd.estNY&&fd.estNY.revenueAvg)vals.push(fd.estNY.revenueAvg);
+  var sc=fundScale(vals);
+  if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
+  new Chart(canvas,{
+    type:'bar',
+    data:{labels:lb.labels,datasets:[{
+      label:'매출',
+      data:vals.map(function(v){return v?parseFloat((v/sc.s).toFixed(2)):null;}),
+      backgroundColor:lb.isEst.map(function(e){return e?'rgba(20,184,166,.3)':'rgba(20,184,166,.7)';}),
+      borderColor:lb.isEst.map(function(e){return e?'#14b8a6':'transparent';}),
+      borderWidth:lb.isEst.map(function(e){return e?2:0;}),
+      borderRadius:3
+    }]},
+    options:fundBaseOpts('#14b8a6',
+      function(v){return v+sc.u;},
+      function(ctx){return'매출: '+ctx.parsed.y.toFixed(2)+sc.u+(lb.isEst[ctx.dataIndex]?' (추정)':'');})
+  });
+}
+
+// ── 영업이익 차트 (독립 스케일)
+function renderOpChart(canvas,fd,isKr){
+  var lb=buildFundLabels(fd);
+  var vals=(fd.history||[]).map(function(h){return h.operatingIncome;});
+  // 추정 연도엔 영업이익 없음 — null 채우기
+  if(fd.estCY&&fd.estCY.revenueAvg)vals.push(null);
+  if(fd.estNY&&fd.estNY.revenueAvg)vals.push(null);
+  var sc=fundScale(vals);
+  if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
+  new Chart(canvas,{
+    type:'bar',
+    data:{labels:lb.labels,datasets:[{
+      label:'영업이익',
+      data:vals.map(function(v){return v?parseFloat((v/sc.s).toFixed(2)):null;}),
+      backgroundColor:vals.map(function(v){
+        if(v==null)return'transparent';
+        return v>=0?'rgba(52,211,153,.7)':'rgba(248,113,113,.7)';
+      }),
+      borderRadius:3
+    }]},
+    options:fundBaseOpts('#34d399',
+      function(v){return v+sc.u;},
+      function(ctx){return'영업이익: '+ctx.parsed.y.toFixed(2)+sc.u;})
+  });
+}
+
+// ── 순이익률 차트 (%, 독립 스케일)
+function renderMarChart(canvas,fd,isKr){
+  var lb=buildFundLabels(fd);
+  var vals=(fd.history||[]).map(function(h){return h.netMargin;});
+  if(fd.estCY&&fd.estCY.revenueAvg)vals.push(null);
+  if(fd.estNY&&fd.estNY.revenueAvg)vals.push(null);
+  if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
+  new Chart(canvas,{
+    type:'line',
+    data:{labels:lb.labels,datasets:[{
+      label:'순이익률%',
+      data:vals,
+      borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.08)',
+      pointBackgroundColor:vals.map(function(v){
+        if(v==null)return'transparent';
+        return v>=0?'#f59e0b':'#f87171';
+      }),
+      pointRadius:4,tension:.3,fill:true,spanGaps:false
+    }]},
+    options:fundBaseOpts('#f59e0b',
+      function(v){return v.toFixed(1)+'%';},
+      function(ctx){return'순이익률: '+ctx.parsed.y.toFixed(2)+'%';})
+  });
+}
+
+// ── EPS + 매출 추정 차트 (독립 스케일 이중축)
+function renderEstChart(canvas,fd,isKr){
+  var labels=[],epsData=[],revEstData=[];
+  (fd.history||[]).forEach(function(h){
+    labels.push(String(h.year));
+    epsData.push(null);revEstData.push(null);
+  });
+  if(fd.estCY){labels.push(fd.estCYYear+'E');epsData.push(fd.estCY.epsAvg!=null?fd.estCY.epsAvg:null);revEstData.push(fd.estCY.revenueAvg||null);}
+  if(fd.estNY){labels.push(fd.estNYYear+'E');epsData.push(fd.estNY.epsAvg!=null?fd.estNY.epsAvg:null);revEstData.push(fd.estNY.revenueAvg||null);}
+  var sc=fundScale(revEstData);
+  if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
+  new Chart(canvas,{
+    data:{labels:labels,datasets:[
+      {type:'bar',label:'매출 추정',
+        data:revEstData.map(function(v){return v?parseFloat((v/sc.s).toFixed(2)):null;}),
+        backgroundColor:'rgba(129,140,248,.5)',borderRadius:3,yAxisID:'y'},
+      {type:'line',label:'EPS 추정',
+        data:epsData,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.08)',
+        pointBackgroundColor:'#a78bfa',pointRadius:4,tension:.2,fill:true,yAxisID:'y2'},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:'#888',font:{size:9},padding:5,boxWidth:7}},
+        tooltip:{callbacks:{label:function(ctx){
+          if(ctx.dataset.yAxisID==='y2')return'EPS: '+(isKr?'₩'+Math.round(ctx.parsed.y).toLocaleString('ko-KR'):'$'+ctx.parsed.y.toFixed(2));
+          return'매출: '+ctx.parsed.y.toFixed(2)+sc.u;
+        }}}},
+      scales:{
+        x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#1a1a22'}},
+        y:{position:'left',ticks:{color:'#818cf8',font:{size:9},callback:function(v){return v+sc.u;}},grid:{color:'#1a1a22'}},
+        y2:{position:'right',ticks:{color:'#a78bfa',font:{size:9},callback:function(v){return isKr?'₩'+Math.round(v).toLocaleString('ko-KR'):'$'+v.toFixed(2);}},grid:{drawOnChartArea:false}}
+      }
+    }
+  });
 }
 
 // ══════════════════════════════════════════════
@@ -1681,6 +1988,7 @@ function favFetchAll(){
       if(lbl)lbl.classList.remove("show");
       g("fav-status").textContent="완료 "+scrHhmm();
       favUpdateSum();
+      scrStartFundamentals(favList);
       return;
     }
     Promise.all(chunks[ci].map(function(f){return scrFetchHistory(f.sym);}))
@@ -1702,12 +2010,13 @@ function favFetchOne(sym,isKr){
 function favRender(){
   var tbody=g("fav-body");
   if(!favList.length){
-    tbody.innerHTML="<tr><td colspan='16' class='fav-empty'>⭐ 아직 즐겨찾기 종목이 없습니다.<br><span style='font-size:11px;color:#333'>위에서 종목 코드를 입력해 추가하세요.</span></td></tr>";
+    tbody.innerHTML="<tr><td colspan='18' class='fav-empty'>⭐ 아직 즐겨찾기 종목이 없습니다.<br><span style='font-size:11px;color:#333'>위에서 종목 코드를 입력해 추가하세요.</span></td></tr>";
     return;
   }
   var html="";
   favList.forEach(function(f){
     var c=scrCache[f.sym]||{};
+    var fd=fundCache[f.sym]||{};
     var isKr=f.isKr;
     var known=isKr?KR_STOCKS.find(function(s){return s.sym===f.sym;}):US_STOCKS.find(function(s){return s.sym===f.sym;});
     var badge=isKr
@@ -1722,6 +2031,8 @@ function favRender(){
       +"<td class='sl sc0'>"+badge+"</td>"
       +"<td class='sl sc1' style='font-size:10px;color:#555'>"+f.sec+"</td>"
       +"<td class='sl sc2'>"+nm+"</td>"
+      +"<td data-fund='cap' data-sym='"+f.sym+"' style='text-align:right;font-size:11px;color:#14b8a6'>"+fmtCap(fd)+"</td>"
+      +"<td data-fund='vol' data-sym='"+f.sym+"' style='text-align:right;font-size:11px;color:#818cf8'>"+fmtVol(fd)+"</td>"
       +"<td style='text-align:right'>"+scrPriceBadge(c,isKr)+"</td>"
       +"<td>"+scrFmtChg(c.chg1d)+"</td>"
       +"<td>"+scrFmtRsi(c.rsi14d)+"</td>"
@@ -1736,7 +2047,7 @@ function favRender(){
       +"<td><button class='val-toggle' onclick=\"favToggleVal('"+id+"','"+f.sym+"',"+isKr+",this)\">▶</button></td>"
       +"<td><button class='btn btns btnd' onclick=\"favRemove('"+f.sym+"')\">✕</button></td>"
       +"</tr>"
-      +"<tr class='val-row' id='"+id+"'><td class='val-cell' colspan='16'>"
+      +"<tr class='val-row' id='"+id+"'><td class='val-cell' colspan='18'>"
       +"<div id='"+id+"-c'><span style='color:#555;font-size:11px'><span class='loading'></span> 로딩중...</span></div>"
       +"</td></tr>";
   });
@@ -1749,19 +2060,10 @@ function favToggleVal(id,sym,isKr,btn){
   btn.textContent=open?"▼":"▶";
   if(open&&!favValLoading[sym]){
     favValLoading[sym]=true;
-    scrFetchFin(sym).then(function(c){
+    Promise.all([scrFetchFin(sym),scrFetchFundamental(sym)]).then(function(res){
+      var c=res[0],fd=res[1];
       var el=document.getElementById(id+"-c");
-      if(el){
-        var cap=c.price?(isKr?"₩"+Math.round(c.price).toLocaleString("ko-KR"):"$"+c.price.toFixed(2)):"--";
-        el.innerHTML="<div style='display:flex;gap:16px;flex-wrap:wrap;font-size:11px'>"
-          +"<div><span style='color:#555'>현재가</span> <strong>"+cap+"</strong></div>"
-          +"<div><span style='color:#555'>일RSI</span> "+scrFmtRsi(c.rsi14d)+"</div>"
-          +"<div><span style='color:#555'>주RSI</span> "+scrFmtRsi(c.rsi14w)+"</div>"
-          +"<div><span style='color:#555'>월RSI</span> "+scrFmtRsi(c.rsi14m)+"</div>"
-          +"<div><span style='color:#555'>6mRSI</span> "+scrFmtRsi(c.rsi14_6m)+"</div>"
-          +"<div><span style='color:#555'>년RSI</span> "+scrFmtRsi(c.rsi14y)+"</div>"
-          +"</div>";
-      }
+      if(el)el.innerHTML=renderFundPanel(c,fd,sym,isKr,id);
     });
   }
 }
