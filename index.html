@@ -884,8 +884,73 @@ async function supaSignOut(){try{await fetch(SUPA_URL+"/auth/v1/logout",{method:
 async function supaRefresh(){if(!_supaSession||!_supaSession.refresh_token)return null;try{var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:supaAnonHdr(),body:JSON.stringify({refresh_token:_supaSession.refresh_token})});var d=await r.json();if(d.access_token){supaSessionSave(d);return d.user;}}catch(e){}return null;}
 async function supaGetUser(){var r=await fetch(SUPA_URL+"/auth/v1/user",{headers:supaHdr()});if(!r.ok)return null;return await r.json();}
 async function supaLoadData(userId){var cols="assets,trades,loans,real_estates,dividends,savings,asset_history";var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data?user_id=eq."+userId+"&select="+cols+"&limit=1",{headers:supaHdr()});if(!r.ok)return null;var d=await r.json();return d&&d.length?d[0]:null;}
-async function supaSaveData(userId,data){var body=JSON.stringify({user_id:userId,assets:data.assets||[],trades:data.trades||[],loans:data.loans||[],real_estates:data.realEstates||[],dividends:data.dividends||[],savings:data.savings||[],asset_history:(data.assetHistory||[]).slice(-200),updated_at:new Date().toISOString()});var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data",{method:"POST",headers:Object.assign(supaHdr(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),body});return r.ok;}
-async function supaGetProfile(userId){var r=await fetch(SUPA_URL+"/rest/v1/profiles?id=eq."+userId+"&select=role,status,email,display_name&limit=1",{headers:supaHdr()});if(!r.ok)return null;var d=await r.json();return d&&d.length?d[0]:null;}
+async function supaSaveData(userId,data){
+  console.log('[supaSaveData] 저장 시작, userId:', userId);
+  
+  var body=JSON.stringify({
+    user_id:userId,
+    assets:data.assets||[],
+    trades:data.trades||[],
+    loans:data.loans||[],
+    real_estates:data.realEstates||[],
+    dividends:data.dividends||[],
+    savings:data.savings||[],
+    asset_history:(data.assetHistory||[]).slice(-200),
+    updated_at:new Date().toISOString()
+  });
+  
+  try {
+    var r=await fetch(SUPA_URL+"/rest/v1/dashboard_data",{
+      method:"POST",
+      headers:Object.assign(supaHdr(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+      body
+    });
+    
+    console.log('[supaSaveData] 응답 상태:', r.status, r.statusText);
+    
+    if(!r.ok) {
+      var errText = await r.text();
+      console.error('[supaSaveData] 오류 응답:', errText);
+      throw new Error('Save failed: ' + r.status + ' ' + errText);
+    }
+    
+    console.log('[supaSaveData] ✅ 성공');
+    return true;
+  } catch(err) {
+    console.error('[supaSaveData] ❌ 예외:', err);
+    throw err;
+  }
+}
+async function supaGetProfile(userId){
+  console.log('[supaGetProfile] 시작, userId:', userId);
+  var url = SUPA_URL+"/rest/v1/profiles?id=eq."+userId+"&select=*&limit=1";
+  console.log('[supaGetProfile] URL:', url);
+  
+  try {
+    var r = await fetch(url, {headers:supaHdr()});
+    console.log('[supaGetProfile] 응답 상태:', r.status, r.statusText);
+    
+    if(!r.ok) {
+      var errText = await r.text();
+      console.error('[supaGetProfile] 오류 응답:', errText);
+      return null;
+    }
+    
+    var d = await r.json();
+    console.log('[supaGetProfile] 데이터:', d);
+    
+    if(d && d.length) {
+      console.log('[supaGetProfile] ✅ 프로필 찾음:', d[0]);
+      return d[0];
+    } else {
+      console.warn('[supaGetProfile] ⚠️ 프로필 없음');
+      return null;
+    }
+  } catch(err) {
+    console.error('[supaGetProfile] 예외:', err);
+    return null;
+  }
+}
 
 // ── 인증 UI
 var authUser=null,authProfile=null,authSyncing=false;
@@ -1062,7 +1127,24 @@ function authUpdateUI(user){
   }
 }
 async function authLoadFromCloud(userId){try{var row=await supaLoadData(userId);if(!row)return false;if(row.assets&&row.assets.length)assets=row.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});if(row.trades&&row.trades.length)trades=row.trades;if(row.loans&&row.loans.length)loans=row.loans;if(row.real_estates&&row.real_estates.length)realEstates=row.real_estates;if(row.dividends&&row.dividends.length)dividends=row.dividends;if(row.savings&&row.savings.length)savings=row.savings;if(row.asset_history&&row.asset_history.length)assetHistory=row.asset_history;return true;}catch(e){return false;}}
-async function authSaveToCloud(){if(!authUser||authSyncing)return;authSyncing=true;try{await supaSaveData(authUser.id,{assets,trades,loans,realEstates,dividends,savings,assetHistory});}catch(e){}authSyncing=false;}
+async function authSaveToCloud(){
+  if(!authUser||authSyncing){
+    console.log('[authSaveToCloud] 건너뜀 (authUser:', !!authUser, 'authSyncing:', authSyncing, ')');
+    return;
+  }
+  
+  authSyncing=true;
+  console.log('[authSaveToCloud] 저장 시작...');
+  
+  try{
+    await supaSaveData(authUser.id,{assets,trades,loans,realEstates,dividends,savings,assetHistory});
+    console.log('[authSaveToCloud] ✅ 저장 완료');
+  }catch(e){
+    console.error('[authSaveToCloud] ❌ 저장 실패:', e);
+  }
+  
+  authSyncing=false;
+}
 async function authOnLogin(user){
   console.log('[authOnLogin] 시작, 사용자:', user);
   authUser=user;
