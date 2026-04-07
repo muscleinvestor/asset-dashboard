@@ -1297,6 +1297,13 @@ function scrFetchHistory(sym){
         scrCache[sym].rsi14m      =x.rsi14m       !=null?x.rsi14m:null;
         scrCache[sym].rsi14_6m    =x.rsi14_6m     !=null?x.rsi14_6m:null;
         scrCache[sym].rsi14y      =x.rsi14y       !=null?x.rsi14y:null;
+        // 시총·거래량 → fundCache 즉시 반영 (실시간)
+        if(x.marketCap||x.volume){
+          if(!fundCache[sym])fundCache[sym]={};
+          if(x.marketCap)fundCache[sym].marketCap=x.marketCap;
+          if(x.volume)   fundCache[sym].avgVolume=x.volume;
+          updateFundCells(sym);
+        }
       }
       return scrCache[sym];
     }).catch(function(){scrCache[sym].done=true;return scrCache[sym];});
@@ -1526,17 +1533,52 @@ function fmtMoney(v,isKr){
   return'$'+v.toFixed(2);
 }
 
-// ── fetch
+// ── 펀더멘털 localStorage 일별 캐시 (24시간 TTL)
+var FUND_TTL=86400000;
+function fundLsKey(sym){return'fv1_'+sym.replace(/[^a-zA-Z0-9]/g,'_');}
+function fundLoadLS(sym){
+  try{
+    var raw=localStorage.getItem(fundLsKey(sym));
+    if(!raw)return null;
+    var obj=JSON.parse(raw);
+    if(Date.now()-obj.ts>FUND_TTL)return null;
+    return obj.data;
+  }catch(e){return null;}
+}
+function fundSaveLS(sym,data){
+  try{localStorage.setItem(fundLsKey(sym),JSON.stringify({ts:Date.now(),data:data}));}catch(e){}
+}
+
+// ── fetch (메모리→ localStorage→ API 순서)
 function scrFetchFundamental(sym){
-  if(fundCache[sym]&&fundCache[sym]._done)return Promise.resolve(fundCache[sym]);
+  // 메모리 캐시 (에러 아닌 경우만)
+  if(fundCache[sym]&&fundCache[sym]._done&&!fundCache[sym]._error)return Promise.resolve(fundCache[sym]);
+  // localStorage 일별 캐시
+  var cached=fundLoadLS(sym);
+  if(cached){
+    // 차트에서 받은 실시간 시총·거래량은 유지
+    var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
+            avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
+    fundCache[sym]=Object.assign({_done:true},cached,rt);
+    return Promise.resolve(fundCache[sym]);
+  }
+  // API 호출
   return fetch(PROXY+'?mode=fundamental&sym='+encodeURIComponent(sym))
     .then(function(r){return r.json();})
     .then(function(d){
-      if(d.ok&&d.data){fundCache[sym]=Object.assign({_done:true},d.data);}
-      else{fundCache[sym]={_done:true,_error:true};}
+      var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
+              avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
+      if(d.ok&&d.data){
+        fundSaveLS(sym,d.data);
+        fundCache[sym]=Object.assign({_done:true},d.data,rt);
+      }else{
+        fundCache[sym]=Object.assign({_done:true,_error:true},rt);
+      }
       return fundCache[sym];
     }).catch(function(){
-      fundCache[sym]={_done:true,_error:true};
+      var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
+              avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
+      fundCache[sym]=Object.assign({_done:true,_error:true},rt);
       return fundCache[sym];
     });
 }
@@ -1548,19 +1590,20 @@ function updateFundCells(sym){
   document.querySelectorAll('[data-fund="vol"][data-sym="'+sym+'"]').forEach(function(el){el.innerHTML=fmtVol(fd);});
 }
 
-// ── 배경 로딩 (scrBuild 완료 후 호출, 2개씩 500ms 간격)
+// ── 배경 로딩: chart 완료 후 시총·거래량은 이미 실시간 반영됨
+// fundCache에 이미 있으므로 scrStartFundamentals는 deep-detail용으로만 사용
 function scrStartFundamentals(stocks){
-  var pending=stocks.filter(function(s){return!fundCache[s.sym]||!fundCache[s.sym]._done;});
+  // 시총·거래량은 scrFetchHistory에서 이미 실시간으로 채워짐
+  // LS 캐시에 없는 종목만 순차 로딩 (상세보기 준비)
+  var pending=stocks.filter(function(s){return!fundLoadLS(s.sym)&&(!fundCache[s.sym]||!fundCache[s.sym]._done);});
   if(!pending.length)return;
   var i=0;
   function next(){
     if(i>=pending.length)return;
-    var batch=pending.slice(i,i+2);i+=2;
-    Promise.all(batch.map(function(s){
-      return scrFetchFundamental(s.sym).then(function(){updateFundCells(s.sym);});
-    })).then(function(){setTimeout(next,500);});
+    var s=pending[i++];
+    scrFetchFundamental(s.sym).then(function(){setTimeout(next,600);});
   }
-  setTimeout(next,1500);
+  setTimeout(next,3000); // chart 로딩 안정 후 시작
 }
 
 // ── 상세 패널 HTML 생성 + Chart.js 차트 초기화
