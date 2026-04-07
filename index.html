@@ -211,6 +211,9 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .auth-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#555;cursor:pointer;font-size:18px;line-height:1}
 .auth-close:hover{color:#aaa}
 .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px;vertical-align:middle}
+.save-status{font-size:9px;color:#666;margin-left:8px;padding:2px 6px;border-radius:4px;background:#1a1a24;border:1px solid #2a2a38;white-space:nowrap}
+.save-status.manual{color:#f59e0b;border-color:#3d3200;background:#2a2200}
+.save-status.cloud{color:#34d399;border-color:#1a4a2a;background:#0d2b1a}
 </style>
 </head>
 <body>
@@ -351,8 +354,9 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <button class="nb nb-fixed" onclick="showPage('loanpage',this)">대출관리</button>
   <button class="nb nb-fixed" onclick="showPage('savingspage',this)">예적금</button>
   <div class="nav-right">
-    <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()">저장</button>
-    <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer">불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
+    <button class="btn" style="font-size:11px;color:#34d399;border-color:#1a3a2a" onclick="exportData()" title="JSON 파일로 다운로드">💾 저장</button>
+    <label class="btn" style="font-size:11px;color:#38bdf8;border-color:#1a2a3a;cursor:pointer" title="JSON 파일에서 불러오기">📂 불러오기<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)"></label>
+    <span id="save-status-indicator" class="save-status manual">📝 수동 저장</span>
     <div id="auth-bar">
       <span id="auth-user-info" style="display:none"></span>
       <button class="btn" id="auth-login-btn" onclick="authOpenModal('login')" style="font-size:11px;color:#a78bfa;border-color:#3a2060;background:#1a1028">로그인</button>
@@ -370,6 +374,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
     <div class="card"><div class="cl">총 부채</div><div class="cv neg" id="c-debt">--</div></div>
     <div class="card"><div class="cl">순자산</div><div class="cv" id="c-net">--</div></div>
     <div class="card"><div class="cl">갱신시각</div><div class="cv" style="font-size:12px;padding-top:3px" id="c-time"><span class="loading"></span>로딩중</div></div>
+    <div class="card" id="c-save-status-card"><div class="cl">데이터 저장</div><div class="cv" style="font-size:11px;padding-top:3px;line-height:1.4" id="c-save-status"><span style="color:#f59e0b">📝 수동 저장</span><br><span style="font-size:9px;color:#666">JSON 파일 필요</span></div></div>
   </div>
   <div class="cw"><div class="ct"><span>기간별 수익 현황</span></div>
     <div class="period-tabs" id="period-tabs">
@@ -813,6 +818,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
       <div class="auth-field"><label>이메일</label><input type="email" id="auth-email-login" placeholder="you@example.com" autocomplete="email"></div>
       <div class="auth-field"><label>비밀번호</label><input type="password" id="auth-pw-login" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()"></div>
       <button class="auth-submit" id="auth-btn-login" onclick="authLogin()">로그인</button>
+      <button class="btn" onclick="testSupabaseConnection()" style="margin-top:8px;width:100%;font-size:11px;background:#1a1a24;border-color:#3a3a4a">🔧 연결 테스트</button>
       <div class="auth-msg" id="auth-msg-login"></div>
     </div>
     <div id="auth-form-signup" style="display:none">
@@ -839,7 +845,35 @@ function supaHdr(x){var h={"Content-Type":"application/json","apikey":SUPA_KEY};
 function supaAnonHdr(){return{"Content-Type":"application/json","apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY};}
 function supaSessionSave(d){_supaSession=d;try{localStorage.setItem("supa_session",JSON.stringify(d));}catch(e){}}
 function supaSessionClear(){_supaSession=null;try{localStorage.removeItem("supa_session");}catch(e){}}
-async function supaSignIn(email,pw){var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:supaAnonHdr(),body:JSON.stringify({email,password:pw})});var d=await r.json();if(d.access_token){supaSessionSave(d);return{user:d.user,error:null};}return{user:null,error:d.error_description||d.msg||"로그인 실패"};}
+async function supaSignIn(email,pw){
+  console.log('[Supabase] 로그인 API 호출:', SUPA_URL + "/auth/v1/token?grant_type=password");
+  console.log('[Supabase] 이메일:', email);
+  
+  try {
+    var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{
+      method:"POST",
+      headers:supaAnonHdr(),
+      body:JSON.stringify({email,password:pw})
+    });
+    
+    console.log('[Supabase] 응답 상태:', r.status, r.statusText);
+    
+    var d=await r.json();
+    console.log('[Supabase] 응답 데이터:', d);
+    
+    if(d.access_token){
+      console.log('[Supabase] 로그인 성공!');
+      supaSessionSave(d);
+      return{user:d.user,error:null};
+    }
+    
+    console.error('[Supabase] 로그인 실패:', d);
+    return{user:null,error:d.error_description||d.msg||d.message||"로그인 실패"};
+  } catch(err) {
+    console.error('[Supabase] 네트워크 오류:', err);
+    return{user:null,error:"네트워크 오류: " + err.message};
+  }
+}
 async function supaSignUp(email,pw){var r=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:supaAnonHdr(),body:JSON.stringify({email,password:pw,options:{emailRedirectTo:SITE_URL}})});var d=await r.json();if(d.id||d.user){return{user:d.user||d,error:null};}return{user:null,error:d.error_description||d.msg||"가입 실패"};}
 async function supaSignOut(){try{await fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:supaHdr()});}catch(e){}supaSessionClear();}
 async function supaRefresh(){if(!_supaSession||!_supaSession.refresh_token)return null;try{var r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:supaAnonHdr(),body:JSON.stringify({refresh_token:_supaSession.refresh_token})});var d=await r.json();if(d.access_token){supaSessionSave(d);return d.user;}}catch(e){}return null;}
@@ -855,13 +889,229 @@ function authCloseModal(){var m=g("auth-modal");if(m)m.classList.remove("open");
 function authSwitchTab(t){g("auth-form-login").style.display=t==="login"?"block":"none";g("auth-form-signup").style.display=t==="signup"?"block":"none";g("auth-tab-login").classList.toggle("active",t==="login");g("auth-tab-signup").classList.toggle("active",t==="signup");}
 function authSetMsg(id,msg,ok){var el=g(id);if(!el)return;el.textContent=msg;el.className="auth-msg "+(ok?"ok":"err");}
 function authSetLoading(btnId,on){var b=g(btnId);if(!b)return;b.disabled=on;b.textContent=on?"처리중...":btnId==="auth-btn-login"?"로그인":"회원가입";}
-async function authLogin(){var email=g("auth-email-login").value.trim(),pw=g("auth-pw-login").value;if(!email||!pw){authSetMsg("auth-msg-login","이메일과 비밀번호를 입력해주세요",false);return;}authSetLoading("auth-btn-login",true);var res=await supaSignIn(email,pw);authSetLoading("auth-btn-login",false);if(res.error){authSetMsg("auth-msg-login",res.error,false);}else{authCloseModal();await authOnLogin(res.user);}}
+async function authLogin(){
+  console.log('[로그인] 시작');
+  var email=g("auth-email-login").value.trim(),pw=g("auth-pw-login").value;
+  console.log('[로그인] 이메일:', email);
+  
+  if(!email||!pw){
+    authSetMsg("auth-msg-login","이메일과 비밀번호를 입력해주세요",false);
+    return;
+  }
+  
+  authSetLoading("auth-btn-login",true);
+  console.log('[로그인] Supabase 로그인 시도...');
+  
+  try {
+    var res=await supaSignIn(email,pw);
+    console.log('[로그인] Supabase 응답:', res);
+    
+    authSetLoading("auth-btn-login",false);
+    
+    if(res.error){
+      console.error('[로그인] 오류:', res.error);
+      authSetMsg("auth-msg-login",res.error,false);
+    }else{
+      console.log('[로그인] 성공! 사용자:', res.user);
+      authCloseModal();
+      await authOnLogin(res.user);
+    }
+  } catch(err) {
+    console.error('[로그인] 예외 발생:', err);
+    authSetLoading("auth-btn-login",false);
+    authSetMsg("auth-msg-login","로그인 중 오류 발생: " + err.message,false);
+  }
+}
+async function testSupabaseConnection(){
+  var msg=g("auth-msg-login");
+  msg.className="auth-msg";
+  msg.innerHTML='<span class="loading"></span> 연결 테스트 중...';
+  
+  console.log('=== Supabase 연결 테스트 시작 ===');
+  console.log('URL:', SUPA_URL);
+  console.log('KEY:', SUPA_KEY.substring(0,20) + '...');
+  
+  var results = [];
+  
+  // 1. 기본 연결 테스트
+  try {
+    console.log('1️⃣ 기본 연결 테스트...');
+    var healthRes = await fetch(SUPA_URL + '/rest/v1/', {
+      headers: supaAnonHdr()
+    });
+    console.log('기본 연결 응답:', healthRes.status);
+    results.push('✅ Supabase 연결 성공 (' + healthRes.status + ')');
+  } catch(err) {
+    console.error('기본 연결 실패:', err);
+    results.push('❌ Supabase 연결 실패: ' + err.message);
+    msg.innerHTML = results.join('<br>');
+    msg.className = "auth-msg err";
+    return;
+  }
+  
+  // 2. Auth API 테스트
+  try {
+    console.log('2️⃣ Auth API 테스트...');
+    var authRes = await fetch(SUPA_URL + '/auth/v1/health', {
+      headers: supaAnonHdr()
+    });
+    console.log('Auth API 응답:', authRes.status);
+    if(authRes.ok) {
+      results.push('✅ Auth API 정상');
+    } else {
+      results.push('⚠️ Auth API 응답: ' + authRes.status);
+    }
+  } catch(err) {
+    console.error('Auth API 테스트 실패:', err);
+    results.push('❌ Auth API 오류: ' + err.message);
+  }
+  
+  // 3. profiles 테이블 존재 확인
+  try {
+    console.log('3️⃣ profiles 테이블 확인...');
+    var profilesRes = await fetch(SUPA_URL + '/rest/v1/profiles?limit=0', {
+      headers: supaAnonHdr()
+    });
+    console.log('profiles 테이블 응답:', profilesRes.status);
+    if(profilesRes.ok) {
+      results.push('✅ profiles 테이블 존재');
+    } else if(profilesRes.status === 401) {
+      results.push('⚠️ profiles RLS 정책 필요 (401)');
+    } else {
+      var errData = await profilesRes.json();
+      results.push('❌ profiles 테이블 없음: ' + (errData.message || profilesRes.status));
+    }
+  } catch(err) {
+    console.error('profiles 확인 실패:', err);
+    results.push('❌ profiles 확인 오류: ' + err.message);
+  }
+  
+  // 4. dashboard_data 테이블 확인
+  try {
+    console.log('4️⃣ dashboard_data 테이블 확인...');
+    var dashRes = await fetch(SUPA_URL + '/rest/v1/dashboard_data?limit=0', {
+      headers: supaAnonHdr()
+    });
+    console.log('dashboard_data 응답:', dashRes.status);
+    if(dashRes.ok) {
+      results.push('✅ dashboard_data 테이블 존재');
+    } else {
+      var dashErr = await dashRes.json();
+      results.push('❌ dashboard_data: ' + (dashErr.message || dashRes.status));
+    }
+  } catch(err) {
+    console.error('dashboard_data 확인 실패:', err);
+    results.push('❌ dashboard_data 오류: ' + err.message);
+  }
+  
+  console.log('=== 테스트 완료 ===');
+  console.log('결과:', results);
+  
+  msg.innerHTML = '<div style="text-align:left;font-size:11px;line-height:1.6">' + results.join('<br>') + '</div>';
+  msg.className = "auth-msg ok";
+}
+
 async function authSignUp(){var email=g("auth-email-signup").value.trim(),pw=g("auth-pw-signup").value,pw2=g("auth-pw-signup2").value;if(!email||!pw){authSetMsg("auth-msg-signup","이메일과 비밀번호를 입력해주세요",false);return;}if(pw.length<6){authSetMsg("auth-msg-signup","비밀번호는 6자 이상이어야 합니다",false);return;}if(pw!==pw2){authSetMsg("auth-msg-signup","비밀번호가 일치하지 않습니다",false);return;}authSetLoading("auth-btn-signup",true);var res=await supaSignUp(email,pw);authSetLoading("auth-btn-signup",false);if(res.error){authSetMsg("auth-msg-signup",res.error,false);}else{authSetMsg("auth-msg-signup","✅ 가입 완료! 이메일의 인증 링크를 클릭해주세요.",true);}}
 async function authSignOut(){await supaSignOut();authUser=null;authProfile=null;authUpdateUI(null);}
-function authUpdateUI(user){var li=g("auth-login-btn"),lo=g("auth-logout-btn"),info=g("auth-user-info");if(!li||!lo||!info)return;if(user){li.style.display="none";lo.style.display="";info.style.display="";var roleTag=authProfile&&authProfile.role==="admin"?'<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:#2d1f4a;color:#a78bfa;margin-left:4px">관리자</span>':'';info.innerHTML='<span class="sync-dot"></span>'+(user.email||"로그인됨")+roleTag;}else{li.style.display="";lo.style.display="none";info.style.display="none";info.textContent="";}}
+function authUpdateUI(user){
+  var li=g("auth-login-btn"),lo=g("auth-logout-btn"),info=g("auth-user-info"),statusInd=g("save-status-indicator"),cardStatus=g("c-save-status");
+  if(!li||!lo||!info)return;
+  
+  if(user){
+    // 로그인 상태
+    li.style.display="none";
+    lo.style.display="";
+    info.style.display="";
+    var roleTag=authProfile&&authProfile.role==="admin"?'<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:#2d1f4a;color:#a78bfa;margin-left:4px">관리자</span>':'';
+    info.innerHTML='<span class="sync-dot"></span>'+(user.email||"로그인됨")+roleTag;
+    
+    // 네비게이션 저장 상태: 클라우드 자동 동기화
+    if(statusInd){
+      statusInd.className="save-status cloud";
+      statusInd.innerHTML='☁️ 클라우드 동기화';
+      statusInd.title="변경사항이 자동으로 클라우드에 저장됩니다";
+    }
+    
+    // 대시보드 카드 저장 상태
+    if(cardStatus){
+      cardStatus.innerHTML='<span style="color:#34d399">☁️ 자동 동기화</span><br><span style="font-size:9px;color:#666">클라우드 저장됨</span>';
+    }
+  }else{
+    // 로그아웃 상태
+    li.style.display="";
+    lo.style.display="none";
+    info.style.display="none";
+    info.textContent="";
+    
+    // 네비게이션 저장 상태: 수동 저장
+    if(statusInd){
+      statusInd.className="save-status manual";
+      statusInd.innerHTML='📝 수동 저장';
+      statusInd.title="'저장' 버튼을 눌러 JSON 파일로 다운로드해야 합니다";
+    }
+    
+    // 대시보드 카드 저장 상태
+    if(cardStatus){
+      cardStatus.innerHTML='<span style="color:#f59e0b">📝 수동 저장</span><br><span style="font-size:9px;color:#666">JSON 파일 필요</span>';
+    }
+  }
+}
 async function authLoadFromCloud(userId){try{var row=await supaLoadData(userId);if(!row)return false;if(row.assets&&row.assets.length)assets=row.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});if(row.trades&&row.trades.length)trades=row.trades;if(row.loans&&row.loans.length)loans=row.loans;if(row.real_estates&&row.real_estates.length)realEstates=row.real_estates;if(row.dividends&&row.dividends.length)dividends=row.dividends;if(row.savings&&row.savings.length)savings=row.savings;if(row.asset_history&&row.asset_history.length)assetHistory=row.asset_history;return true;}catch(e){return false;}}
 async function authSaveToCloud(){if(!authUser||authSyncing)return;authSyncing=true;try{await supaSaveData(authUser.id,{assets,trades,loans,realEstates,dividends,savings,assetHistory});}catch(e){}authSyncing=false;}
-async function authOnLogin(user){authUser=user;authProfile=await supaGetProfile(user.id);authUpdateUI(user);var loaded=await authLoadFromCloud(user.id);if(loaded){saveLS();renderAll();fetchAll();}else{await authSaveToCloud();}}
+async function authOnLogin(user){
+  console.log('[authOnLogin] 시작, 사용자:', user);
+  authUser=user;
+  
+  try{
+    console.log('[authOnLogin] 프로필 조회 중...');
+    authProfile=await supaGetProfile(user.id);
+    console.log('[authOnLogin] 프로필:', authProfile);
+    
+    if(!authProfile){
+      console.log('[authOnLogin] 프로필 없음, 생성 시도...');
+      try{
+        var createRes = await fetch(SUPA_URL+"/rest/v1/profiles",{
+          method:"POST",
+          headers:supaHdr(),
+          body:JSON.stringify({id:user.id,email:user.email,role:'user'})
+        });
+        console.log('[authOnLogin] 프로필 생성 응답:', createRes.status);
+        
+        if(createRes.ok) {
+          authProfile={id:user.id,email:user.email,role:'user'};
+          console.log('[authOnLogin] 프로필 생성 성공');
+        } else {
+          var errData = await createRes.json();
+          console.error('[authOnLogin] 프로필 생성 실패:', errData);
+          authProfile=null;
+        }
+      }catch(e){
+        console.error('[authOnLogin] 프로필 생성 예외:', e);
+        authProfile=null;
+      }
+    }
+  }catch(e){
+    console.error('[authOnLogin] 프로필 조회 예외:', e);
+    authProfile=null;
+  }
+  
+  console.log('[authOnLogin] UI 업데이트');
+  authUpdateUI(user);
+  
+  console.log('[authOnLogin] 클라우드 데이터 로드 중...');
+  var loaded=await authLoadFromCloud(user.id);
+  console.log('[authOnLogin] 클라우드 데이터 로드됨:', loaded);
+  
+  if(loaded){
+    saveLS();
+    renderAll();
+    fetchAll();
+  }else{
+    await authSaveToCloud();
+  }
+  
+  console.log('[authOnLogin] 완료!');
+}
 // 이메일 인증 링크 처리
 (async function(){var hash=window.location.hash;if(hash&&hash.includes("access_token")){var params={};hash.replace("#","").split("&").forEach(function(p){var kv=p.split("=");params[kv[0]]=decodeURIComponent(kv[1]||"");});if(params.access_token){_supaSession={access_token:params.access_token,refresh_token:params.refresh_token||"",expires_at:Math.floor(Date.now()/1000)+(parseInt(params.expires_in)||3600),user:null};try{localStorage.setItem("supa_session",JSON.stringify(_supaSession));}catch(e){}history.replaceState(null,"",window.location.pathname);var u=await supaGetUser();if(u&&u.id){_supaSession.user=u;try{localStorage.setItem("supa_session",JSON.stringify(_supaSession));}catch(e){}await authOnLogin(u);}}}})();
 // 세션 자동 복원
@@ -1118,8 +1368,80 @@ var DEFAULT_ASSETS=[{id:1,symbol:"BTC",name:"비트코인",cat:"crypto",sector:"
 var assets=DEFAULT_ASSETS.map(function(a){return Object.assign({},a);});
 function saveLS(){try{localStorage.setItem("ad13_assets",JSON.stringify(assets));localStorage.setItem("ad13_trades",JSON.stringify(trades));localStorage.setItem("ad13_loans",JSON.stringify(loans));localStorage.setItem("ad13_real",JSON.stringify(realEstates));localStorage.setItem("ad13_hist",JSON.stringify(assetHistory.slice(-200)));localStorage.setItem("ad13_div",JSON.stringify(dividends));localStorage.setItem("ad13_savings",JSON.stringify(savings));}catch(e){}if(authUser){clearTimeout(saveLS._t);saveLS._t=setTimeout(authSaveToCloud,2000);}}
 function loadLS(){try{var a=localStorage.getItem("ad13_assets")||localStorage.getItem("ad12_assets"),t=localStorage.getItem("ad13_trades")||localStorage.getItem("ad12_trades"),l=localStorage.getItem("ad13_loans")||localStorage.getItem("ad12_loans"),r=localStorage.getItem("ad13_real")||localStorage.getItem("ad12_real"),h=localStorage.getItem("ad13_hist")||localStorage.getItem("ad12_hist"),d=localStorage.getItem("ad13_div")||localStorage.getItem("ad12_div"),s=localStorage.getItem("ad13_savings")||localStorage.getItem("ad12_savings");if(a)assets=JSON.parse(a);if(t)trades=JSON.parse(t);if(l)loans=JSON.parse(l);if(r)realEstates=JSON.parse(r);if(h)assetHistory=JSON.parse(h);if(d)dividends=JSON.parse(d);if(s)savings=JSON.parse(s);assets=assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});return !!(a||t);}catch(e){return false;}}
-function exportData(){var blob=new Blob([JSON.stringify({v:13,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();a.href=url;a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";a.click();URL.revokeObjectURL(url);}
-function importData(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});if(d.trades)trades=d.trades;if(d.loans)loans=d.loans;if(d.realEstates)realEstates=d.realEstates;if(d.assetHistory)assetHistory=d.assetHistory;if(d.dividends)dividends=d.dividends;if(d.savings)savings=d.savings;saveLS();renderAll();fetchAll();alert("불러오기 완료!");}catch(err){alert("파일 형식이 올바르지 않습니다.");}};reader.readAsText(file);e.target.value="";}
+function exportData(){
+  // 로그인 상태 확인
+  if(!authUser){
+    var confirmMsg="📝 수동 저장 모드\n\n";
+    confirmMsg+="로그인하지 않으면 데이터가 클라우드에 저장되지 않습니다.\n";
+    confirmMsg+="JSON 파일로 다운로드하여 수동으로 백업해주세요.\n\n";
+    confirmMsg+="💡 로그인하면 자동으로 클라우드에 동기화됩니다.\n\n";
+    confirmMsg+="지금 JSON 파일로 저장하시겠습니까?";
+    
+    if(!confirm(confirmMsg)){
+      return;
+    }
+  }
+  
+  var blob=new Blob([JSON.stringify({v:13,assets,trades,loans,realEstates,assetHistory:assetHistory.slice(-200),dividends,savings},null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();
+  a.href=url;
+  a.download="dashboard_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  // 성공 메시지
+  if(!authUser){
+    setTimeout(function(){
+      alert("✅ JSON 파일이 다운로드되었습니다!\n\n이 파일을 안전한 곳에 보관하세요.");
+    }, 100);
+  }
+}
+function importData(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  
+  // 로그인 상태 확인
+  if(!authUser){
+    var confirmMsg="📂 수동 불러오기 모드\n\n";
+    confirmMsg+="로그인하지 않으면 불러온 데이터가 클라우드에 저장되지 않습니다.\n";
+    confirmMsg+="데이터를 수정한 후 다시 '저장' 버튼으로 백업해주세요.\n\n";
+    confirmMsg+="💡 로그인하면 자동으로 클라우드에 동기화됩니다.\n\n";
+    confirmMsg+="지금 파일을 불러오시겠습니까?";
+    
+    if(!confirm(confirmMsg)){
+      e.target.value="";
+      return;
+    }
+  }
+  
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var d=JSON.parse(ev.target.result);
+      if(d.assets)assets=d.assets.map(function(x){return Object.assign({prePrice:null,postPrice:null,priceHistory:{}},x);});
+      if(d.trades)trades=d.trades;
+      if(d.loans)loans=d.loans;
+      if(d.realEstates)realEstates=d.realEstates;
+      if(d.assetHistory)assetHistory=d.assetHistory;
+      if(d.dividends)dividends=d.dividends;
+      if(d.savings)savings=d.savings;
+      saveLS();
+      renderAll();
+      fetchAll();
+      
+      // 성공 메시지
+      var successMsg="✅ 불러오기 완료!";
+      if(!authUser){
+        successMsg+="\n\n⚠️ 로그인하지 않은 상태입니다.\n데이터 수정 후 '저장' 버튼으로 백업하세요.";
+      }
+      alert(successMsg);
+    }catch(err){
+      alert("❌ 파일 형식이 올바르지 않습니다.");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value="";
+}
 function updatePremium(){if(!usdtKrwVal||!usdKrwVal)return;var p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100,s=fmtP(p),c=p>=0?"#f59e0b":"#a78bfa";var tkP=g("tk-premium"),chP=g("ch-premium");if(tkP){tkP.textContent=s;tkP.style.color=c;}if(chP){chP.textContent=s;chP.style.color=c;}}
 function fetchTickers(){updateMarketBanner();fetch(PROXY+"?mode=world").then(function(r){return r.json();}).then(function(resp){if(!resp.ok||!resp.data)return;var d=resp.data;if(d.usdkrw&&d.usdkrw.price){var fxPrice=d.usdkrw.price;usdKrwVal=fxPrice;usdKrw=fxPrice;g("tk-usdkrw").textContent=W+fxPrice.toFixed(2);var fxChg=d.usdkrw.chg||0;g("ch-usdkrw").textContent=fmtP(fxChg);g("ch-usdkrw").style.color=clr(fxChg);updatePremium();}var map=[{k:"snp",tv:"tk-snp",ch:"ch-snp",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"nasdaq",tv:"tk-nasdaq",ch:"ch-nasdaq",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"ndx",tv:"tk-ndx",ch:"ch-ndx",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"russell",tv:"tk-russell",ch:"ch-russell",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"vix",tv:"tk-vix",ch:"ch-vix",fn:function(v){return v.toFixed(2);}},{k:"gold",tv:"tk-gold",ch:"ch-gold",fn:function(v){return "$"+v.toFixed(2);}},{k:"silver",tv:"tk-silver",ch:"ch-silver",fn:function(v){return "$"+v.toFixed(2);}},{k:"wti",tv:"tk-wti",ch:"ch-wti",fn:function(v){return "$"+v.toFixed(2);}},{k:"brent",tv:"tk-brent",ch:"ch-brent",fn:function(v){return "$"+v.toFixed(2);}},{k:"kospi",tv:"tk-kospi",ch:"ch-kospi",fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},{k:"kosdaq",tv:"tk-kosdaq",ch:"ch-kosdaq",fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}}];map.forEach(function(m){var item=d[m.k];if(!item||item.price==null||item.price===0)return;var el=g(m.tv);if(el)el.textContent=m.fn(item.price);var chg=item.chg;if(chg==null&&item.price&&item.pc&&item.pc!==0)chg=(item.price-item.pc)/item.pc*100;var chEl=g(m.ch);if(chEl&&chg!=null){chEl.textContent=fmtP(chg);chEl.style.color=clr(chg);}});var t=new Date();g("tk-time").textContent=t.getHours()+":"+pad2(t.getMinutes())+" 갱신";}).catch(function(){});}
 function fetchCoinPrices(){var coinAssets=assets.filter(function(a){return a.cat==="crypto";});var markets=["KRW-USDT","KRW-BTC","KRW-ETH"];coinAssets.forEach(function(a){var m="KRW-"+a.symbol.toUpperCase();if(!markets.includes(m))markets.push(m);});fetch(PROXY+"?mode=coin&markets="+encodeURIComponent(markets.join(","))).then(function(r){return r.json();}).then(function(d){if(!d.ok||!d.data)return;d.data.forEach(function(t){var sym=t.market.replace("KRW-",""),chg=(t.trade_price-t.prev_closing_price)/t.prev_closing_price*100;if(t.market==="KRW-USDT"){usdtKrwVal=t.trade_price;usdKrw=t.trade_price;g("tk-usdtkrw").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-usdtkrw").textContent=fmtP(chg);g("ch-usdtkrw").style.color=clr(chg);updatePremium();}if(t.market==="KRW-BTC"){g("tk-btc").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-btc").textContent=fmtP(chg);g("ch-btc").style.color=clr(chg);}if(t.market==="KRW-ETH"){g("tk-eth").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-eth").textContent=fmtP(chg);g("ch-eth").style.color=clr(chg);}var a=assets.find(function(x){return x.cat==="crypto"&&x.symbol.toUpperCase()===sym;});if(a){a.price=t.trade_price;a.prePrice=null;a.postPrice=null;}});recordHistory();renderPortfolio();renderSummary();saveLS();}).catch(function(){});}
@@ -1559,6 +1881,7 @@ var KR_STOCKS=[
 // 초기 실행
 g("t-date").value=new Date().toISOString().split("T")[0];
 updateMarketBanner();
+authUpdateUI(null); // 저장 상태 표시 초기화
 var hasSaved=loadLS();
 if(hasSaved)renderAll();
 
