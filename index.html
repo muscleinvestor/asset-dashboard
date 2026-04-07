@@ -787,13 +787,13 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
   <div class="fav-top">
     <span class="scr-title">⭐ 즐겨찾기 종목</span>
     <div class="fav-add-wrap">
-      <select class="fav-type-sel" id="fav-type">
-        <option value="us">🇺🇸 미국</option>
-        <option value="kr">🇰🇷 국내</option>
-      </select>
-      <input class="fav-input" id="fav-sym-input" placeholder="TSLA, 005930.KS ..." onkeydown="if(event.key==='Enter')favAdd()">
-      <button class="btn" onclick="favAdd()" style="color:#f59e0b;border-color:#3a2a00;background:#1a1500">+ 추가</button>
-      <span style="font-size:10px;color:#444" id="fav-status">대기중</span>
+      <div style="position:relative;display:flex;gap:6px;align-items:center;flex:1;min-width:260px">
+        <input class="fav-input" id="fav-sym-input" placeholder="종목명 또는 심볼 검색 (TSLA, 삼성전자...)" style="flex:1;min-width:200px"
+          oninput="favOnSearchInput()" onkeydown="if(event.key==='Enter')favDoSearch()">
+        <button class="btn" id="fav-search-btn" onclick="favDoSearch()" style="color:#f59e0b;border-color:#3a2a00;background:#1a1500;flex-shrink:0">검색</button>
+        <div id="fav-search-results" class="search-drop"></div>
+      </div>
+      <span style="font-size:10px;color:#444" id="fav-status">종목을 검색해 추가하세요</span>
     </div>
     <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
       <button class="btn" style="font-size:11px" onclick="favReload()">⟳ 새로고침</button>
@@ -1493,30 +1493,153 @@ function favInit(){
   if(favList.length>0)favFetchAll();
 }
 
-function favAdd(){
-  var sym=(g("fav-sym-input").value||"").trim().toUpperCase();
-  var isKr=g("fav-type").value==="kr";
-  if(!sym){g("fav-status").textContent="종목 코드를 입력해주세요";return;}
-  // KR 자동 접미사
-  if(isKr&&!sym.includes(".")){
-    if(/^\d{6}$/.test(sym)){
-      var n=parseInt(sym);
-      sym+=(n>=300000?"KQ":"KS").replace(/^/,".");
-    }
+var _favSearchTimer=null;
+var _favSelected=null; // {sym, name, isKr, sec}
+
+function favOnSearchInput(){
+  clearTimeout(_favSearchTimer);
+  var q=g("fav-sym-input").value.trim();
+  _favSelected=null;
+  if(q.length<1){g("fav-search-results").style.display="none";return;}
+  _favSearchTimer=setTimeout(favDoSearch,500);
+}
+
+function favDoSearch(){
+  var q=g("fav-sym-input").value.trim();
+  if(!q)return;
+  var btn=g("fav-search-btn"),res=g("fav-search-results");
+  btn.textContent="검색중...";btn.disabled=true;
+  res.style.display="block";
+  res.innerHTML="<div style='padding:10px;color:#555;font-size:12px'>검색중...</div>";
+
+  // 먼저 로컬 데이터에서 빠른 검색 (US_STOCKS + KR_STOCKS)
+  var ql=q.toLowerCase();
+  var localMatches=[];
+  US_STOCKS.forEach(function(s){
+    if(s.sym.toLowerCase().includes(ql)||s.name.toLowerCase().includes(ql)||(s.kr&&s.kr.includes(q)))
+      localMatches.push({symbol:s.sym,name:s.name,type:"EQUITY",isKr:false,sec:s.sec,sz:s.sz});
+  });
+  KR_STOCKS.forEach(function(s){
+    var code=s.sym.replace(/\.(KS|KQ)$/,"");
+    if(code.includes(q)||s.name.includes(q))
+      localMatches.push({symbol:s.sym,name:s.name,type:"KR",isKr:true,sec:s.sec,mkt:s.mkt});
+  });
+
+  if(localMatches.length>0){
+    btn.textContent="검색";btn.disabled=false;
+    res.innerHTML=favBuildResults(localMatches.slice(0,8));
   }
-  if(favList.some(function(f){return f.sym===sym;})){g("fav-status").textContent="이미 추가된 종목입니다";return;}
-  // 이름 찾기 (기존 데이터에서)
-  var known=null;
-  if(isKr){known=KR_STOCKS.find(function(s){return s.sym===sym;});}
-  else{known=US_STOCKS.find(function(s){return s.sym===sym;});}
-  var name=known?known.name:sym;
+
+  // 동시에 API 검색도 실행 (더 넓은 범위)
+  fetchSearch(q,function(quotes){
+    btn.textContent="검색";btn.disabled=false;
+    if(!quotes.length&&!localMatches.length){
+      res.innerHTML="<div style='padding:10px;color:#555;font-size:12px'>결과 없음</div>";
+      return;
+    }
+    // API 결과 + 로컬 결과 합치기 (중복 제거)
+    var merged=localMatches.slice();
+    quotes.forEach(function(q2){
+      var sym=q2.symbol.toUpperCase();
+      if(!merged.some(function(m){return m.symbol.toUpperCase()===sym;})){
+        merged.push({symbol:sym,name:q2.name,type:q2.type||"EQUITY",isKr:false,sec:"--"});
+      }
+    });
+    if(merged.length)res.innerHTML=favBuildResults(merged.slice(0,10));
+  });
+}
+
+function favBuildResults(items){
+  return items.map(function(item,i){
+    var isKr=item.isKr||(item.type==="KR");
+    var isCrypto=item.type==="CRYPTOCURRENCY"||item.type==="crypto";
+    var tc=isKr?"#818cf8":isCrypto?"#a78bfa":"#38bdf8";
+    var tl=isKr?"🇰🇷 국내":isCrypto?"₿ 코인":"🇺🇸 미국";
+    var displaySym=isKr?item.symbol.replace(/\.(KS|KQ)$/,""):item.symbol;
+    return "<div class='search-item' onclick='favSelectResult("+i+")' data-idx='"+i+"'>"
+      +"<div style='display:flex;justify-content:space-between;align-items:center'>"
+      +"<span style='font-weight:700;font-size:12px;color:#f0f0f8'>"+displaySym+"</span>"
+      +"<span style='font-size:10px;padding:1px 7px;border-radius:10px;background:#1e1e28;color:"+tc+"'>"+tl+"</span>"
+      +"</div>"
+      +"<div style='font-size:11px;color:#888;margin-top:2px'>"+item.name+"</div>"
+      +"</div>";
+  }).join("");
+}
+
+// 검색 결과 항목 선택 시 즉시 추가
+function favSelectResult(idx){
+  var items=g("fav-search-results").querySelectorAll(".search-item");
+  if(!items[idx])return;
+
+  var q=g("fav-sym-input").value.trim().toLowerCase();
+  var ql=q;
+  var allMatches=[];
+  US_STOCKS.forEach(function(s){
+    if(s.sym.toLowerCase().includes(ql)||s.name.toLowerCase().includes(ql)||(s.kr&&s.kr.includes(q)))
+      allMatches.push({symbol:s.sym,name:s.name,type:"EQUITY",isKr:false,sec:s.sec});
+  });
+  KR_STOCKS.forEach(function(s){
+    var code=s.sym.replace(/\.(KS|KQ)$/,"");
+    if(code.includes(q)||s.name.includes(q))
+      allMatches.push({symbol:s.sym,name:s.name,type:"KR",isKr:true,sec:s.sec});
+  });
+
+  // API 결과까지 포함된 전체 목록이 렌더된 상태에서 idx로 접근
+  var allInDom=[];
+  g("fav-search-results").querySelectorAll(".search-item").forEach(function(el){allInDom.push(el);});
+  var el=allInDom[idx];
+  if(!el)return;
+
+  // data 직접 추출 - 검색 인풋 텍스트 기반으로 재매칭
+  var nameText=el.querySelector("div[style*='font-size:11px']");
+  var symText=el.querySelector("span[style*='font-weight:700']");
+  if(!symText)return;
+
+  var displaySym=symText.textContent.trim();
+  var name=nameText?nameText.textContent.trim():displaySym;
+  var isKrEl=el.querySelector("span[style*='818cf8']")!==null;
+  var isCrypto=el.querySelector("span[style*='a78bfa']")!==null;
+
+  // 풀 심볼 복원 (KR은 KS/KQ 붙이기)
+  var fullSym=displaySym;
+  if(isKrEl){
+    var found=KR_STOCKS.find(function(s){return s.sym.replace(/\.(KS|KQ)$/,"")=== displaySym||s.sym===displaySym;});
+    if(found)fullSym=found.sym;
+    else if(/^\d{6}$/.test(displaySym))fullSym=displaySym+"."+(parseInt(displaySym)>=300000?"KQ":"KS");
+  }
+
+  var known=isKrEl?KR_STOCKS.find(function(s){return s.sym===fullSym;}):US_STOCKS.find(function(s){return s.sym===fullSym;});
   var sec=known?(known.sec||"--"):"--";
-  favList.push({sym:sym,name:name,sec:sec,isKr:isKr});
-  favSaveLS();
+
+  g("fav-search-results").style.display="none";
   g("fav-sym-input").value="";
-  g("fav-status").textContent="추가됨: "+sym;
+
+  favAddDirect(fullSym,name,sec,isKrEl,isCrypto);
+}
+
+function favAddDirect(sym,name,sec,isKr,isCrypto){
+  if(favList.some(function(f){return f.sym===sym;})){
+    g("fav-status").textContent="이미 추가된 종목: "+sym;return;
+  }
+  favList.push({sym:sym,name:name,sec:sec,isKr:isKr,isCrypto:isCrypto||false});
+  favSaveLS();
+  g("fav-status").textContent="✅ 추가됨: "+name+" ("+sym+")";
   favRender();
   favFetchOne(sym,isKr);
+}
+
+function favAdd(){
+  // 입력값으로 직접 추가 (자동완성 미사용 시 fallback)
+  var sym=(g("fav-sym-input").value||"").trim().toUpperCase();
+  if(!sym){g("fav-status").textContent="종목을 검색해 선택하세요";return;}
+  var isKr=/^\d{6}/.test(sym)||(sym.includes(".KS")||sym.includes(".KQ"));
+  if(isKr&&!sym.includes(".")){
+    sym+=parseInt(sym)>=300000?".KQ":".KS";
+  }
+  var known=isKr?KR_STOCKS.find(function(s){return s.sym===sym;}):US_STOCKS.find(function(s){return s.sym===sym;});
+  favAddDirect(sym,known?known.name:sym,known?(known.sec||"--"):"--",isKr,false);
+  g("fav-sym-input").value="";
+  g("fav-search-results").style.display="none";
 }
 
 function favRemove(sym){
@@ -1589,6 +1712,7 @@ function favRender(){
     var known=isKr?KR_STOCKS.find(function(s){return s.sym===f.sym;}):US_STOCKS.find(function(s){return s.sym===f.sym;});
     var badge=isKr
       ?(known?('<span class="scr-badge '+(known.mkt==="KOSPI"?"sb-kospi":"sb-kosdaq")+'">'+known.mkt+"</span>"):'<span class="scr-badge sb-kospi">KR</span>')
+      :f.isCrypto?'<span class="scr-badge" style="background:#2d1f4a;color:#a78bfa">CRYPTO</span>'
       :(known?({lg:'<span class="scr-badge sb-lg">S&P500</span>',md:'<span class="scr-badge sb-md">MidCap</span>',sm:'<span class="scr-badge sb-sm">Russell</span>'}[known.sz]||'<span class="scr-badge sb-md">US</span>'):'<span class="scr-badge sb-md">US</span>');
     var nm=isKr
       ?("<strong>"+f.name+"</strong><br><span style='font-size:10px;color:#3a3a4a'>"+f.sym.replace(/\.(KS|KQ)$/,"")+"</span>")
@@ -1721,6 +1845,13 @@ var KR_STOCKS=[
 // 초기 실행
 g("t-date").value=new Date().toISOString().split("T")[0];
 updateMarketBanner();
+// 즐겨찾기 검색 드롭다운 외부 클릭 닫기
+document.addEventListener("click",function(e){
+  var res=g("fav-search-results");
+  if(res&&!res.contains(e.target)&&e.target.id!=="fav-sym-input"&&e.target.id!=="fav-search-btn"){
+    res.style.display="none";
+  }
+});
 var hasSaved=loadLS();
 if(hasSaved)renderAll();
 
