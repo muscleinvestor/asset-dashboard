@@ -1688,33 +1688,38 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
   var html="<div class='fund-panel'><div class='fund-kpi-grid'>"+kpiHtml+"</div>";
 
   if(hasHistory||hasEst){
-    // ── 추정 카드 (2026E, 2027E)
+    // ── 추정 카드
     if(hasEst){
       html+="<div class='fund-est-row'>";
       if(fd.estCY&&(fd.estCY.revenueAvg||fd.estCY.epsAvg)){
+        // 미국 비상장: NTM(향후 12개월) | 국내: 0y(당해) 레이블
+        var estLabel=isKr?(fd.estCYYear+"E"):"NTM";
+        var estSub=isKr?"애널리스트 컨센서스":"Forward PE 역산 (향후 12개월)";
         html+="<div class='fund-est-card'>"
-          +"<div class='fund-est-year'>"+fd.estCYYear+"E 예상치</div>"
+          +"<div class='fund-est-year'>"+estLabel+" 추정</div>"
           +(fd.estCY.revenueAvg?"<div class='fund-est-rev'>매출 "+fmtMoney(fd.estCY.revenueAvg,isKr)+"</div>":"")
           +(fd.estCY.epsAvg?"<div class='fund-est-eps'>EPS "+(isKr?'₩'+Math.round(fd.estCY.epsAvg).toLocaleString('ko-KR'):'$'+fd.estCY.epsAvg.toFixed(2))+"</div>":"")
+          +"<div style='font-size:9px;color:#444;margin-top:3px'>"+estSub+"</div>"
           +"</div>";
       }
       if(fd.estNY&&(fd.estNY.revenueAvg||fd.estNY.epsAvg)){
         html+="<div class='fund-est-card'>"
-          +"<div class='fund-est-year'>"+fd.estNYYear+"E 예상치</div>"
+          +"<div class='fund-est-year'>"+fd.estNYYear+"E 추정</div>"
           +(fd.estNY.revenueAvg?"<div class='fund-est-rev'>매출 "+fmtMoney(fd.estNY.revenueAvg,isKr)+"</div>":"")
           +(fd.estNY.epsAvg?"<div class='fund-est-eps'>EPS "+(isKr?'₩'+Math.round(fd.estNY.epsAvg).toLocaleString('ko-KR'):'$'+fd.estNY.epsAvg.toFixed(2))+"</div>":"")
           +"</div>";
       }
       html+="</div>";
     }
-    // ── 2×2 차트 (2023/2024/2025 실적 + 2026E 추정)
+    // ── 2×2 차트
     var histStart=fd.history&&fd.history[0]?fd.history[0].year:'';
     var histEnd=fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'';
+    var estSuffix=isKr?(fd.estCYYear+"E"):"NTM";
     html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 ("+histStart+"~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 ("+histStart+"~"+estSuffix+")</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
       +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 ("+histStart+"~"+histEnd+")</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
       +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률% ("+histStart+"~"+histEnd+")</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS ("+histStart+"~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS ("+histStart+"~"+estSuffix+")</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
       +"</div>";
 
     setTimeout(function(){
@@ -1736,12 +1741,11 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
 }
 
 // ── 공통: 레이블·isEst 배열 생성 (2023/2024/2025 + 2026E)
-function buildFundLabels(fd){
+function buildFundLabels(fd,isKr){
   var labels=[],isEst=[];
   (fd.history||[]).forEach(function(h){labels.push(String(h.year));isEst.push(false);});
-  // 올해 추정 (2026E)
-  if(fd.estCY&&(fd.estCY.revenueAvg||fd.estCY.epsAvg)){labels.push(fd.estCYYear+'E');isEst.push(true);}
-  // 내년 추정 (2027E) — 있으면 포함
+  var estLabel=isKr?(fd.estCYYear+'E'):'NTM';
+  if(fd.estCY&&(fd.estCY.revenueAvg||fd.estCY.epsAvg)){labels.push(estLabel);isEst.push(true);}
   if(fd.estNY&&(fd.estNY.revenueAvg||fd.estNY.epsAvg)){labels.push(fd.estNYYear+'E');isEst.push(true);}
   return{labels:labels,isEst:isEst};
 }
@@ -1767,7 +1771,7 @@ function fundBaseOpts(color,yFmt,ttFmt){
 
 // ── 매출 차트 (독립 스케일)
 function renderRevChart(canvas,fd,isKr){
-  var lb=buildFundLabels(fd);
+  var lb=buildFundLabels(fd,isKr);
   var vals=(fd.history||[]).map(function(h){return h.revenue;});
   // 추정 레이블이 추가된 만큼 값도 맞춰야 함 (revenueAvg 없으면 null)
   if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(fd.estCY.revenueAvg||null);
@@ -1792,7 +1796,7 @@ function renderRevChart(canvas,fd,isKr){
 
 // ── 영업이익 차트 (독립 스케일)
 function renderOpChart(canvas,fd,isKr){
-  var lb=buildFundLabels(fd);
+  var lb=buildFundLabels(fd,isKr);
   var vals=(fd.history||[]).map(function(h){return h.operatingIncome;});
   // 추정 연도 레이블 수만큼 null 채우기 (영업이익 추정치 없음)
   if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(null);
@@ -1818,7 +1822,7 @@ function renderOpChart(canvas,fd,isKr){
 
 // ── 순이익률 차트 (%, 독립 스케일) — Finnhub series는 소수(0.27)로 옴 → ×100
 function renderMarChart(canvas,fd,isKr){
-  var lb=buildFundLabels(fd);
+  var lb=buildFundLabels(fd,isKr);
   // netMargin: 소수(0.27) or % (27.0) 자동 판별
   function toPercent(v){ if(v==null)return null; return Math.abs(v)<2 ? parseFloat((v*100).toFixed(1)) : parseFloat(v.toFixed(1)); }
   var vals=(fd.history||[]).map(function(h){return toPercent(h.netMargin);});
@@ -1845,7 +1849,7 @@ function renderMarChart(canvas,fd,isKr){
 
 // ── EPS 차트 (실적 + 추정 통합)
 function renderEstChart(canvas,fd,isKr){
-  var lb=buildFundLabels(fd);
+  var lb=buildFundLabels(fd,isKr);
   var epsData=[];
   // 실적 연도 EPS
   (fd.history||[]).forEach(function(h){
