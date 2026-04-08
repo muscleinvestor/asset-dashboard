@@ -1545,7 +1545,7 @@ function fmtMoney(v,isKr){
 
 // ── 펀더멘털 localStorage 일별 캐시 (24시간 TTL)
 var FUND_TTL=86400000;
-function fundLsKey(sym){return'fv2_'+sym.replace(/[^a-zA-Z0-9]/g,'_');}
+function fundLsKey(sym){return'fv3_'+sym.replace(/[^a-zA-Z0-9]/g,'_');}
 function fundLoadLS(sym){
   try{
     var raw=localStorage.getItem(fundLsKey(sym));
