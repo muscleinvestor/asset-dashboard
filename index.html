@@ -1708,11 +1708,13 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
       html+="</div>";
     }
     // ── 2×2 차트 (2023/2024/2025 실적 + 2026E 추정)
+    var histStart=fd.history&&fd.history[0]?fd.history[0].year:'';
+    var histEnd=fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'';
     html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 (2022~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 (2022~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률% (2022~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS (2022~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 ("+histStart+"~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 ("+histStart+"~"+histEnd+")</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률% ("+histStart+"~"+histEnd+")</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS ("+histStart+"~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
       +"</div>";
 
     setTimeout(function(){
@@ -1767,8 +1769,9 @@ function fundBaseOpts(color,yFmt,ttFmt){
 function renderRevChart(canvas,fd,isKr){
   var lb=buildFundLabels(fd);
   var vals=(fd.history||[]).map(function(h){return h.revenue;});
-  if(fd.estCY&&fd.estCY.revenueAvg)vals.push(fd.estCY.revenueAvg);
-  if(fd.estNY&&fd.estNY.revenueAvg)vals.push(fd.estNY.revenueAvg);
+  // 추정 레이블이 추가된 만큼 값도 맞춰야 함 (revenueAvg 없으면 null)
+  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(fd.estCY.revenueAvg||null);
+  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(fd.estNY.revenueAvg||null);
   var sc=fundScale(vals);
   if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
   new Chart(canvas,{
@@ -1791,9 +1794,9 @@ function renderRevChart(canvas,fd,isKr){
 function renderOpChart(canvas,fd,isKr){
   var lb=buildFundLabels(fd);
   var vals=(fd.history||[]).map(function(h){return h.operatingIncome;});
-  // 추정 연도엔 영업이익 없음 — null 채우기
-  if(fd.estCY&&fd.estCY.revenueAvg)vals.push(null);
-  if(fd.estNY&&fd.estNY.revenueAvg)vals.push(null);
+  // 추정 연도 레이블 수만큼 null 채우기 (영업이익 추정치 없음)
+  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(null);
+  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(null);
   var sc=fundScale(vals);
   if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
   new Chart(canvas,{
