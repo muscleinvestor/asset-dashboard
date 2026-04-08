@@ -1298,10 +1298,11 @@ function scrFetchHistory(sym){
         scrCache[sym].rsi14_6m    =x.rsi14_6m     !=null?x.rsi14_6m:null;
         scrCache[sym].rsi14y      =x.rsi14y       !=null?x.rsi14y:null;
         // 시총·거래량 → fundCache 저장 (render() 시점에 자동 반영)
-        if(x.marketCap||x.volume){
+        if(x.marketCap||x.volume||x.avgVolume){
           if(!fundCache[sym])fundCache[sym]={};
           if(x.marketCap)fundCache[sym].marketCap=x.marketCap;
-          if(x.volume)   fundCache[sym].avgVolume=x.volume;
+          if(x.avgVolume)fundCache[sym].avgVolume=x.avgVolume;
+          else if(x.volume)fundCache[sym].avgVolume=x.volume;
         }
       }
       return scrCache[sym];
@@ -1398,7 +1399,7 @@ function scrBuild(region){
   scrProgShow(0,"데이터 로딩중...");
 
   function loadChunk(ci){
-    if(ci>=chunks.length){render();scrProgHide();g("scr-status").textContent="완료 "+scrHhmm();scrStartFundamentals(stocks);return;}
+    if(ci>=chunks.length){render();scrProgHide();g("scr-status").textContent="완료 "+scrHhmm();scrStartFundamentals(stocks);fetchCaps(stocks);return;}
     Promise.all(chunks[ci].map(function(s){return scrFetchHistory(s.sym);}))
       .then(function(){
         loaded+=chunks[ci].length;
@@ -1587,6 +1588,48 @@ function updateFundCells(sym){
   var fd=fundCache[sym]||{};
   document.querySelectorAll('[data-fund="cap"][data-sym="'+sym+'"]').forEach(function(el){el.innerHTML=fmtCap(fd);});
   document.querySelectorAll('[data-fund="vol"][data-sym="'+sym+'"]').forEach(function(el){el.innerHTML=fmtVol(fd);});
+}
+
+// ── 시총·거래량 배치 fetch (mode=caps, US 20개 / KR 10개 단위)
+function fetchCaps(stocks){
+  if(!stocks||!stocks.length)return;
+  var usStocks=stocks.filter(function(s){return!/\.(KS|KQ)$/i.test(s.sym);});
+  var krStocks=stocks.filter(function(s){return/\.(KS|KQ)$/i.test(s.sym);});
+
+  function applyResult(d,batch){
+    if(!d.ok||!d.data)return;
+    batch.forEach(function(s){
+      var cap=d.data[s.sym];
+      if(!cap)return;
+      if(!fundCache[s.sym])fundCache[s.sym]={};
+      if(cap.marketCap)fundCache[s.sym].marketCap=cap.marketCap;
+      if(cap.volume)   fundCache[s.sym].avgVolume=cap.volume;
+      updateFundCells(s.sym);
+    });
+  }
+
+  // US: 20개씩 배치
+  var ui=0;
+  function nextUs(){
+    if(ui>=usStocks.length){nextKr(0);return;}
+    var batch=usStocks.slice(ui,ui+20);ui+=20;
+    fetch(PROXY+'?mode=caps&syms='+encodeURIComponent(batch.map(function(s){return s.sym;}).join(',')))
+      .then(function(r){return r.json();})
+      .then(function(d){applyResult(d,batch);setTimeout(nextUs,250);})
+      .catch(function(){setTimeout(nextUs,600);});
+  }
+
+  // KR: 10개씩 배치
+  function nextKr(ki){
+    if(ki>=krStocks.length)return;
+    var batch=krStocks.slice(ki,ki+10);
+    fetch(PROXY+'?mode=caps&syms='+encodeURIComponent(batch.map(function(s){return s.sym;}).join(',')))
+      .then(function(r){return r.json();})
+      .then(function(d){applyResult(d,batch);setTimeout(function(){nextKr(ki+10);},400);})
+      .catch(function(){setTimeout(function(){nextKr(ki+10);},700);});
+  }
+
+  nextUs();
 }
 
 // 상세보기 클릭 시 빠른 응답을 위해 LS 캐시 없는 종목 미리 로딩
@@ -2030,6 +2073,7 @@ function favFetchAll(){
       g("fav-status").textContent="완료 "+scrHhmm();
       favUpdateSum();
       scrStartFundamentals(favList);
+      fetchCaps(favList);
       return;
     }
     Promise.all(chunks[ci].map(function(f){return scrFetchHistory(f.sym);}))
