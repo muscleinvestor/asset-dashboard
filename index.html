@@ -189,17 +189,19 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .rsi-os{color:#60a5fa;font-weight:700}
 .rsi-neu{color:#666}
 /* 펀더멘털 패널 */
-.fund-panel{padding:6px 0}
-.fund-kpi-grid{display:flex;gap:10px;flex-wrap:wrap;padding:7px 10px;background:#0a0a12;border-radius:6px;margin-bottom:8px;border:1px solid #1a1a26}
-.fund-kpi-item{display:flex;flex-direction:column;gap:2px;min-width:56px}
-.fund-kpi-label{font-size:9px;color:#555;letter-spacing:.3px;text-transform:uppercase}
-.fund-kpi-val{font-size:12px;font-weight:700;color:#e8e8f0}
-.fund-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fund-panel{padding:4px 0}
+.fund-kpi-grid{display:flex;gap:0;padding:0;background:#0a0a12;border-radius:6px;margin-bottom:8px;border:1px solid #1a1a26;overflow-x:auto;scrollbar-width:none}
+.fund-kpi-grid::-webkit-scrollbar{display:none}
+.fund-kpi-item{display:flex;flex-direction:column;gap:2px;padding:7px 12px;border-right:1px solid #1a1a26;flex-shrink:0;min-width:72px}
+.fund-kpi-item:last-child{border-right:none}
+.fund-kpi-label{font-size:9px;color:#555;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.fund-kpi-val{font-size:12px;font-weight:700;color:#e8e8f0;white-space:nowrap}
+.fund-charts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fund-chart-box{background:#0a0a12;border-radius:6px;padding:8px;border:1px solid #1a1a26}
 .fund-chart-title{font-size:10px;color:#666;margin-bottom:5px;font-weight:600}
-.fund-est-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.fund-est-card{background:#0a0a12;border-radius:6px;padding:8px 10px;border:1px solid #1a1a26;flex:1;min-width:120px}
-.fund-est-year{font-size:10px;color:#555;margin-bottom:4px}
+.fund-est-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.fund-est-card{background:#0a0a12;border-radius:6px;padding:7px 10px;border:1px solid #1a1a26;flex:1;min-width:100px}
+.fund-est-year{font-size:10px;color:#555;margin-bottom:3px}
 .fund-est-rev{font-size:12px;font-weight:700;color:#14b8a6}
 .fund-est-eps{font-size:11px;color:#a78bfa;margin-top:2px}
 /* 즐겨찾기 */
@@ -1556,10 +1558,11 @@ function scrFetchFundamental(sym){
   // localStorage 일별 캐시
   var cached=fundLoadLS(sym);
   if(cached){
-    // 차트에서 받은 실시간 시총·거래량은 유지
     var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
             avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
     fundCache[sym]=Object.assign({_done:true},cached,rt);
+    // Finnhub에서 받은 marketCap이 캐시에 있으면 셀 갱신
+    if(fundCache[sym].marketCap)setTimeout(function(){updateFundCells(sym);},0);
     return Promise.resolve(fundCache[sym]);
   }
   // API 호출
@@ -1569,11 +1572,14 @@ function scrFetchFundamental(sym){
       var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
               avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
       if(d.ok&&d.data){
+        // Finnhub profile2 marketCap이 오면 rt보다 우선
+        var newCap=d.data.marketCap||rt.marketCap;
         fundSaveLS(sym,d.data);
-        fundCache[sym]=Object.assign({_done:true},d.data,rt);
+        fundCache[sym]=Object.assign({_done:true},d.data,rt,{marketCap:newCap});
       }else{
         fundCache[sym]=Object.assign({_done:true,_error:true},rt);
       }
+      updateFundCells(sym); // ← 항상 셀 갱신
       return fundCache[sym];
     }).catch(function(){
       var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
@@ -1644,7 +1650,7 @@ function scrStartFundamentals(stocks){
     var s=pending[i++];
     scrFetchFundamental(s.sym).then(function(){setTimeout(next,700);});
   }
-  setTimeout(next,3000);
+  setTimeout(next,1000);
 }
 
 // ── 상세 패널 HTML 생성 + Chart.js 차트 초기화
@@ -1654,6 +1660,7 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
   var hasFd=fd&&!fd._error;
   var cap=c&&c.price?(isKr?'₩'+Math.round(c.price).toLocaleString('ko-KR'):'$'+c.price.toFixed(2)):'--';
 
+  // ── KPI 가로 한 줄 (현재가 ~ 월RSI)
   var kpis=[
     {label:'현재가',    val:cap,                                                                   color:'#f0f0f8'},
     {label:'PER',       val:hasFd&&fd.trailingPE   ?fd.trailingPE.toFixed(1)+'x':'--',            color:'#a78bfa'},
@@ -1667,6 +1674,8 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
     {label:'일RSI',     val:scrFmtRsi(c&&c.rsi14d), color:''},
     {label:'주RSI',     val:scrFmtRsi(c&&c.rsi14w), color:''},
     {label:'월RSI',     val:scrFmtRsi(c&&c.rsi14m), color:''},
+    {label:'6mRSI',     val:scrFmtRsi(c&&c.rsi14_6m),color:''},
+    {label:'년RSI',     val:scrFmtRsi(c&&c.rsi14y), color:''},
   ];
   var kpiHtml=kpis.map(function(k){
     return "<div class='fund-kpi-item'>"
@@ -1681,31 +1690,31 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
   var html="<div class='fund-panel'><div class='fund-kpi-grid'>"+kpiHtml+"</div>";
 
   if(hasHistory||hasEst){
-    // 추정치 카드
+    // ── 추정 카드 (2026E, 2027E)
     if(hasEst){
       html+="<div class='fund-est-row'>";
       if(fd.estCY&&(fd.estCY.revenueAvg||fd.estCY.epsAvg)){
         html+="<div class='fund-est-card'>"
-          +"<div class='fund-est-year'>"+fd.estCYYear+"E (당해)</div>"
+          +"<div class='fund-est-year'>"+fd.estCYYear+"E 예상치</div>"
           +(fd.estCY.revenueAvg?"<div class='fund-est-rev'>매출 "+fmtMoney(fd.estCY.revenueAvg,isKr)+"</div>":"")
           +(fd.estCY.epsAvg?"<div class='fund-est-eps'>EPS "+(isKr?'₩'+Math.round(fd.estCY.epsAvg).toLocaleString('ko-KR'):'$'+fd.estCY.epsAvg.toFixed(2))+"</div>":"")
           +"</div>";
       }
       if(fd.estNY&&(fd.estNY.revenueAvg||fd.estNY.epsAvg)){
         html+="<div class='fund-est-card'>"
-          +"<div class='fund-est-year'>"+fd.estNYYear+"E (내년)</div>"
+          +"<div class='fund-est-year'>"+fd.estNYYear+"E 예상치</div>"
           +(fd.estNY.revenueAvg?"<div class='fund-est-rev'>매출 "+fmtMoney(fd.estNY.revenueAvg,isKr)+"</div>":"")
           +(fd.estNY.epsAvg?"<div class='fund-est-eps'>EPS "+(isKr?'₩'+Math.round(fd.estNY.epsAvg).toLocaleString('ko-KR'):'$'+fd.estNY.epsAvg.toFixed(2))+"</div>":"")
           +"</div>";
       }
       html+="</div>";
     }
-    // 2×2 차트 그리드 — 각 지표 독립 스케일
-    html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px'>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 추이</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 추이</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률 추이</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS 추정</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
+    // ── 2×2 차트 (2023/2024/2025 실적 + 2026E 추정)
+    html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 (2023~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 (2023~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률% (2023~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS (2023~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
       +"</div>";
 
     setTimeout(function(){
@@ -1724,12 +1733,14 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
   return html;
 }
 
-// ── 공통: 레이블·isEst 배열 생성
+// ── 공통: 레이블·isEst 배열 생성 (2023/2024/2025 + 2026E)
 function buildFundLabels(fd){
   var labels=[],isEst=[];
   (fd.history||[]).forEach(function(h){labels.push(String(h.year));isEst.push(false);});
-  if(fd.estCY&&fd.estCY.revenueAvg){labels.push(fd.estCYYear+'E');isEst.push(true);}
-  if(fd.estNY&&fd.estNY.revenueAvg){labels.push(fd.estNYYear+'E');isEst.push(true);}
+  // 올해 추정 (2026E)
+  if(fd.estCY&&(fd.estCY.revenueAvg||fd.estCY.epsAvg)){labels.push(fd.estCYYear+'E');isEst.push(true);}
+  // 내년 추정 (2027E) — 있으면 포함
+  if(fd.estNY&&(fd.estNY.revenueAvg||fd.estNY.epsAvg)){labels.push(fd.estNYYear+'E');isEst.push(true);}
   return{labels:labels,isEst:isEst};
 }
 // ── 공통: 스케일 자동 계산
@@ -1827,39 +1838,39 @@ function renderMarChart(canvas,fd,isKr){
   });
 }
 
-// ── EPS + 매출 추정 차트 (독립 스케일 이중축)
+// ── EPS 차트 (실적 + 추정 통합)
 function renderEstChart(canvas,fd,isKr){
-  var labels=[],epsData=[],revEstData=[];
+  var lb=buildFundLabels(fd);
+  var epsData=[];
+  // 실적 연도 EPS
   (fd.history||[]).forEach(function(h){
-    labels.push(String(h.year));
-    epsData.push(null);revEstData.push(null);
+    epsData.push(h.epsAnnual!=null?h.epsAnnual:(h.eps!=null?h.eps:null));
   });
-  if(fd.estCY){labels.push(fd.estCYYear+'E');epsData.push(fd.estCY.epsAvg!=null?fd.estCY.epsAvg:null);revEstData.push(fd.estCY.revenueAvg||null);}
-  if(fd.estNY){labels.push(fd.estNYYear+'E');epsData.push(fd.estNY.epsAvg!=null?fd.estNY.epsAvg:null);revEstData.push(fd.estNY.revenueAvg||null);}
-  var sc=fundScale(revEstData);
+  // 추정 연도 EPS
+  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))epsData.push(fd.estCY.epsAvg!=null?fd.estCY.epsAvg:null);
+  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))epsData.push(fd.estNY.epsAvg!=null?fd.estNY.epsAvg:null);
+
   if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
   new Chart(canvas,{
-    data:{labels:labels,datasets:[
-      {type:'bar',label:'매출 추정',
-        data:revEstData.map(function(v){return v?parseFloat((v/sc.s).toFixed(2)):null;}),
-        backgroundColor:'rgba(129,140,248,.5)',borderRadius:3,yAxisID:'y'},
-      {type:'line',label:'EPS 추정',
-        data:epsData,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.08)',
-        pointBackgroundColor:'#a78bfa',pointRadius:4,tension:.2,fill:true,yAxisID:'y2'},
-    ]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{color:'#888',font:{size:9},padding:5,boxWidth:7}},
-        tooltip:{callbacks:{label:function(ctx){
-          if(ctx.dataset.yAxisID==='y2')return'EPS: '+(isKr?'₩'+Math.round(ctx.parsed.y).toLocaleString('ko-KR'):'$'+ctx.parsed.y.toFixed(2));
-          return'매출: '+ctx.parsed.y.toFixed(2)+sc.u;
-        }}}},
-      scales:{
-        x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#1a1a22'}},
-        y:{position:'left',ticks:{color:'#818cf8',font:{size:9},callback:function(v){return v+sc.u;}},grid:{color:'#1a1a22'}},
-        y2:{position:'right',ticks:{color:'#a78bfa',font:{size:9},callback:function(v){return isKr?'₩'+Math.round(v).toLocaleString('ko-KR'):'$'+v.toFixed(2);}},grid:{drawOnChartArea:false}}
-      }
-    }
+    type:'bar',
+    data:{labels:lb.labels,datasets:[{
+      label:'EPS',
+      data:epsData,
+      backgroundColor:lb.isEst.map(function(e,i){
+        var v=epsData[i];
+        if(e)return v!=null?'rgba(167,139,250,.45)':'rgba(167,139,250,.2)';
+        return v!=null?(v>=0?'rgba(129,140,248,.75)':'rgba(248,113,113,.75)'):'transparent';
+      }),
+      borderColor:lb.isEst.map(function(e){return e?'#a78bfa':'transparent';}),
+      borderWidth:lb.isEst.map(function(e){return e?2:0;}),
+      borderRadius:3
+    }]},
+    options:fundBaseOpts('#a78bfa',
+      function(v){return isKr?'₩'+Math.round(v).toLocaleString('ko-KR'):'$'+v.toFixed(2);},
+      function(ctx){
+        var suf=lb.isEst[ctx.dataIndex]?' (추정)':'';
+        return'EPS: '+(isKr?'₩'+Math.round(ctx.parsed.y).toLocaleString('ko-KR'):'$'+ctx.parsed.y.toFixed(2))+suf;
+      })
   });
 }
 
