@@ -190,9 +190,9 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .rsi-neu{color:#666}
 /* 펀더멘털 패널 */
 .fund-panel{padding:4px 0}
-.fund-kpi-grid{display:flex;gap:0;padding:0;background:#0a0a12;border-radius:6px;margin-bottom:8px;border:1px solid #1a1a26;overflow-x:auto;scrollbar-width:none}
+.fund-kpi-grid{display:flex;flex-wrap:nowrap;padding:0;background:#0a0a12;border-radius:6px;margin-bottom:8px;border:1px solid #1a1a26;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .fund-kpi-grid::-webkit-scrollbar{display:none}
-.fund-kpi-item{display:flex;flex-direction:column;gap:2px;padding:7px 12px;border-right:1px solid #1a1a26;flex-shrink:0;min-width:72px}
+.fund-kpi-item{display:flex;flex-direction:column;gap:2px;padding:7px 11px;border-right:1px solid #1a1a26;flex:0 0 auto;min-width:64px}
 .fund-kpi-item:last-child{border-right:none}
 .fund-kpi-label{font-size:9px;color:#555;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
 .fund-kpi-val{font-size:12px;font-weight:700;color:#e8e8f0;white-space:nowrap}
@@ -1537,7 +1537,7 @@ function fmtMoney(v,isKr){
 
 // ── 펀더멘털 localStorage 일별 캐시 (24시간 TTL)
 var FUND_TTL=86400000;
-function fundLsKey(sym){return'fv1_'+sym.replace(/[^a-zA-Z0-9]/g,'_');}
+function fundLsKey(sym){return'fv2_'+sym.replace(/[^a-zA-Z0-9]/g,'_');}
 function fundLoadLS(sym){
   try{
     var raw=localStorage.getItem(fundLsKey(sym));
@@ -1553,38 +1553,38 @@ function fundSaveLS(sym,data){
 
 // ── fetch (메모리→ localStorage→ API 순서)
 function scrFetchFundamental(sym){
-  // 메모리 캐시 (에러 아닌 경우만)
-  if(fundCache[sym]&&fundCache[sym]._done&&!fundCache[sym]._error)return Promise.resolve(fundCache[sym]);
-  // localStorage 일별 캐시
+  // 메모리 캐시 (에러 아닌 경우만, marketCap 있어야 유효)
+  if(fundCache[sym]&&fundCache[sym]._done&&!fundCache[sym]._error&&fundCache[sym].marketCap)
+    return Promise.resolve(fundCache[sym]);
+  // localStorage 일별 캐시 — marketCap 없으면 무효 처리(재fetch)
   var cached=fundLoadLS(sym);
-  if(cached){
-    var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
-            avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
+  if(cached&&cached.marketCap){
+    var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||cached.marketCap,
+            avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||cached.avgVolume||null};
     fundCache[sym]=Object.assign({_done:true},cached,rt);
-    // Finnhub에서 받은 marketCap이 캐시에 있으면 셀 갱신
-    if(fundCache[sym].marketCap)setTimeout(function(){updateFundCells(sym);},0);
+    setTimeout(function(){updateFundCells(sym);},0);
     return Promise.resolve(fundCache[sym]);
   }
-  // API 호출
+  // LS 캐시 없거나 marketCap 없으면 API 호출
+  try{localStorage.removeItem(fundLsKey(sym));}catch(e){}
   return fetch(PROXY+'?mode=fundamental&sym='+encodeURIComponent(sym))
     .then(function(r){return r.json();})
     .then(function(d){
-      var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
-              avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
+      var prevCap=fundCache[sym]&&fundCache[sym].marketCap||null;
+      var prevVol=fundCache[sym]&&fundCache[sym].avgVolume||null;
       if(d.ok&&d.data){
-        // Finnhub profile2 marketCap이 오면 rt보다 우선
-        var newCap=d.data.marketCap||rt.marketCap;
-        fundSaveLS(sym,d.data);
-        fundCache[sym]=Object.assign({_done:true},d.data,rt,{marketCap:newCap});
+        var newCap=d.data.marketCap||prevCap;
+        fundSaveLS(sym,Object.assign({},d.data,{marketCap:newCap}));
+        fundCache[sym]=Object.assign({_done:true},d.data,{marketCap:newCap,avgVolume:prevVol||d.data.avgVolume});
       }else{
-        fundCache[sym]=Object.assign({_done:true,_error:true},rt);
+        fundCache[sym]=Object.assign({_done:true,_error:true},{marketCap:prevCap,avgVolume:prevVol});
       }
-      updateFundCells(sym); // ← 항상 셀 갱신
+      updateFundCells(sym);
       return fundCache[sym];
     }).catch(function(){
-      var rt={marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
-              avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null};
-      fundCache[sym]=Object.assign({_done:true,_error:true},rt);
+      fundCache[sym]=Object.assign({_done:true,_error:true},
+        {marketCap:fundCache[sym]&&fundCache[sym].marketCap||null,
+         avgVolume:fundCache[sym]&&fundCache[sym].avgVolume||null});
       return fundCache[sym];
     });
 }
@@ -1813,12 +1813,14 @@ function renderOpChart(canvas,fd,isKr){
   });
 }
 
-// ── 순이익률 차트 (%, 독립 스케일)
+// ── 순이익률 차트 (%, 독립 스케일) — Finnhub series는 소수(0.27)로 옴 → ×100
 function renderMarChart(canvas,fd,isKr){
   var lb=buildFundLabels(fd);
-  var vals=(fd.history||[]).map(function(h){return h.netMargin;});
-  if(fd.estCY&&fd.estCY.revenueAvg)vals.push(null);
-  if(fd.estNY&&fd.estNY.revenueAvg)vals.push(null);
+  // netMargin: 소수(0.27) or % (27.0) 자동 판별
+  function toPercent(v){ if(v==null)return null; return Math.abs(v)<2 ? parseFloat((v*100).toFixed(1)) : parseFloat(v.toFixed(1)); }
+  var vals=(fd.history||[]).map(function(h){return toPercent(h.netMargin);});
+  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(null);
+  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(null);
   if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
   new Chart(canvas,{
     type:'line',
@@ -1834,7 +1836,7 @@ function renderMarChart(canvas,fd,isKr){
     }]},
     options:fundBaseOpts('#f59e0b',
       function(v){return v.toFixed(1)+'%';},
-      function(ctx){return'순이익률: '+ctx.parsed.y.toFixed(2)+'%';})
+      function(ctx){return'순이익률: '+ctx.parsed.y.toFixed(1)+'%';})
   });
 }
 
