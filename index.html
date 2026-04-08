@@ -1352,12 +1352,20 @@ function scrToggleVal(id,sym,isKr,btn){
   var row=document.getElementById(id);if(!row)return;
   var open=row.classList.toggle("open");
   btn.textContent=open?"▼":"▶";
-  if(open&&!scrValLoading[sym]){
-    scrValLoading[sym]=true;
-    Promise.all([scrFetchFin(sym),scrFetchFundamental(sym)]).then(function(res){
-      var c=res[0],fd=res[1];
-      var el=document.getElementById(id+"-c");
-      if(el)el.innerHTML=renderFundPanel(c,fd,sym,isKr,id);
+  if(!open)return;
+  if(scrValLoading[sym])return; // 이미 렌더됨
+  scrValLoading[sym]=true;
+  var el=document.getElementById(id+"-c");
+  // 1) 즉시: RSI 캐시(항상 있음) + 기존 재무 캐시로 패널 즉시 렌더
+  var c=scrCache[sym]||{};
+  var fd=fundCache[sym]||{};
+  if(el)el.innerHTML=renderFundPanel(c,fd,sym,isKr,id);
+  // 2) 재무가 캐시에 없으면 백그라운드 fetch → 완료 후 패널 교체
+  if(!fd._done){
+    scrFetchFundamental(sym).then(function(fd2){
+      var el2=document.getElementById(id+"-c");
+      var c2=scrCache[sym]||{};
+      if(el2)el2.innerHTML=renderFundPanel(c2,fd2,sym,isKr,id);
     });
   }
 }
@@ -1565,10 +1573,12 @@ function scrFetchFundamental(sym){
     setTimeout(function(){updateFundCells(sym);},0);
     return Promise.resolve(fundCache[sym]);
   }
-  // LS 캐시 없거나 marketCap 없으면 API 호출
-  try{localStorage.removeItem(fundLsKey(sym));}catch(e){}
-  return fetch(PROXY+'?mode=fundamental&sym='+encodeURIComponent(sym))
-    .then(function(r){return r.json();})
+  // LS 캐시 없으면 API 호출 (6초 타임아웃)
+  var _ctrl=typeof AbortController!=='undefined'?new AbortController():null;
+  var _timer=_ctrl?setTimeout(function(){try{_ctrl.abort();}catch(e){}},6000):null;
+  return fetch(PROXY+'?mode=fundamental&sym='+encodeURIComponent(sym),
+               _ctrl?{signal:_ctrl.signal}:{})
+    .then(function(r){if(_timer)clearTimeout(_timer);return r.json();})
     .then(function(d){
       var prevCap=fundCache[sym]&&fundCache[sym].marketCap||null;
       var prevVol=fundCache[sym]&&fundCache[sym].avgVolume||null;
@@ -1638,20 +1648,8 @@ function fetchCaps(stocks){
   nextUs();
 }
 
-// 상세보기 클릭 시 빠른 응답을 위해 LS 캐시 없는 종목 미리 로딩
-function scrStartFundamentals(stocks){
-  var pending=stocks.filter(function(s){
-    return !fundCache[s.sym]||!fundCache[s.sym]._done;
-  });
-  if(!pending.length)return;
-  var i=0;
-  function next(){
-    if(i>=pending.length)return;
-    var s=pending[i++];
-    scrFetchFundamental(s.sym).then(function(){setTimeout(next,700);});
-  }
-  setTimeout(next,1000);
-}
+// 상세보기 클릭 시에만 fetch — 백그라운드 자동 프리패치 제거 (API 부하 줄임)
+function scrStartFundamentals(stocks){ /* 클릭 시에만 로딩 */ }
 
 // ── 상세 패널 HTML 생성 + Chart.js 차트 초기화
 function renderFundPanel(c,fd,sym,isKr,rowId){
@@ -1726,8 +1724,10 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
         var ce=d.getElementById(cEps);  if(ce)renderEstChart(ce,fd,isKr);
       }
     },60);
+  } else if(!hasFd&&fd&&!fd._done){
+    html+="<div style='padding:14px;color:#555;font-size:11px;text-align:center'><span class='loading'></span> 재무 데이터 로딩 중...</div>";
   } else {
-    html+="<div style='padding:12px;color:#444;font-size:11px;text-align:center'>📭 재무 데이터를 불러올 수 없습니다</div>";
+    html+="<div style='padding:14px;color:#444;font-size:11px;text-align:center'>📭 재무 데이터를 불러올 수 없습니다</div>";
   }
   html+="</div>";
   return html;
@@ -2156,12 +2156,18 @@ function favToggleVal(id,sym,isKr,btn){
   var row=document.getElementById(id);if(!row)return;
   var open=row.classList.toggle("open");
   btn.textContent=open?"▼":"▶";
-  if(open&&!favValLoading[sym]){
-    favValLoading[sym]=true;
-    Promise.all([scrFetchFin(sym),scrFetchFundamental(sym)]).then(function(res){
-      var c=res[0],fd=res[1];
-      var el=document.getElementById(id+"-c");
-      if(el)el.innerHTML=renderFundPanel(c,fd,sym,isKr,id);
+  if(!open)return;
+  if(favValLoading[sym])return;
+  favValLoading[sym]=true;
+  var el=document.getElementById(id+"-c");
+  var c=scrCache[sym]||{};
+  var fd=fundCache[sym]||{};
+  if(el)el.innerHTML=renderFundPanel(c,fd,sym,isKr,id);
+  if(!fd._done){
+    scrFetchFundamental(sym).then(function(fd2){
+      var el2=document.getElementById(id+"-c");
+      var c2=scrCache[sym]||{};
+      if(el2)el2.innerHTML=renderFundPanel(c2,fd2,sym,isKr,id);
     });
   }
 }
