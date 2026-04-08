@@ -1711,10 +1711,10 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
     }
     // ── 2×2 차트 (2023/2024/2025 실적 + 2026E 추정)
     html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px'>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 (2023~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 (2023~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률% (2023~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
-      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS (2023~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📦 매출 (2022~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cRev+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>💰 영업이익 (2022~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cOp+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📉 순이익률% (2022~"+(fd.history&&fd.history[fd.history.length-1]?fd.history[fd.history.length-1].year:'')+")</div><div style='position:relative;height:140px'><canvas id='"+cMar+"'></canvas></div></div>"
+      +"<div class='fund-chart-box'><div class='fund-chart-title'>📈 EPS (2022~"+fd.estCYYear+"E)</div><div style='position:relative;height:140px'><canvas id='"+cEps+"'></canvas></div></div>"
       +"</div>";
 
     setTimeout(function(){
