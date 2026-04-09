@@ -1297,8 +1297,12 @@ function scrPriceBadge(c,isKr){
 function scrFetchHistory(sym){
   if(scrCache[sym]&&scrCache[sym].done)return Promise.resolve(scrCache[sym]);
   scrCache[sym]=scrCache[sym]||{};
-  return fetch(PROXY+"?mode=chart&sym="+encodeURIComponent(sym))
-    .then(function(r){return r.json();})
+  // 12초 타임아웃 — 응답 없는 종목에서 무한 대기 방지
+  var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
+  var timer=ctrl?setTimeout(function(){ctrl.abort();},12000):null;
+  return fetch(PROXY+"?mode=chart&sym="+encodeURIComponent(sym),
+               ctrl?{signal:ctrl.signal}:{})
+    .then(function(r){if(timer)clearTimeout(timer);return r.json();})
     .then(function(d){
       scrCache[sym].done=true;
       if(d.ok&&d.data){
@@ -1325,7 +1329,11 @@ function scrFetchHistory(sym){
         }
       }
       return scrCache[sym];
-    }).catch(function(){scrCache[sym].done=true;return scrCache[sym];});
+    }).catch(function(){
+      if(timer)clearTimeout(timer);
+      scrCache[sym].done=true;
+      return scrCache[sym];
+    });
 }
 function scrFetchFin(sym){
   return scrFetchHistory(sym).then(function(c){c.fin=true;return c;});
@@ -1409,7 +1417,7 @@ function scrBuild(region){
   tbody.innerHTML="<tr><td colspan='17' style='text-align:center;padding:24px;color:#555'><span class='loading'></span> 로딩중...</td></tr>";
 
   var chunks=[];
-  for(var i=0;i<stocks.length;i+=4)chunks.push(stocks.slice(i,i+4));
+  for(var i=0;i<stocks.length;i+=2)chunks.push(stocks.slice(i,i+2));
 
   function scrProgShow(pct,sub){
     var bw=g("scr-prog-bar-wrap"),bar=g("scr-prog-bar"),lbl=g("scr-prog-label");
