@@ -205,9 +205,9 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .fund-est-rev{font-size:12px;font-weight:700;color:#14b8a6}
 .fund-est-eps{font-size:11px;color:#a78bfa;margin-top:2px}
 /* KPI 툴팁 */
-.kpi-tip{display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;border-radius:50%;background:#1e1e2a;color:#555;font-size:8px;cursor:help;flex-shrink:0;position:relative}
-.kpi-tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#1a1a26;border:1px solid #2a2a3a;color:#c0c0d0;font-size:10px;padding:5px 8px;border-radius:5px;white-space:nowrap;z-index:999;pointer-events:none;max-width:220px;white-space:pre-wrap;line-height:1.4}
-.kpi-tip:hover::before{content:'';position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#2a2a3a}
+.kpi-tip{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:50%;background:#1e1e2a;color:#666;font-size:8px;cursor:help;flex-shrink:0;vertical-align:middle;margin-left:2px}
+.kpi-tip:hover{color:#a78bfa;background:#2a1a4a}
+#kpi-tooltip{position:fixed;z-index:9999;background:#131320;border:1px solid #2a2a3a;border-radius:7px;padding:8px 11px;font-size:11px;color:#c8c8e0;line-height:1.6;max-width:240px;pointer-events:none;display:none;box-shadow:0 4px 16px rgba(0,0,0,.6)}
 /* 즐겨찾기 */
 #fav-page{padding:0;display:none;flex-direction:column;height:calc(100vh - 130px);overflow:hidden}
 #fav-page.active{display:flex}
@@ -1701,37 +1701,37 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
   var ntmNm = hasFd&&fd.estCY&&fd.estCY.netIncome&&fd.estCY.revenueAvg
     ?(fd.estCY.netIncome/fd.estCY.revenueAvg*100).toFixed(1)+'%':null;
   var kpis=[
-    {label:'현재가',    tip:'현재 거래 가격',
+    {label:'현재가',    tip:'현재가\n현재 시장에서 거래되는 가격',
      val:cap, color:'#f0f0f8'},
-    {label:'PER',       tip:'주가수익비율(TTM)\n=주가÷주당순이익\n낮을수록 저평가 가능성',
+    {label:'PER',       tip:'PER (주가수익비율, TTM)\n= 주가 ÷ 주당순이익(EPS)\n낮을수록 이익 대비 저평가 가능성\n업종 평균과 비교해야 의미 있음',
      val:hasFd&&fd.trailingPE?fd.trailingPE.toFixed(1)+'x':'--', color:'#a78bfa'},
-    {label:'F.PER',     tip:'선행PER(NTM)\n=주가÷향후12개월 예상EPS\nForwardPE 기반',
+    {label:'F.PER',     tip:'F.PER (선행 주가수익비율, NTM)\n= 주가 ÷ 향후 12개월 예상 EPS\n미래 수익성 기준 밸류에이션\nForward PE 기반으로 역산',
      val:hasFd&&fd.forwardPE?fd.forwardPE.toFixed(1)+'x':'--', color:'#818cf8'},
-    {label:'PBR',       tip:'주가순자산비율\n=주가÷주당순자산\n1 미만이면 장부가 이하 거래',
+    {label:'PBR',       tip:'PBR (주가순자산비율)\n= 주가 ÷ 주당순자산(BPS)\n1배 미만이면 장부가치 이하 거래\n금융업·자산주 평가에 유용',
      val:hasFd&&fd.pbr?fd.pbr.toFixed(2)+'x':'--', color:'#38bdf8'},
-    {label:'EPS',       tip:'주당순이익(TTM)\n최근12개월 순이익÷발행주식수',
+    {label:'EPS',       tip:'EPS (주당순이익, TTM)\n= 순이익 ÷ 발행주식수\n높을수록 주주 귀속 이익 많음\n성장 추세가 중요',
      val:hasFd&&fd.eps?(isKr?'₩'+Math.round(fd.eps).toLocaleString('ko-KR'):'$'+fd.eps.toFixed(2)):'--', color:'#34d399'},
-    {label:'배당수익률', tip:'연간배당금÷주가\n높을수록 배당 매력 높음',
+    {label:'배당수익률', tip:'배당수익률 (TTM)\n= 연간 배당금 ÷ 주가 × 100\n높을수록 배당 매력 높음\n단, 주가 하락으로 높아진 경우 주의',
      val:hasFd&&fd.divYield?(fd.divYield*100).toFixed(2)+'%':'--', color:'#f59e0b'},
-    {label:'영업이익률', tip:'영업이익÷매출(TTM)\n본업 수익성 지표'+(ntmOm?'\nNTM 추정: '+ntmOm:''),
+    {label:'영업이익률', tip:'영업이익률 (TTM)\n= 영업이익 ÷ 매출 × 100\n본업의 수익성을 나타내는 핵심 지표\n높을수록 원가·비용 통제력 우수'+(ntmOm?'\nNTM 추정값: '+ntmOm:''),
      val:hasFd&&fd.operatingMargin?(fd.operatingMargin*100).toFixed(1)+'%':'--', color:'#14b8a6'},
-    {label:'순이익률',   tip:'순이익÷매출(TTM)\n세후 최종 수익성'+(ntmNm?'\nNTM 추정: '+ntmNm:''),
+    {label:'순이익률',   tip:'순이익률 (TTM)\n= 순이익 ÷ 매출 × 100\n세금·이자 차감 후 최종 수익성\n영업이익률보다 낮으면 재무비용 큰 것'+(ntmNm?'\nNTM 추정값: '+ntmNm:''),
      val:hasFd&&fd.profitMargin?(fd.profitMargin*100).toFixed(1)+'%':'--', color:'#6ee7b7'},
-    {label:'ROE',       tip:'자기자본이익률(TTM)\n=순이익÷자기자본\n자본 효율성, 높을수록 좋음',
+    {label:'ROE',       tip:'ROE (자기자본이익률, TTM)\n= 순이익 ÷ 자기자본 × 100\n자본 운용 효율성 지표\n15% 이상이면 우량, 높을수록 좋음',
      val:hasFd&&fd.roe?(fd.roe*100).toFixed(1)+'%':'--', color:'#f97316'},
-    {label:'일RSI',     tip:'일봉 RSI(14)\n70↑ 과매수 / 30↓ 과매도',
+    {label:'일RSI',     tip:'일봉 RSI (14일)\n= 상승폭 평균 ÷ (상승+하락) 평균\n70 이상: 과매수 (단기 조정 주의)\n30 이하: 과매도 (반등 가능성)',
      val:scrFmtRsi(c&&c.rsi14d), color:''},
-    {label:'주RSI',     tip:'주봉 RSI(14)\n중기 추세 강도',
+    {label:'주RSI',     tip:'주봉 RSI (14주)\n중기(수 개월) 추세 강도 측정\n일봉보다 신뢰도 높음',
      val:scrFmtRsi(c&&c.rsi14w), color:''},
-    {label:'월RSI',     tip:'월봉 RSI(14)\n장기 추세 과열/침체',
+    {label:'월RSI',     tip:'월봉 RSI (14개월)\n장기 추세의 과열·침체 판단\n반전 시점 예측에 활용',
      val:scrFmtRsi(c&&c.rsi14m), color:''},
-    {label:'6mRSI',     tip:'6개월봉 RSI(14)\n중장기 모멘텀',
+    {label:'6mRSI',     tip:'6개월봉 RSI (14봉)\n중장기 모멘텀 지표\n분기 사이클 파악에 유용',
      val:scrFmtRsi(c&&c.rsi14_6m), color:''},
-    {label:'년RSI',     tip:'연봉 RSI(14)\n초장기 사이클 판단',
+    {label:'년RSI',     tip:'연봉 RSI (14년)\n초장기 경기·업종 사이클 판단\n수년 단위 저점·고점 식별',
      val:scrFmtRsi(c&&c.rsi14y), color:''},
   ];
   var kpiHtml=kpis.map(function(k){
-    var tipHtml=k.tip?"<span class='kpi-tip' data-tip='"+k.tip.replace(/'/g,"&#39;").replace(/\n/g,"&#10;")+"'>!</span>":'';
+    var tipHtml=k.tip?"<span class='kpi-tip' data-tip='"+k.tip.replace(/'/g,"&#39;")+"'>!</span>":'';
     return "<div class='fund-kpi-item'>"
       +"<span class='fund-kpi-label'>"+k.label+tipHtml+"</span>"
       +"<span class='fund-kpi-val'"+(k.color?" style='color:"+k.color+"'":"")+">"+(k.val||'--')+"</span>"
@@ -2329,6 +2329,39 @@ document.addEventListener("click",function(e){
 });
 var hasSaved=loadLS();
 if(hasSaved)renderAll();
+
+// KPI 툴팁 JS 처리
+(function(){
+  var tip=document.createElement('div');
+  tip.id='kpi-tooltip';
+  document.body.appendChild(tip);
+  document.addEventListener('mouseover',function(e){
+    var el=e.target.closest('.kpi-tip');
+    if(!el)return;
+    var txt=el.getAttribute('data-tip');
+    if(!txt)return;
+    tip.innerHTML=txt.split('\n').map(function(line,i){
+      return i===0?'<strong>'+line+'</strong>':line;
+    }).join('<br>');
+    tip.style.display='block';
+    positionTip(e);
+  });
+  document.addEventListener('mousemove',function(e){
+    if(tip.style.display==='block')positionTip(e);
+  });
+  document.addEventListener('mouseout',function(e){
+    if(e.target.closest('.kpi-tip'))tip.style.display='none';
+  });
+  function positionTip(e){
+    var x=e.clientX,y=e.clientY;
+    var tw=tip.offsetWidth,th=tip.offsetHeight;
+    var left=x+12,top=y-th-8;
+    if(left+tw>window.innerWidth-8)left=x-tw-12;
+    if(top<8)top=y+20;
+    tip.style.left=left+'px';
+    tip.style.top=top+'px';
+  }
+})();
 
 // 첫 데이터 로드
 fetchTickers();
