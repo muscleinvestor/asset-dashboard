@@ -929,19 +929,11 @@ function getMarketState() {
 function getPollIntervals() {
   var s = getMarketState();
   return {
-    // 1️⃣ 실시간: 개장 중 3~5초, 휴장 0 (멈춤)
-    coin:   s.coinOpen ? 5000  : 0,
-    krPrice: s.krOpen  ? 5000  : 0,
-    usPrice: s.usOpen  ? 5000  : 0,
-
-    // 2️⃣ 느린 실시간: 섹터맵 현재가 (개장 중 60초, 휴장 0)
-    scrPrice: s.krOpen||s.usOpen ? 60000 : 0,
-
-    // 3️⃣ 계산형: RSI는 개장 중 5분, 휴장 0
-    scrRsi: s.krOpen||s.usOpen ? 300000 : 0,
-
-    // 5️⃣ 혼합형: 지수/원자재 (개장 중 30초, 휴장 5분)
-    tickers: s.krOpen||s.usOpen ? 30000 : 300000,
+    coin:     s.coinOpen ? 5000   : 0,       // 코인 5초 (Upbit)
+    krPrice:  s.krOpen   ? 30000  : 0,       // 국내 포트폴리오 30초 (Yahoo)
+    usPrice:  s.usOpen   ? 30000  : 0,       // 미국 포트폴리오 30초 (KV 공유)
+    tickers:  s.krOpen||s.usOpen ? 30000 : 300000, // 지수/원자재 30초
+    scrPrice: s.krOpen||s.usOpen ? 300000 : 0,     // 섹터맵 5분 (KV TTL과 일치)
   };
 }
 
@@ -1147,7 +1139,25 @@ function importData(e){var file=e.target.files[0];if(!file)return;var reader=new
 function updatePremium(){if(!usdtKrwVal||!usdKrwVal)return;var p=(usdtKrwVal-usdKrwVal)/usdKrwVal*100,s=fmtP(p),c=p>=0?"#f59e0b":"#a78bfa";var tkP=g("tk-premium"),chP=g("ch-premium");if(tkP){tkP.textContent=s;tkP.style.color=c;}if(chP){chP.textContent=s;chP.style.color=c;}}
 function fetchTickers(){updateMarketBanner();fetch(PROXY+"?mode=world").then(function(r){return r.json();}).then(function(resp){if(!resp.ok||!resp.data)return;var d=resp.data;if(d.usdkrw&&d.usdkrw.price){var fxPrice=d.usdkrw.price;usdKrwVal=fxPrice;usdKrw=fxPrice;g("tk-usdkrw").textContent=W+fxPrice.toFixed(2);var fxChg=d.usdkrw.chg||0;g("ch-usdkrw").textContent=fmtP(fxChg);g("ch-usdkrw").style.color=clr(fxChg);updatePremium();}var map=[{k:"snp",tv:"tk-snp",ch:"ch-snp",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"nasdaq",tv:"tk-nasdaq",ch:"ch-nasdaq",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"ndx",tv:"tk-ndx",ch:"ch-ndx",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"russell",tv:"tk-russell",ch:"ch-russell",fn:function(v){return v.toLocaleString("en-US",{maximumFractionDigits:2});}},{k:"vix",tv:"tk-vix",ch:"ch-vix",fn:function(v){return v.toFixed(2);}},{k:"gold",tv:"tk-gold",ch:"ch-gold",fn:function(v){return "$"+v.toFixed(2);}},{k:"silver",tv:"tk-silver",ch:"ch-silver",fn:function(v){return "$"+v.toFixed(2);}},{k:"wti",tv:"tk-wti",ch:"ch-wti",fn:function(v){return "$"+v.toFixed(2);}},{k:"brent",tv:"tk-brent",ch:"ch-brent",fn:function(v){return "$"+v.toFixed(2);}},{k:"kospi",tv:"tk-kospi",ch:"ch-kospi",fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}},{k:"kosdaq",tv:"tk-kosdaq",ch:"ch-kosdaq",fn:function(v){return v.toLocaleString("ko-KR",{maximumFractionDigits:2});}}];map.forEach(function(m){var item=d[m.k];if(!item||item.price==null||item.price===0)return;var el=g(m.tv);if(el)el.textContent=m.fn(item.price);var chg=item.chg;if(chg==null&&item.price&&item.pc&&item.pc!==0)chg=(item.price-item.pc)/item.pc*100;var chEl=g(m.ch);if(chEl&&chg!=null){chEl.textContent=fmtP(chg);chEl.style.color=clr(chg);}});var t=new Date();g("tk-time").textContent=t.getHours()+":"+pad2(t.getMinutes())+" 갱신";}).catch(function(){});}
 function fetchCoinPrices(){var coinAssets=assets.filter(function(a){return a.cat==="crypto";});var markets=["KRW-USDT","KRW-BTC","KRW-ETH"];coinAssets.forEach(function(a){var m="KRW-"+a.symbol.toUpperCase();if(!markets.includes(m))markets.push(m);});fetch(PROXY+"?mode=coin&markets="+encodeURIComponent(markets.join(","))).then(function(r){return r.json();}).then(function(d){if(!d.ok||!d.data)return;d.data.forEach(function(t){var sym=t.market.replace("KRW-",""),chg=(t.trade_price-t.prev_closing_price)/t.prev_closing_price*100;if(t.market==="KRW-USDT"){usdtKrwVal=t.trade_price;usdKrw=t.trade_price;g("tk-usdtkrw").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-usdtkrw").textContent=fmtP(chg);g("ch-usdtkrw").style.color=clr(chg);updatePremium();}if(t.market==="KRW-BTC"){g("tk-btc").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-btc").textContent=fmtP(chg);g("ch-btc").style.color=clr(chg);}if(t.market==="KRW-ETH"){g("tk-eth").textContent=W+Math.round(t.trade_price).toLocaleString("ko-KR");g("ch-eth").textContent=fmtP(chg);g("ch-eth").style.color=clr(chg);}var a=assets.find(function(x){return x.cat==="crypto"&&x.symbol.toUpperCase()===sym;});if(a){a.price=t.trade_price;a.prePrice=null;a.postPrice=null;}});recordHistory();renderPortfolio();renderSummary();saveLS();}).catch(function(){});}
-function fetchUSPrices(){var usAssets=assets.filter(function(a){return a.cat==="us";});if(!usAssets.length)return;Promise.all(usAssets.map(function(a){return fetch(PROXY+"?mode=quote&sym="+encodeURIComponent(a.symbol)).then(function(r){return r.json();}).then(function(d){if(!d.ok||!d.data)return;var data=d.data;a.price=(data.price||0)*usdKrw;a.chgPct=data.chgPct??0;a.prePrice=data.pre?data.pre*usdKrw:null;a.postPrice=data.post?data.post*usdKrw:null;a.prePct=data.prePct??null;a.postPct=data.postPct??null;}).catch(function(){});})).then(function(){recordHistory();renderPortfolio();renderSummary();saveLS();});}
+function fetchUSPrices(){
+  var usAssets=assets.filter(function(a){return a.cat==="us";});
+  if(!usAssets.length)return;
+  Promise.all(usAssets.map(function(a){
+    // mode=chart → KV 공유 캐시 사용 (섹터맵과 동일한 데이터)
+    return fetch(PROXY+"?mode=chart&sym="+encodeURIComponent(a.symbol))
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d.ok||!d.data)return;
+        var x=d.data;
+        a.price=(x.price||0)*usdKrw;
+        a.chgPct=x.chg1d!=null?x.chg1d:0;
+        a.prePrice=x.prePrice?x.prePrice*usdKrw:null;
+        a.postPrice=x.postPrice?x.postPrice*usdKrw:null;
+        a.prePct=x.prePrice&&x.prevClose?(x.prePrice-x.prevClose)/x.prevClose*100:null;
+        a.postPct=x.postPrice&&x.prevClose?(x.postPrice-x.prevClose)/x.prevClose*100:null;
+      }).catch(function(){});
+  })).then(function(){recordHistory();renderPortfolio();renderSummary();saveLS();});
+}
 function fetchKRPrices(){var krAssets=assets.filter(function(a){return a.cat==="kr";});if(!krAssets.length)return;Promise.all(krAssets.map(function(a){var code=a.symbol.replace(/\.(KS|KQ)$/i,"");return fetch(PROXY+"?mode=kr_price&code="+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){if(d.ok&&d.data){a.price=d.data.price;a.chgPct=d.data.chg;}a.prePrice=null;a.postPrice=null;}).catch(function(){});})).then(function(){recordHistory();renderPortfolio();renderSummary();saveLS();});}
 function recordHistory(){var tv=assets.reduce(function(s,a){return s+a.price*a.qty;},0),tc=assets.reduce(function(s,a){return s+a.avgCost*a.qty;},0),pct=tc?(tv-tc)/tc*100:0,last=assetHistory[assetHistory.length-1];if(!last||Date.now()-last.ts>60000){assetHistory.push({ts:Date.now(),totalVal:tv,pct:parseFloat(pct.toFixed(2))});if(assetHistory.length>200)assetHistory.shift();}}
 function fetchAll(){
@@ -1441,7 +1451,7 @@ function scrBuild(region){
         scrProgShow(loaded/total*100,"RSI·등락률 "+loaded+"/"+total+" 종목");
         g("scr-status").textContent="로딩 "+Math.round(loaded/total*100)+"%";
         render();
-        setTimeout(function(){loadChunk(ci+1);},120);
+        setTimeout(function(){loadChunk(ci+1);},400);
       });
   }
   loadChunk(0);
@@ -1550,6 +1560,8 @@ function scrInit(){
   if(scrInited)return;scrInited=true;
   scrInitFilters();
   document.querySelector("#screener-page .scr-seg[data-seg='all']").classList.add("active");
+  // 미국 전종목 가격 KV 사전 갱신 (비동기, 완료 전에도 섹터맵 로딩 시작)
+  fetch(PROXY+"?mode=price_refresh_all").catch(function(){});
   scrBuild("us");
 }
 
