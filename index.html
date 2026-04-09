@@ -194,7 +194,7 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .fund-kpi-grid::-webkit-scrollbar{display:none}
 .fund-kpi-item{display:flex;flex-direction:column;gap:2px;padding:7px 11px;border-right:1px solid #1a1a26;flex:0 0 auto;min-width:64px}
 .fund-kpi-item:last-child{border-right:none}
-.fund-kpi-label{font-size:9px;color:#555;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.fund-kpi-label{font-size:9px;color:#555;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:3px}
 .fund-kpi-val{font-size:12px;font-weight:700;color:#e8e8f0;white-space:nowrap}
 .fund-charts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fund-chart-box{background:#0a0a12;border-radius:6px;padding:8px;border:1px solid #1a1a26}
@@ -204,6 +204,10 @@ body.col-resizing{cursor:col-resize!important;user-select:none!important}
 .fund-est-year{font-size:10px;color:#555;margin-bottom:3px}
 .fund-est-rev{font-size:12px;font-weight:700;color:#14b8a6}
 .fund-est-eps{font-size:11px;color:#a78bfa;margin-top:2px}
+/* KPI 툴팁 */
+.kpi-tip{display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;border-radius:50%;background:#1e1e2a;color:#555;font-size:8px;cursor:help;flex-shrink:0;position:relative}
+.kpi-tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#1a1a26;border:1px solid #2a2a3a;color:#c0c0d0;font-size:10px;padding:5px 8px;border-radius:5px;white-space:nowrap;z-index:999;pointer-events:none;max-width:220px;white-space:pre-wrap;line-height:1.4}
+.kpi-tip:hover::before{content:'';position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#2a2a3a}
 /* 즐겨찾기 */
 #fav-page{padding:0;display:none;flex-direction:column;height:calc(100vh - 130px);overflow:hidden}
 #fav-page.active{display:flex}
@@ -983,19 +987,31 @@ function startSmartPolling() {
   stopPoller("scrCache");
   if ((s.krOpen||s.usOpen) && scrInited) {
     _pollTimers["scrCache"] = setInterval(function(){
-      // 캐시 초기화 후 재로딩 (RSI는 5분마다, 가격은 1분마다)
-      if (scrInited) {
-        var now2 = Date.now();
-        Object.keys(scrCache).forEach(function(sym){
-          // 가격만 초기화 (RSI 캐시는 5분 유지)
-          if (!scrCache[sym]._rsiTs || now2 - scrCache[sym]._rsiTs > 300000) {
-            delete scrCache[sym]; // RSI 포함 전체 재계산
-          } else {
-            scrCache[sym].done = false; // 가격만 재조회
-          }
-        });
+      if (!scrInited) return;
+      var now2 = Date.now();
+      // 열린 상세 패널이 있으면 전체 재빌드 건너뜀 (패널 날아가는 문제 방지)
+      var hasOpenPanel = document.querySelector('.scr-val-row.open') !== null;
+      Object.keys(scrCache).forEach(function(sym){
+        if (!scrCache[sym]._rsiTs || now2 - scrCache[sym]._rsiTs > 300000) {
+          delete scrCache[sym];
+        } else {
+          scrCache[sym].done = false;
+        }
+      });
+      if (!hasOpenPanel) {
         var tbody=g(scrRegion==="us"?"scr-us-body":"scr-kr-body");
         if(tbody && tbody.children.length>0) scrBuild(scrRegion);
+      } else {
+        // 패널 열려있으면 가격만 개별 업데이트
+        var stocks = scrRegion==="us"?US_STOCKS:KR_STOCKS;
+        stocks.forEach(function(s){
+          if(scrCache[s.sym]&&!scrCache[s.sym].done){
+            scrFetchHistory(s.sym).then(function(c){
+              var row=document.getElementById("sv_"+s.sym.replace(/[^a-zA-Z0-9]/g,"_")+"_"+s.sec.replace(/[^a-zA-Z0-9]/g,"_"));
+              if(row) scrUpdateRow(row,s,c,scrRegion==="kr");
+            });
+          }
+        });
       }
     }, iv.scrPrice);
   }
@@ -1299,12 +1315,13 @@ function scrFetchHistory(sym){
         scrCache[sym].rsi14m      =x.rsi14m       !=null?x.rsi14m:null;
         scrCache[sym].rsi14_6m    =x.rsi14_6m     !=null?x.rsi14_6m:null;
         scrCache[sym].rsi14y      =x.rsi14y       !=null?x.rsi14y:null;
-        // 시총·거래량 → fundCache 저장 (render() 시점에 자동 반영)
+        // 시총·거래량 → fundCache 저장 후 즉시 셀 갱신
         if(x.marketCap||x.volume||x.avgVolume){
           if(!fundCache[sym])fundCache[sym]={};
           if(x.marketCap)fundCache[sym].marketCap=x.marketCap;
           if(x.avgVolume)fundCache[sym].avgVolume=x.avgVolume;
           else if(x.volume)fundCache[sym].avgVolume=x.volume;
+          updateFundCells(sym);
         }
       }
       return scrCache[sym];
@@ -1324,22 +1341,22 @@ function scrRow(s,c,isKr){
     ?("<strong>"+s.name+"</strong><br><span style='font-size:10px;color:#3a3a4a'>"+s.sym.replace(/\.(KS|KQ)$/,"")+"</span>")
     :("<strong>"+s.name+"</strong> <span style='font-size:10px;color:#555'>"+s.kr+"</span><br><span style='font-size:10px;color:#333'>"+s.sym+"</span>");
   var fd=fundCache[s.sym]||{};
-  return "<tr data-sec='"+s.sec+"' data-sz='"+(s.sz||"")+"' data-mkt='"+(s.mkt||"")+"' data-id='"+id+"'>"
+  return "<tr data-sec='"+s.sec+"' data-sz='"+(s.sz||"")+"' data-mkt='"+(s.mkt||"")+"' data-id='"+id+"' id='row_"+id+"'>"
     +"<td class='sl sc0'>"+badge+"</td>"
     +"<td class='sl sc1' style='font-size:10px;color:#555'>"+s.sec+"</td>"
     +"<td class='sl sc2'>"+nm+"</td>"
     +"<td data-fund='cap' data-sym='"+s.sym+"' style='text-align:right;font-size:11px;color:#14b8a6'>"+fmtCap(fd)+"</td>"
     +"<td data-fund='vol' data-sym='"+s.sym+"' style='text-align:right;font-size:11px;color:#818cf8'>"+fmtVol(fd)+"</td>"
-    +"<td style='text-align:right'>"+scrPriceBadge(c,isKr)+"</td>"
-    +"<td>"+scrFmtChg(c.chg1d)+"</td>"
+    +"<td data-role='price' style='text-align:right'>"+scrPriceBadge(c,isKr)+"</td>"
+    +"<td data-role='chg1d'>"+scrFmtChg(c.chg1d)+"</td>"
     +"<td>"+scrFmtRsi(c.rsi14d)+"</td>"
-    +"<td>"+scrFmtChg(c.chg1w)+"</td>"
+    +"<td data-role='chg1w'>"+scrFmtChg(c.chg1w)+"</td>"
     +"<td>"+scrFmtRsi(c.rsi14w)+"</td>"
-    +"<td>"+scrFmtChg(c.chg1m)+"</td>"
+    +"<td data-role='chg1m'>"+scrFmtChg(c.chg1m)+"</td>"
     +"<td>"+scrFmtRsi(c.rsi14m)+"</td>"
-    +"<td>"+scrFmtChg(c.chg6m)+"</td>"
+    +"<td data-role='chg6m'>"+scrFmtChg(c.chg6m)+"</td>"
     +"<td>"+scrFmtRsi(c.rsi14_6m)+"</td>"
-    +"<td>"+scrFmtChg(c.chg1y)+"</td>"
+    +"<td data-role='chg1y'>"+scrFmtChg(c.chg1y)+"</td>"
     +"<td>"+scrFmtRsi(c.rsi14y)+"</td>"
     +"<td><button class='val-toggle' onclick=\"scrToggleVal('"+id+"','"+s.sym+"',"+isKr+",this)\">▶</button></td>"
     +"</tr>"
@@ -1497,6 +1514,26 @@ function scrSwitchRegion(region,btn){
   document.querySelector("#screener-page .scr-seg[data-seg='all']").classList.add("active");
   if(region==="kr"&&!KR_STOCKS.some(function(s){return scrCache[s.sym]&&scrCache[s.sym].done;}))scrBuild("kr");
   scrUpdateSum();
+}
+
+function scrUpdateRow(row,s,c,isKr){
+  if(!row||!c)return;
+  // 가격 셀만 업데이트 (상세 패널 건드리지 않음)
+  var pEl=row.querySelector('[data-role="price"]');
+  if(pEl&&c.price!=null){
+    var ps=c.priceSource||"closed";
+    var badge=ps==="pre"?"프리마켓":ps==="after"?"애프터마켓":ps==="regular"?"정규장":"마감";
+    pEl.innerHTML='<div class="price-wrap"><span class="price-val">'+(isKr?'₩'+Math.round(c.price).toLocaleString('ko-KR'):'$'+c.price.toFixed(2))+'</span>'
+      +'<span class="mkt-badge badge-'+ps+'">'+badge+'</span></div>';
+  }
+  ['chg1d','chg1w','chg1m','chg6m','chg1y'].forEach(function(k){
+    var el=row.querySelector('[data-role="'+k+'"]');
+    if(el&&c[k]!=null)el.innerHTML=scrFmtChg(c[k]);
+  });
+  ['rsi14d','rsi14w','rsi14m','rsi14_6m','rsi14y'].forEach(function(k){
+    var el=row.querySelector('[data-role="'+k+'"]');
+    if(el&&c[k]!=null)el.innerHTML=scrFmtRsi(c[k]);
+  });
 }
 
 function scrReload(){scrCache={};scrValLoading={};g("scr-status").textContent="새로고침중...";scrBuild(scrRegion);}
@@ -1658,26 +1695,45 @@ function renderFundPanel(c,fd,sym,isKr,rowId){
   var hasFd=fd&&!fd._error;
   var cap=c&&c.price?(isKr?'₩'+Math.round(c.price).toLocaleString('ko-KR'):'$'+c.price.toFixed(2)):'--';
 
-  // ── KPI 가로 한 줄 (현재가 ~ 월RSI)
+  // ── KPI 가로 한 줄 (현재가 ~ 년RSI) — 툴팁(!) 포함
+  var ntmOm = hasFd&&fd.estCY&&fd.estCY.operatingIncome&&fd.estCY.revenueAvg
+    ?(fd.estCY.operatingIncome/fd.estCY.revenueAvg*100).toFixed(1)+'%':null;
+  var ntmNm = hasFd&&fd.estCY&&fd.estCY.netIncome&&fd.estCY.revenueAvg
+    ?(fd.estCY.netIncome/fd.estCY.revenueAvg*100).toFixed(1)+'%':null;
   var kpis=[
-    {label:'현재가',    val:cap,                                                                   color:'#f0f0f8'},
-    {label:'PER',       val:hasFd&&fd.trailingPE   ?fd.trailingPE.toFixed(1)+'x':'--',            color:'#a78bfa'},
-    {label:'F.PER',     val:hasFd&&fd.forwardPE    ?fd.forwardPE.toFixed(1)+'x':'--',             color:'#818cf8'},
-    {label:'PBR',       val:hasFd&&fd.pbr          ?fd.pbr.toFixed(2)+'x':'--',                   color:'#38bdf8'},
-    {label:'EPS',       val:hasFd&&fd.eps          ?(isKr?'₩'+Math.round(fd.eps).toLocaleString('ko-KR'):'$'+fd.eps.toFixed(2)):'--', color:'#34d399'},
-    {label:'배당수익률', val:hasFd&&fd.divYield     ?(fd.divYield*100).toFixed(2)+'%':'--',        color:'#f59e0b'},
-    {label:'영업이익률', val:hasFd&&fd.operatingMargin?(fd.operatingMargin*100).toFixed(1)+'%':'--',color:'#14b8a6'},
-    {label:'순이익률',   val:hasFd&&fd.profitMargin ?(fd.profitMargin*100).toFixed(1)+'%':'--',    color:'#6ee7b7'},
-    {label:'ROE',       val:hasFd&&fd.roe          ?(fd.roe*100).toFixed(1)+'%':'--',              color:'#f97316'},
-    {label:'일RSI',     val:scrFmtRsi(c&&c.rsi14d), color:''},
-    {label:'주RSI',     val:scrFmtRsi(c&&c.rsi14w), color:''},
-    {label:'월RSI',     val:scrFmtRsi(c&&c.rsi14m), color:''},
-    {label:'6mRSI',     val:scrFmtRsi(c&&c.rsi14_6m),color:''},
-    {label:'년RSI',     val:scrFmtRsi(c&&c.rsi14y), color:''},
+    {label:'현재가',    tip:'현재 거래 가격',
+     val:cap, color:'#f0f0f8'},
+    {label:'PER',       tip:'주가수익비율(TTM)\n=주가÷주당순이익\n낮을수록 저평가 가능성',
+     val:hasFd&&fd.trailingPE?fd.trailingPE.toFixed(1)+'x':'--', color:'#a78bfa'},
+    {label:'F.PER',     tip:'선행PER(NTM)\n=주가÷향후12개월 예상EPS\nForwardPE 기반',
+     val:hasFd&&fd.forwardPE?fd.forwardPE.toFixed(1)+'x':'--', color:'#818cf8'},
+    {label:'PBR',       tip:'주가순자산비율\n=주가÷주당순자산\n1 미만이면 장부가 이하 거래',
+     val:hasFd&&fd.pbr?fd.pbr.toFixed(2)+'x':'--', color:'#38bdf8'},
+    {label:'EPS',       tip:'주당순이익(TTM)\n최근12개월 순이익÷발행주식수',
+     val:hasFd&&fd.eps?(isKr?'₩'+Math.round(fd.eps).toLocaleString('ko-KR'):'$'+fd.eps.toFixed(2)):'--', color:'#34d399'},
+    {label:'배당수익률', tip:'연간배당금÷주가\n높을수록 배당 매력 높음',
+     val:hasFd&&fd.divYield?(fd.divYield*100).toFixed(2)+'%':'--', color:'#f59e0b'},
+    {label:'영업이익률', tip:'영업이익÷매출(TTM)\n본업 수익성 지표'+(ntmOm?'\nNTM 추정: '+ntmOm:''),
+     val:hasFd&&fd.operatingMargin?(fd.operatingMargin*100).toFixed(1)+'%':'--', color:'#14b8a6'},
+    {label:'순이익률',   tip:'순이익÷매출(TTM)\n세후 최종 수익성'+(ntmNm?'\nNTM 추정: '+ntmNm:''),
+     val:hasFd&&fd.profitMargin?(fd.profitMargin*100).toFixed(1)+'%':'--', color:'#6ee7b7'},
+    {label:'ROE',       tip:'자기자본이익률(TTM)\n=순이익÷자기자본\n자본 효율성, 높을수록 좋음',
+     val:hasFd&&fd.roe?(fd.roe*100).toFixed(1)+'%':'--', color:'#f97316'},
+    {label:'일RSI',     tip:'일봉 RSI(14)\n70↑ 과매수 / 30↓ 과매도',
+     val:scrFmtRsi(c&&c.rsi14d), color:''},
+    {label:'주RSI',     tip:'주봉 RSI(14)\n중기 추세 강도',
+     val:scrFmtRsi(c&&c.rsi14w), color:''},
+    {label:'월RSI',     tip:'월봉 RSI(14)\n장기 추세 과열/침체',
+     val:scrFmtRsi(c&&c.rsi14m), color:''},
+    {label:'6mRSI',     tip:'6개월봉 RSI(14)\n중장기 모멘텀',
+     val:scrFmtRsi(c&&c.rsi14_6m), color:''},
+    {label:'년RSI',     tip:'연봉 RSI(14)\n초장기 사이클 판단',
+     val:scrFmtRsi(c&&c.rsi14y), color:''},
   ];
   var kpiHtml=kpis.map(function(k){
+    var tipHtml=k.tip?"<span class='kpi-tip' data-tip='"+k.tip.replace(/'/g,"&#39;").replace(/\n/g,"&#10;")+"'>!</span>":'';
     return "<div class='fund-kpi-item'>"
-      +"<span class='fund-kpi-label'>"+k.label+"</span>"
+      +"<span class='fund-kpi-label'>"+k.label+tipHtml+"</span>"
       +"<span class='fund-kpi-val'"+(k.color?" style='color:"+k.color+"'":"")+">"+(k.val||'--')+"</span>"
       +"</div>";
   }).join('');
@@ -1798,9 +1854,9 @@ function renderRevChart(canvas,fd,isKr){
 function renderOpChart(canvas,fd,isKr){
   var lb=buildFundLabels(fd,isKr);
   var vals=(fd.history||[]).map(function(h){return h.operatingIncome;});
-  // 추정 연도 레이블 수만큼 null 채우기 (영업이익 추정치 없음)
-  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(null);
-  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(null);
+  // NTM 영업이익 추정치 (역산값)
+  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(fd.estCY.operatingIncome||null);
+  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(fd.estNY.operatingIncome||null);
   var sc=fundScale(vals);
   if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
   new Chart(canvas,{
@@ -1826,8 +1882,14 @@ function renderMarChart(canvas,fd,isKr){
   // netMargin: 소수(0.27) or % (27.0) 자동 판별
   function toPercent(v){ if(v==null)return null; return Math.abs(v)<2 ? parseFloat((v*100).toFixed(1)) : parseFloat(v.toFixed(1)); }
   var vals=(fd.history||[]).map(function(h){return toPercent(h.netMargin);});
-  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(null);
-  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(null);
+  // NTM 순이익률 역산: netIncome / revenueAvg
+  function ntmNetMargin(est){
+    if(!est)return null;
+    if(est.netIncome&&est.revenueAvg)return toPercent(est.netIncome/est.revenueAvg);
+    return null;
+  }
+  if(fd.estCY&&(fd.estCY.epsAvg||fd.estCY.revenueAvg))vals.push(ntmNetMargin(fd.estCY));
+  if(fd.estNY&&(fd.estNY.epsAvg||fd.estNY.revenueAvg))vals.push(ntmNetMargin(fd.estNY));
   if(Chart.getChart(canvas))Chart.getChart(canvas).destroy();
   new Chart(canvas,{
     type:'line',
