@@ -1426,7 +1426,7 @@ function scrBuild(region){
   scrProgShow(0,"데이터 로딩중...");
 
   function loadChunk(ci){
-    if(ci>=chunks.length){render();scrProgHide();g("scr-status").textContent="완료 "+scrHhmm();scrStartFundamentals(stocks);fetchCaps(stocks);return;}
+    if(ci>=chunks.length){render();scrProgHide();g("scr-status").textContent="완료 "+scrHhmm();scrStartFundamentals(stocks);return;}
     Promise.all(chunks[ci].map(function(s){return scrFetchHistory(s.sym);}))
       .then(function(){
         loaded+=chunks[ci].length;
@@ -2155,7 +2155,6 @@ function favFetchAll(){
       g("fav-status").textContent="완료 "+scrHhmm();
       favUpdateSum();
       scrStartFundamentals(favList);
-      fetchCaps(favList);
       return;
     }
     Promise.all(chunks[ci].map(function(f){return scrFetchHistory(f.sym);}))
