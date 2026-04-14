@@ -1311,15 +1311,23 @@ function scrFetchFin(sym){
   return scrFetchHistory(sym).then(function(c){
     if(c.fin)return c;
     var isKr=/\.(KS|KQ)$/i.test(sym);
-    if(!isKr){c.fin=true;return c;}
-    var code=sym.replace(/\.(KS|KQ)$/i,"");
-    return fetch(PROXY+"?mode=kr_fin&code="+encodeURIComponent(code))
+    var url=isKr
+      ?(PROXY+"?mode=kr_fin&code="+encodeURIComponent(sym.replace(/\.(KS|KQ)$/i,"")))
+      :(PROXY+"?mode=us_fin&sym="+encodeURIComponent(sym));
+    return fetch(url)
       .then(function(r){return r.json();})
       .then(function(d){
         if(d.ok&&d.data){
-          c.per=d.data.per;c.fper=d.data.fper;c.pbr=d.data.pbr;
-          c.eps=d.data.eps;c.dvr=d.data.dvr;c.roe=d.data.roe;
-          c.roi=d.data.roi;c.opm=d.data.opm;c.npm=d.data.npm;
+          var f=d.data;
+          c.per=f.per;c.fper=f.fper;c.pbr=f.pbr;c.eps=f.eps;
+          c.dvr=f.dvr;c.roe=f.roe;c.roi=f.roi;
+          c.opm=f.opm;c.npm=f.npm;
+          // KR 추가 필드
+          c.revenue_억=f.revenue_억;c.operating_income_억=f.operating_income_억;
+          c.net_income_억=f.net_income_억;c.equity_억=f.equity_억;
+          c.net_debt_억=f.net_debt_억;c.year=f.year;
+          // US 추가 필드
+          c.marketCap=f.marketCap;
         }
         c.fin=true;return c;
       }).catch(function(){c.fin=true;return c;});
@@ -1408,10 +1416,19 @@ function scrToggleVal(id,sym,isKr,btn){
         ["PBR",fv(c.pbr,"배")],["EPS",fi(c.eps,"원")],
         ["배당수익률",fv(c.dvr,"%")]
       ]);
-      html+=card("수익성",[
+      html+=card("수익성 (DART "+(c.year||"-")+"년)",[
         ["영업이익률",fv(c.opm,"%")],["순이익률",fv(c.npm,"%")],
         ["ROE",fv(c.roe,"%")],["ROI",fv(c.roi,"%")]
       ]);
+      if(c.revenue_억!=null||c.operating_income_억!=null){
+        html+=card("재무현황 (억원)",[
+          ["매출",fi(c.revenue_억,"억")],
+          ["영업이익",fi(c.operating_income_억,"억")],
+          ["순이익",fi(c.net_income_억,"억")],
+          ["자본총계",fi(c.equity_억,"억")],
+          ["순차입금",fi(c.net_debt_억,"억")]
+        ]);
+      }
       if(!hasFinData){
         html+="<div style=\"display:flex;align-items:center;gap:8px;padding:6px 10px;"
           +"background:#0a0a10;border-radius:6px;border:1px solid #2a1a1a\">"
@@ -1419,10 +1436,17 @@ function scrToggleVal(id,sym,isKr,btn){
           +reloadBtn+"</div>";
       }
     } else {
-      html+="<div style=\"background:#0a0a10;border-radius:6px;padding:7px 10px;border:1px solid #1a1a24\">"
-        +"<div style=\"color:#3a4a5a;font-size:9px;margin-bottom:4px\">현재가</div>"
-        +"<strong style=\"color:#e8e8f0;font-size:13px\">"+cap+"</strong>"
-        +"</div>";
+      html+=card("밸류에이션",[
+        ["현재가","<strong style=\"color:#e8e8f0;font-size:12px\">"+cap+"</strong>"],
+        ["P/E",fv(c.per,"x")],["Fwd P/E",fv(c.fper,"x")],
+        ["P/B",fv(c.pbr,"x")],["EPS($)",fv(c.eps,"",2)],
+        ["배당수익률",fv(c.dvr,"%")]
+      ]);
+      if(c.roe!=null){
+        html+=card("수익성",[
+          ["ROE",fv(c.roe,"%")]
+        ]);
+      }
     }
     html+=card("RSI",[
       ["일봉",scrFmtRsi(c.rsi14d)],["주봉",scrFmtRsi(c.rsi14w)],
